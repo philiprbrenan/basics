@@ -1,12 +1,12 @@
 //------------------------------------------------------------------------------
-// https://open.kattis.com/problems/sequences
+// Functions using arithmetic modulo a base number.
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2022, 2022
 //------------------------------------------------------------------------------
 #ifndef CModulo
 #define CModulo
 #include <assert.h>
 
-static long long base = 1000000007;                                             // The modulo base unless otherwise set
+static long base = 1000000007;                                                  // The modulo base unless otherwise set
 
 void ModSetBase(long a)                                                         // Set the modulo base
  {assert(a > 0);
@@ -69,6 +69,16 @@ static long powerOf2(long n)                                                    
  }
 long modpowerOf2(long n) {return powerOf2(n);}                                  // Power of two modulus base
 
+static long load(char *n)                                                       // Load an integer represented as a string
+ {long r = 0;
+  for(char *c = n; *c; ++c)
+   {r = Mul(r, 10);
+    r = Add(r, *c - '0');
+   }
+  return r;
+ }
+long modLoad(char *n) {return load(n);}                                         // Load an integer represented as a string
+
 long pick_n = 0;                                                                // Cache prior picks to speed sequential progress through a row of Pascal's triangle
 long pick_i = 0;                                                                // Number to pick from n
 long pick_r = 0;                                                                // Pick result
@@ -91,7 +101,12 @@ static long pick(long n, long i)                                                
   pick_i = i;
   return pick_r = r;
  }
-long modPick(long n, long i) {return pick(n, i);}                               // Choose i from n modulo base
+long long modPick(long n, long i) {return pick(n, i);}                               // Choose i from n modulo base
+
+static long catalan(long n)                                                     // Catalan number modulo base
+ {return Div(pick(2 * n, n), n + 1);
+ }
+long modCatalan(long n) {return catalan(n);}                                    // Catalan number modulo base
 
 #if (__INCLUDE_LEVEL__ == 0)
 
@@ -129,6 +144,9 @@ void tests()
     for(int i = 0; i <= N; ++i) s = Add(s, pick(N, i));
     assert(s == powerOf2(N));
    }
+
+  assert(load("121") == 121);
+  assert(catalan(100) == load("896519947090131496687170070074100632420837521538745909320"));
  }
 
 int main()                                                                      // Read and test string

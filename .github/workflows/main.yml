@@ -16,7 +16,7 @@ jobs:
 
     - name: Run
       run: |
-        gcc -Ic c/bsics/basics.c; ./a.out
-        gcc -Ic c/bits/bits.c;    ./a.out
-        gcc -Ic c/tree/tree.c;    ./a.out
-        gcc -Ic c/hash/int.c;     ./a.out
+        gcc -Ic c/basics/basics.c; ./a.out
+        gcc -Ic c/bits/bits.c;     ./a.out
+        gcc -Ic c/tree/tree.c;     ./a.out
+        gcc -Ic c/hash/int.c;      ./a.out

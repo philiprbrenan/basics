@@ -1,0 +1,124 @@
+//------------------------------------------------------------------------------
+// Basic routines in C
+// Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc., 2022
+//------------------------------------------------------------------------------
+#ifndef Cbasics
+#define Cbasics
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <assert.h>
+#include <memory.h>
+#include <stdarg.h>
+
+void say(char *format, ...)
+ {va_list p;
+  va_start (p, format);
+  int i = vfprintf(stderr, format, p);
+  assert(i > 0);
+	va_end(p);
+ }
+
+void out(char *format, ...)
+ {va_list p;
+  va_start (p, format);
+  int i = vfprintf(stderr, format, p);
+  assert(i > 0);
+	va_end(p);
+ }
+
+int getNextInt()
+ {int i = 0;
+  const int j = scanf("%d", &i);
+  assert(j > 0);
+  return i;
+ }
+
+char *getNextLine()
+ {char *s = 0;
+  size_t n = 0;
+  const int j = getline(&s, &n, stdin);
+  assert(j != 0);
+  return s;
+ }
+
+int max(const int i, const int j)
+ {return i > j ? i : j;
+ }
+
+int min(const int i, const int j)
+ {return i < j ? i : j;
+ }
+
+int abs(const int i)
+ {return i < 0 ? -i : i;
+ }
+
+int compareMemory(const char * a, const int A, const char *b, const int B)
+ {const int l = min(A, B);
+  const int c = memcmp(a, b, l);
+  if (c != 0) return c;
+  if (A < B)  return -1;
+  if (A > B)  return +1;
+  return  0;
+ }
+
+void printNL(const FILE *f)
+ {fputc('\n', (FILE *)f);
+ }
+
+void printChars(const FILE *f, const char * a, const int A)
+ {for(int i = 0; i < A; ++i)
+   {fputc(a[i], (FILE *)f);
+   }
+ }
+
+void printHex(const FILE *f, const char * a, const int A)
+ {for(int i = 0; i < A; ++i)
+   {fprintf((FILE *)f, "%02x", a[i]);
+   }
+  fprintf((FILE *)f, "\n");
+ }
+
+int *boxInt(int a)
+ {int *m = malloc(sizeof(int));
+  *m = a;
+  return m;
+ }
+
+#if (__INCLUDE_LEVEL__ == 0)
+int main()
+ {printf("%d\n", getNextInt());
+  printf("%d\n", getNextInt());
+  printf("%d\n", getNextInt());
+  getNextLine();
+  printf("%s",   getNextLine());
+  assert(1 == min(1, 2));
+  assert(2 == max(1, 2));
+  assert(2 == abs(-2));
+  if (1)
+   {const char *a = "a", *b = "aa";
+    assert( 0 == compareMemory(a, 1, b, 1));
+    assert(-1 == compareMemory(a, 1, b, 2));
+    assert(+1 == compareMemory(b, 2, a, 1));
+   }
+  printChars(stdout, "def", 2); printNL(stdout);
+  printHex  (stdout, "abc", 3); //printNL(stdout);
+  if (1) {int *i = boxInt(1); assert(*i == 1);}
+  return 0;
+ }
+#endif
+#endif
+//TEST
+/*
+11
+12 13
+a b c
+----
+11
+12
+13
+a b c
+de
+616263
+*/

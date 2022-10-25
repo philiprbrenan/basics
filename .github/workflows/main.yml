@@ -19,3 +19,4 @@ jobs:
         gcc -I. bits/bits.c;     ./a.out
         gcc -I. tree/tree.c;     ./a.out
         gcc -I. hash/int.c;      ./a.out
+        gcc -I. modulo/modulo.c; ./a.out

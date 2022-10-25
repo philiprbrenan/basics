@@ -1,0 +1,22 @@
+# Test $d
+
+name: Test
+
+on:
+  push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: 'main'
+
+    - name: Run
+      run: |
+        gcc -Ic c/bsics/basics.c; ./a.out
+        gcc -Ic c/bits/bits.c;    ./a.out
+        gcc -Ic c/tree/tree.c;    ./a.out
+        gcc -Ic c/hash/int.c;     ./a.out

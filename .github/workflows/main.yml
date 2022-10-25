@@ -14,9 +14,18 @@ jobs:
       with:
         ref: 'main'
 
-    - name: Run
+    - name: Bits
       run: |
         gcc -I. bits/bits.c;     ./a.out
+
+    - name: Tree
+      run: |
         gcc -I. tree/tree.c;     ./a.out
+
+    - name: Hash
+      run: |
         gcc -I. hash/int.c;      ./a.out
+
+    - name: Modulo
+      run: |
         gcc -I. modulo/modulo.c; ./a.out

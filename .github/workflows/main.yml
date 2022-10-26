@@ -14,13 +14,13 @@ jobs:
       with:
         ref: 'main'
 
+    - name: 2d
+      run: |
+        gcc -I. 2d/2d.c;         ./a.out
+
     - name: Bits
       run: |
         gcc -I. bits/bits.c;     ./a.out
-
-    - name: Tree
-      run: |
-        gcc -I. tree/tree.c;     ./a.out
 
     - name: Hash
       run: |
@@ -29,3 +29,7 @@ jobs:
     - name: Modulo
       run: |
         gcc -I. modulo/modulo.c; ./a.out
+
+    - name: Tree
+      run: |
+        gcc -I. tree/tree.c;     ./a.out

@@ -118,6 +118,7 @@ void tests()                                                                    
   assert(near(dot(X(), Y()), 0));
 
   assert(near(area(Mul(2, X()), Mul(2, Y())), 2.0));
+  assert(near(area(Mul(4, X()), Mul(4, Y())), 8.0));
  }
 
 int main()                                                                      //Test

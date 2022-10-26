@@ -22,6 +22,13 @@ static Vector2d *new(double x, double y)                                        
  }
 Vector2d *vector2New(double x, double y) {return new(x, y);}                    // Create a vector
 
+static Vector2d *clone(Vector2d *a)                                             // Clone a vector
+ {Vector2d *v = calloc(1, sizeof(Vector2d));
+  v->x = a->x; v->y = a->y;
+  return v;
+ }
+Vector2d *vector2Clone(Vector2d *a) {return clone(a);}                          // Clone a vector
+
 static Vector2d *Add(Vector2d *a, Vector2d *b)                                  // Add two vectors placing the result in the first vector
  {a->x += b->x;
   a->y += b->y;
@@ -56,16 +63,41 @@ int vector2dClose(Vector2d * a, Vector2d * b) {return close(a, b);}             
 static double length(Vector2d * a)                                              // Length of a vector
  {return hypot(a->x, a->y);
  }
-double vector2dLength(Vector2d * a) {return length(a);}                         // Length of a vector
+double Length(Vector2d * a) {return length(a);}                                 // Length of a vector
+
+static Vector2d *normalize(Vector2d * a)                                        // Normalize a vector
+ {return Mul(1.0/length(a), a);
+ }
+Vector2d *vector2dNormalize(Vector2d * a) {return normalize(a);}                // Normalize a vector
+
+static Vector2d *rot90(Vector2d *a)                                             // Rotate 90 degrees ant-clockwise
+ {const double x = a->x, y = a->y;
+  a->x = -y; a->y = x;
+  return a;
+ }
+Vector2d *vector2dRot90(Vector2d * a) {return rot90(a);}                        // Rotate 90 degrees ant-clockwise
+
+static Vector2d *rot180(Vector2d *a)                                            // Rotate 180 degrees ant-clockwise
+ {return rot90(rot90(a));
+ }
+Vector2d *vector2dRot180(Vector2d * a) {return rot180(a);}                      // Rotate 180 degrees ant-clockwise
+
+static Vector2d *rot270(Vector2d *a)                                            // Rotate 270 degrees ant-clockwise
+ {return rot90(rot90(a));
+ }
+Vector2d *vector2dRot270(Vector2d * a) {return rot270(a);}                      // Rotate 270 degrees ant-clockwise
 
 #if (__INCLUDE_LEVEL__ == 0)
 
-void tests()
- {Vector2d * a = new(1, 0);
-  assert(near(length(a), 1));
+void tests()                                                                    // Tests
+ {Vector2d * x, *y;
+  x = new(1, 0); assert(near(length(x), 1));
+  rot90(x);      assert(near(length(x), 1));
+  x = new(2, 2); assert(close(normalize(x), new(1.0/sqrt(2), 1.0/sqrt(2))));
+  x = new(2, 2); y = clone(x); assert(close(rot180(rot180(y)), x));
  }
 
-int main()                                                                      // Read and test string
+int main()                                                                      //Test
  {tests();
   return 0;
  }

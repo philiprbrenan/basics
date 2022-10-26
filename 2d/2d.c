@@ -22,6 +22,16 @@ static Vector2d *new(double x, double y)                                        
  }
 Vector2d *vector2New(double x, double y) {return new(x, y);}                    // Create a vector
 
+static Vector2d *X()                                                            // Create an X vector
+ {return new(1, 0);
+ }
+Vector2d *vector2X() {return X();}                                              // Create an X vector
+
+static Vector2d *Y()                                                            // Create an Y vector
+ {return new(0, 1);
+ }
+Vector2d *vector2Y() {return Y();}                                              // Create an Y vector
+
 static Vector2d *clone(Vector2d *a)                                             // Clone a vector
  {Vector2d *v = calloc(1, sizeof(Vector2d));
   v->x = a->x; v->y = a->y;
@@ -87,14 +97,20 @@ static Vector2d *rot270(Vector2d *a)                                            
  }
 Vector2d *vector2dRot270(Vector2d * a) {return rot270(a);}                      // Rotate 270 degrees ant-clockwise
 
+static double dot(Vector2d *a, Vector2d *b)                                     // Dot product
+ {return a->x * b->x + a->y * b->y;
+ }
+double vector2dDot(Vector2d * a, Vector2d * b) {return dot(a, b);}              // Dot product
+
 #if (__INCLUDE_LEVEL__ == 0)
 
 void tests()                                                                    // Tests
- {Vector2d * x, *y;
-  x = new(1, 0); assert(near(length(x), 1));
-  rot90(x);      assert(near(length(x), 1));
-  x = new(2, 2); assert(close(normalize(x), new(1.0/sqrt(2), 1.0/sqrt(2))));
-  x = new(2, 2); y = clone(x); assert(close(rot180(rot180(y)), x));
+ {assert(near(length(X()),         1));
+  assert(near(length(rot90 (X())), 1));
+  assert(near(length(rot180(X())), 1));
+  assert(near(length(rot270(X())), 1));
+  assert(close(normalize(Mul(2, Add(X(), Y()))), new(1.0/sqrt(2), 1.0/sqrt(2))));
+  assert(near(dot(X(), Y()), 0));
  }
 
 int main()                                                                      //Test

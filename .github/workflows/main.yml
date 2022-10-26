@@ -16,7 +16,7 @@ jobs:
 
     - name: 2d
       run: |
-        gcc -I. 2d/2d.c;         ./a.out
+        gcc -I. 2d/2d.c -lm;     ./a.out
 
     - name: Bits
       run: |

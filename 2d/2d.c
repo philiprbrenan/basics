@@ -102,6 +102,11 @@ static double dot(Vector2d *a, Vector2d *b)                                     
  }
 double vector2dDot(Vector2d * a, Vector2d * b) {return dot(a, b);}              // Dot product
 
+static double area(Vector2d *a, Vector2d *b)                                    // Area between two vectors with positive area on the left hand side of the index finger in a right hand coordinate system
+ {return (a->x*b->y - b->x*a->y)/2;
+ }
+double vector2dArea(Vector2d * a, Vector2d * b) {return area(a, b);}            // Area between two vectors with positive area on the left hand side of the index finger in a right hand coordinate system
+
 #if (__INCLUDE_LEVEL__ == 0)
 
 void tests()                                                                    // Tests
@@ -111,6 +116,8 @@ void tests()                                                                    
   assert(near(length(rot270(X())), 1));
   assert(close(normalize(Mul(2, Add(X(), Y()))), new(1.0/sqrt(2), 1.0/sqrt(2))));
   assert(near(dot(X(), Y()), 0));
+
+  assert(near(area(Mul(2, X()), Mul(2, Y())), 2.0));
  }
 
 int main()                                                                      //Test

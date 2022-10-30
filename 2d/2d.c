@@ -103,7 +103,7 @@ static double dot(Vector2d *a, Vector2d *b)                                     
 double vector2dDot(Vector2d * a, Vector2d * b) {return dot(a, b);}              // Dot product
 
 static double area(Vector2d *a, Vector2d *b)                                    // Area between two vectors with positive area on the left hand side of the index finger in a right hand coordinate system
- {return (a->x*b->y - b->x*a->y)/2;
+ {return (a->x*b->y - b->x*a->y);
  }
 double vector2dArea(Vector2d * a, Vector2d * b) {return area(a, b);}            // Area between two vectors with positive area on the left hand side of the index finger in a right hand coordinate system
 
@@ -117,8 +117,22 @@ void tests()                                                                    
   assert(close(normalize(Mul(2, Add(X(), Y()))), new(1.0/sqrt(2), 1.0/sqrt(2))));
   assert(near(dot(X(), Y()), 0));
 
-  assert(near(area(Mul(2, X()), Mul(2, Y())), 2.0));
-  assert(near(area(Mul(4, X()), Mul(4, Y())), 8.0));
+  assert(near(area(Mul(2, X()), Mul( 2, Y())),  4.0));
+  assert(near(area(Mul(4, X()), Mul( 4, Y())), 16.0));
+  assert(near(area(Mul(2, X()), Mul(-2, Y())), -4.0));
+  assert(near(area(X(), normalize(Add(X(), Y()))), sqrt(1.0/2.0)));
+
+  if (1)                                                                        // Cross product as it relates to the dot product
+   {Vector2d *a = normalize(new(1, 1));
+
+    for(int i = 0, N = 10; i < N; ++i)
+     {double x = i * 1.0/N, y = sqrt(1 - x*x);
+      Vector2d *b = normalize(new(x, y));
+      double c = area(a, b), d = dot(a, b), e = sqrt(1 - d*d);
+      assert(near(c, e) || near(c, -e));
+      //printf("cross= %8.4f  sqrt(1-dot*Dot)=%8.4f\n", c, e);
+     }
+   }
  }
 
 int main()                                                                      //Test

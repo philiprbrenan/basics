@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <memory.h>
+#include <string.h>
 #include <stdarg.h>
 
 void say(char *format, ...)
@@ -86,6 +87,20 @@ int *boxInt(int a)
   return m;
  }
 
+char **split(char *String, char *separator)                                     // Split a string into words
+ {int        l = strlen(String), b = (l+1)*(1 + sizeof(char *));
+  void *     m = malloc(b);
+  char **words = m;
+  char *string = m + (l+1)*sizeof(char *);
+  memset(m, 0, b);
+  memcpy(string, String, l);
+  int w = 0;
+  for(char *p = strtok(string, separator); p; p = strtok(0, separator))
+   {words[w++] = p;
+   }
+  return words;
+ }
+
 #if (__INCLUDE_LEVEL__ == 0)
 int main()
  {printf("%d\n", getNextInt());
@@ -105,6 +120,16 @@ int main()
   printChars(stdout, "def", 2); printNL(stdout);
   printHex  (stdout, "abc", 3); //printNL(stdout);
   if (1) {int *i = boxInt(1); assert(*i == 1);}
+
+  if (1)
+   {char **c = split("a  b  c", " ");
+    assert(strcmp(c[0], "a") == 0);
+    assert(strcmp(c[1], "b") == 0);
+    assert(strcmp(c[2], "c") == 0);
+    assert(       c[3]       == 0);
+    free(c);
+   }
+
   return 0;
  }
 #endif

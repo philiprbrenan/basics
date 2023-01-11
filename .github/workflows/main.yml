@@ -30,6 +30,10 @@ jobs:
       run: |
         gcc -I. modulo/modulo.c; ./a.out
 
+    - name: StackLong
+      run: |
+        gcc -I. stack/long.c;    ./a.out
+
     - name: Tree
       run: |
         gcc -I. tree/tree.c;     ./a.out

@@ -89,7 +89,7 @@ int *boxInt(int a)
 
 char **split(char *String, char *separator)                                     // Split a string into words
  {int        l = strlen(String), b = (l+1)*(1 + sizeof(char *));
-  void *     m = malloc(b);
+  void *     m = malloc(b);                                                     // Space for words
   char **words = m;
   char *string = m + (l+1)*sizeof(char *);
   memset(m, 0, b);

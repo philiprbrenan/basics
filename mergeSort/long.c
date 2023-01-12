@@ -21,13 +21,13 @@ void mergeSortLong(long *A, int N)                                              
     for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = 0, b = 0, i = 0;                                                  // Position in each half partition
       for (; p+i < N && i < S && a < s && p+a < N && b < s && p+s+b < N;)       // Choose next lowest element from each partition
-       {W[i++] = mergeSortCompareLong(A, p+a, p+s+b) <= 0 ? A[p+a++]:A[p+s+b++];// Stability: we take the lowest first or the first equal element
+       {W[i++] = mergeSortCompareLong(A, p+a, p+s+b) <= 0 ? A[p+a++]:A[p+s+b++];// Stability: we take the lowest element first or the first equal element
        }
 
       for(;a < s && p+i < N;) W[i++] = A[p+a++];                                // Add trailing elements
       for(;b < s && p+i < N;) W[i++] = A[p+s+b++];
 
-      for(i = 0; i < S && p+i < N; i++) A[p+i] = W[i];                          // Copy back from work area to A being sorted
+      for(i = 0; i < S && p+i < N; i++) A[p+i] = W[i];                          // Copy back from work area to array being sorted
      }
    }
   free(W);                                                                      // Free work area

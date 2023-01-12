@@ -28,7 +28,7 @@ void mergeSortLong(long *array, int N)                                          
       for(;a < s && p+i < N;) copy[i++] = array[p+a++];                         // Add trailing elements
       for(;b < s && p+i < N;) copy[i++] = array[p+s+b++];
 
-      for(i = 0; i < S && p+i < N; i++) array[p+i] = copy[i];               // Copy back from work area to array being sorted
+      for(i = 0; i < S && p+i < N; i++) array[p+i] = copy[i];                   // Copy back from work area to array being sorted
      }
    }
   free(copy);                                                                   // Free work area

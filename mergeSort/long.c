@@ -15,7 +15,7 @@ void mergeSortLong(long *A, const int N)                                        
    {for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = p, b = a+s, i = 0;                                                // Position in each half partition
 
-      for (;a < p+s && a < N && b < p+S && b < N && p+i < N && i < S;)          // Choose next lowest element from each partition
+      for (;a < p+s && a < N && b < p+S && b < N && i < S && p+i < N;)          // Choose next lowest element from each partition
        {W[i++] = A[A[a] <= A[b] ? a++ : b++];                                   // Stability: we take the lowest element first or the first equal element
        }
 

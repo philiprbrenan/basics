@@ -8,23 +8,23 @@
 #include <assert.h>
 #include <stdarg.h>
 
-void mergeSortLong(long *A, int N)                                              // In place stable merge sort
+void mergeSortLong(long *A, const int N)                                        // In place stable merge sort
  {long *W = calloc(N, sizeof(long));                                            // Work area
-  for (int s = 1; s < N; s <<= 1)                                               // Partition half size
-   {const int S = s+s;                                                          // Partition size
 
-    for (int p = 0; p < N; p += S)                                              // Partition start
-     {int a = 0, b = 0, i = 0;                                                  // Position in each half partition
-      for (; p+i < N && i < S && a < s && p+a < N && b < s && p+s+b < N;)       // Choose next lowest element from each partition
-       {W[i++] = A[p+a] <= A[p+s+b] ? A[p+a++] : A[p+s+b++];                    // Stability: we take the lowest element first or the first equal element
+  for   (int s = 1, S = 2; s < N; s <<= 1, S <<= 1)                             // Partition half size, full size
+   {for (int p = 0; p < N; p += S)                                              // Partition start
+     {int a = p, b = a+s, i = 0;                                                // Position in each half partition
+
+      for (;a < p+s && a < N && b < p+S && b < N && p+i < N && i < S;)          // Choose next lowest element from each partition
+       {W[i++] = A[A[a] <= A[b] ? a++ : b++];                                   // Stability: we take the lowest element first or the first equal element
        }
 
-      for(;a < s && p+i < N;) W[i++] = A[p+a++];                                // Add trailing elements
-      for(;b < s && p+i < N;) W[i++] = A[p+s+b++];
-
-      for(i = 0; i < S && p+i < N; i++) A[p+i] = W[i];                          // Copy back from work area to array being sorted
+      for (     ; a < p+s && p+i < N;)     W[i++] = A[a++];                     // Add trailing elements
+      for (     ; b < p+S && p+i < N;)     W[i++] = A[b++];
+      for (i = 0; i < S   && p+i < N; i++) A[p+i] = W[i];                       // Copy back from work area to array being sorted
      }
    }
+
   free(W);                                                                      // Free work area
  }
 
@@ -35,7 +35,8 @@ void tests()                                                                    
 
   mergeSortLong(array, N);
 
-  for(int i = 0; i < N; i++) assert(array[i] == i);
+  for(int i = 0; i < N; i++) assert(array[i] == i);                             // Check that the resulting array has the expected values
+  for(int i = 1; i < N; i++) assert(array[i] >  array[i-1]);                    // Check that the resulting array is in ascending order
  }
 
 int main()                                                                      // Run tests

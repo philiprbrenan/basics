@@ -13,25 +13,24 @@ int mergeSortCompareLong(long *array, int A, int B)                             
   return a < b ? -1 : a > b ? +1 : 0;
  }
 
-void mergeSortLong(long *array, int N)                                          // In place stable merge sort
- {long *copy = calloc(N, sizeof(long));                                         // Work area
+void mergeSortLong(long *A, int N)                                              // In place stable merge sort
+ {long *W = calloc(N, sizeof(long));                                            // Work area
   for (int s = 1; s < N; s <<= 1)                                               // Partition half size
    {const int S = s+s;                                                          // Partition size
 
     for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = 0, b = 0, i = 0;                                                  // Position in each half partition
       for (; p+i < N && i < S && a < s && p+a < N && b < s && p+s+b < N;)       // Choose next lowest element from each partition
-       {copy[i++] = mergeSortCompareLong(array, p+a, p+s+b) <= 0 ?              // Stability: we take the lowest first or the first equal element
-                    array[p+a++] : array[p+s+b++];
+       {W[i++] = mergeSortCompareLong(A, p+a, p+s+b) <= 0 ? A[p+a++]:A[p+s+b++];// Stability: we take the lowest first or the first equal element
        }
 
-      for(;a < s && p+i < N;) copy[i++] = array[p+a++];                         // Add trailing elements
-      for(;b < s && p+i < N;) copy[i++] = array[p+s+b++];
+      for(;a < s && p+i < N;) W[i++] = A[p+a++];                                // Add trailing elements
+      for(;b < s && p+i < N;) W[i++] = A[p+s+b++];
 
-      for(i = 0; i < S && p+i < N; i++) array[p+i] = copy[i];                   // Copy back from work area to array being sorted
+      for(i = 0; i < S && p+i < N; i++) A[p+i] = W[i];                          // Copy back from work area to A being sorted
      }
    }
-  free(copy);                                                                   // Free work area
+  free(W);                                                                      // Free work area
  }
 
 #if (__INCLUDE_LEVEL__ == 0)

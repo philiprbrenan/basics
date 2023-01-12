@@ -12,16 +12,18 @@ void mergeSortLong(long *A, const int N)                                        
  {long *W = malloc(N * sizeof(long));                                           // Work area - malloc faster than calloc
 
   for (int s = 1; s < N; s <<= 1)                                               // Partition half size
-   {for (int p = 0; p < N; p += (s << 1))                                              // Partition start
+   {const int S = s << 1;                                                       // Partition half size, full size
+
+    for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = p, b = a+s, i = 0;                                                // Position in each half partition
 
-      for (;i < (s << 1) && a < p+s && b < p+(s << 1) && a < N && b < N && p+i < N;)          // Choose next lowest element from each partition
+      for (;i < S && a < p+s && b < p+S && a < N && b < N && p+i < N;)          // Choose next lowest element from each partition
        {W[i++] = A[A[a] <= A[b] ? a++ : b++];                                   // Stability: we take the lowest element first or the first equal element
        }
 
       for (     ; a < p+s && p+i < N;)     W[i++] = A[a++];                     // Add trailing elements
-      for (     ; b < p+(s << 1) && p+i < N;)     W[i++] = A[b++];
-      for (i = 0; i < (s << 1)   && p+i < N; i++) A[p+i] = W[i];                       // Copy back from work area to array being sorted
+      for (     ; b < p+S && p+i < N;)     W[i++] = A[b++];
+      for (i = 0; i < S   && p+i < N; i++) A[p+i] = W[i];                       // Copy back from work area to array being sorted
      }
    }
 

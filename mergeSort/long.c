@@ -14,7 +14,7 @@ int mergeSortCompareLong(long *array, int A, int B)                             
  }
 
 void mergeSortLong(long *array, int N)                                          // In place stable merge sort
- {int *copy = calloc(N, sizeof(int));                                           // Work area
+ {long *copy = calloc(N, sizeof(long));                                         // Work area
   for (int s = 1; s < N; s *= 2)                                                // Partition half size
    {const int S = s+s;                                                          // Partition size
 

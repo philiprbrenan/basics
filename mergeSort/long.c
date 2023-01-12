@@ -8,11 +8,6 @@
 #include <assert.h>
 #include <stdarg.h>
 
-int mergeSortCompareLong(long *array, int A, int B)                             // Compare two integer elements
- {long a = array[A], b = array[B];
-  return a < b ? -1 : a > b ? +1 : 0;
- }
-
 void mergeSortLong(long *A, int N)                                              // In place stable merge sort
  {long *W = calloc(N, sizeof(long));                                            // Work area
   for (int s = 1; s < N; s <<= 1)                                               // Partition half size
@@ -21,7 +16,7 @@ void mergeSortLong(long *A, int N)                                              
     for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = 0, b = 0, i = 0;                                                  // Position in each half partition
       for (; p+i < N && i < S && a < s && p+a < N && b < s && p+s+b < N;)       // Choose next lowest element from each partition
-       {W[i++] = mergeSortCompareLong(A, p+a, p+s+b) <= 0 ? A[p+a++]:A[p+s+b++];// Stability: we take the lowest element first or the first equal element
+       {W[i++] = A[p+a] <= A[p+s+b] ? A[p+a++] : A[p+s+b++];                    // Stability: we take the lowest element first or the first equal element
        }
 
       for(;a < s && p+i < N;) W[i++] = A[p+a++];                                // Add trailing elements

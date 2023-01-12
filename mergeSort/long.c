@@ -12,7 +12,7 @@ void mergeSortLong(long *A, const int N)                                        
  {long *W = malloc(N * sizeof(long));                                           // Work area - malloc faster than calloc
 
   for (int s = 1; s < N; s <<= 1)                                               // Partition half size
-   {const int S = s << 1;                                                       // Partition half size, full size
+   {const int S = s << 1;                                                       // Partition full size
 
     for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = p, b = a+s, i = 0;                                                // Position in each half partition

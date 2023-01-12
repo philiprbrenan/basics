@@ -9,10 +9,12 @@
 #include <stdarg.h>
 
 void mergeSortLong(long *A, const int N)                                        // In place stable merge sort
- {long *W = calloc(N, sizeof(long));                                            // Work area
+ {long *W = malloc(N * sizeof(long));                                           // Work area - malloc faster than calloc
 
-  for   (int s = 1, S = 2; s < N; s <<= 1, S <<= 1)                             // Partition half size, full size
-   {for (int p = 0; p < N; p += S)                                              // Partition start
+  for (int s = 1; s < N; s <<= 1)                                               // Partition half size
+   {const int S = s << 1;                                                       // Partition half size, full size
+
+    for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = p, b = a+s, i = 0;                                                // Position in each half partition
 
       for (;i < S && a < p+s && b < p+S && a < N && b < N && p+i < N;)          // Choose next lowest element from each partition
@@ -44,3 +46,5 @@ int main()                                                                      
   return 0;
  }
 #endif
+// sde -mix -- ./long
+// 201727

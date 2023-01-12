@@ -33,6 +33,10 @@ long nStackLong(StackLong *s)                                                   
  {return s->next - s->base;
  }
 
+int isEmptyStackLong(StackLong *s)                                              // Whether the stack is empty
+ {return nStackLong(s) == 0;
+ }
+
 long getStackLong(StackLong *s, long i, int *rc)                                // Get an element from the stack by its index
  {const long p = s->base + i;
   if (p < s->next)                                                              // Success
@@ -103,7 +107,8 @@ long shiftStackLong(StackLong *s, int *rc)                                      
   return s->arena[s->base++];
  }
 
-void tests()                                                                    // Tests
+#if (__INCLUDE_LEVEL__ == 0)
+static void tests()                                                             // Tests
  {const int N = 10;
   int rc;
 
@@ -134,6 +139,7 @@ void tests()                                                                    
     assert(rc == 1);
    }
   assert(nStackLong(s) == 0);
+  assert(isEmptyStackLong(s));
 
   assert(popStackLong(s, &rc) == 0);
   assert(rc == 0);
@@ -141,7 +147,6 @@ void tests()                                                                    
   assert(nStackLong(s) == 0);
  }
 
-#if (__INCLUDE_LEVEL__ == 0)
 int main()                                                                      // Run tests and calculate from command line
  {tests();
   return 0;

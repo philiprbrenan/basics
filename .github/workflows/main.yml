@@ -16,24 +16,28 @@ jobs:
 
     - name: 2d
       run: |
-        gcc -I. 2d/2d.c -lm;     ./a.out
+        gcc -I. 2d/2d.c -lm;      ./a.out
 
     - name: Bits
       run: |
-        gcc -I. bits/bits.c;     ./a.out
+        gcc -I. bits/bits.c;      ./a.out
 
     - name: Hash
       run: |
-        gcc -I. hash/int.c;      ./a.out
+        gcc -I. hash/int.c;       ./a.out
+
+    - name: MergeSortLong
+      run: |
+        gcc -I. mergeSort/long.c; ./a.out
 
     - name: Modulo
       run: |
-        gcc -I. modulo/modulo.c; ./a.out
+        gcc -I. modulo/modulo.c;  ./a.out
 
     - name: StackLong
       run: |
-        gcc -I. stack/long.c;    ./a.out
+        gcc -I. stack/long.c;     ./a.out
 
     - name: Tree
       run: |
-        gcc -I. tree/tree.c;     ./a.out
+        gcc -I. tree/tree.c;      ./a.out

@@ -8,14 +8,6 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
-void say(char *format, ...)                                                     // Say something
- {va_list p;
-  va_start (p, format);
-  int i = vfprintf(stderr, format, p);
-  assert(i > 0);
-  va_end(p);
-  fprintf(stderr, "\n");
- }
 
 static inline void mergeSortLongSwap(long *a, long *b)                          // Swap two numbers using xor
  {*a = *a ^ *b;                                                                 // Swap with xor as it is a little faster
@@ -133,4 +125,4 @@ int main()                                                                      
  }
 #endif
 // sde -mix -- ./long
-// 288627 274511
+// 274557

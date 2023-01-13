@@ -2,6 +2,7 @@
 // Basic routines in C
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc., 2022
 //------------------------------------------------------------------------------
+#define _GNU_SOURCE
 #ifndef Cbasics
 #define Cbasics
 #include <stdlib.h>
@@ -18,14 +19,36 @@ void say(char *format, ...)
   int i = vfprintf(stderr, format, p);
   assert(i > 0);
 	va_end(p);
+  fprintf(stderr, "\n");
+ }
+
+char *ssay(char *format, ...)                                                   // Say something into a string
+ {va_list p;
+  va_start (p, format);
+  char *result;
+  int i = vasprintf(&result, format, p);
+  assert(i > 0);
+  va_end(p);
+  return result;
+ }
+
+void stop(char *format, ...)
+ {va_list p;
+  va_start (p, format);
+  int i = vfprintf(stderr, format, p);                                          // Stop after saying something
+  assert(i > 0);
+  va_end(p);
+  fprintf(stderr, "\n");
+  exit(1);
  }
 
 void out(char *format, ...)
  {va_list p;
   va_start (p, format);
-  int i = vfprintf(stderr, format, p);
+  int i = vfprintf(stdout, format, p);
   assert(i > 0);
 	va_end(p);
+  fprintf(stdout, "\n");
  }
 
 int getNextInt()

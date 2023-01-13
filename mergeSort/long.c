@@ -1,3 +1,4 @@
+// Ashley to Puerta Vallarta for Easter
 //------------------------------------------------------------------------------
 // In place stable merge sort.
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
@@ -7,18 +8,45 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
+void say(char *format, ...)                                                     // Say something
+ {va_list p;
+  va_start (p, format);
+  int i = vfprintf(stderr, format, p);
+  assert(i > 0);
+  va_end(p);
+  fprintf(stderr, "\n");
+ }
+
+static inline void mergeSortLongSwap(long *a, long *b)                          // Swap two numbers using xor
+ {*a = *a ^ *b;                                                                 // Swap with xor as it is a little faster
+  *b = *a ^ *b;
+  *a = *a ^ *b;
+ }
 
 void mergeSortLong(long *A, const int N)                                        // In place stable merge sort
- {long *W = malloc(N * sizeof(long));                                           // Work area - malloc faster than calloc
+ {long W[N];                                                                    // Work area - how much stack space can we have?
 
   for (int p = 1; p < N; p += 2)                                                // Sorting the first set of partitions is easy
-   {if (A[p]   > A[p-1]) continue;
-        A[p-1] = A[p-1] ^ A[p];                                                 // Swap with xor as it is a little faster
-        A[p]   = A[p-1] ^ A[p];
-        A[p-1] = A[p-1] ^ A[p];
+   {if (A[p] >= A[p-1]) continue;                                               // Already sorted
+    mergeSortLongSwap(A+p-1, A+p);                                              // Swap with xor as it is a little faster
    }
 
-  for (int s = 2; s < N; s <<= 1)                                               // Partition half size
+  if (1)                                                                        // Sort the second set of partitions of size 4  by direct swaps
+   {int p = 3;
+    for (; p < N; p += 4)                                                       // In blocks of 4
+     {if (A[p-1] >= A[p-2]) continue;                                           // Already sorted
+      mergeSortLongSwap(A+p-1, A+p-2);                                          // Not sorted so swap
+      if (A[p-3] >  A[p-2]) mergeSortLongSwap(A+p-3, A+p-2);                    // Possibly swap into lowest position
+      if (A[p-1] >  A[p])   mergeSortLongSwap(A+p-1, A+p);                      // Possibly swap into highest position
+      if (A[p-2] >  A[p-1]) mergeSortLongSwap(A+p-2, A+p-1);                    // Possibly swap into middle position
+     }
+    if (N == p)                                                                 // Block of three (smaller blocks will already be sorted
+     {if (A[p-2] >  A[p-1]) mergeSortLongSwap(A+p-2, A+p-1);                    // Possibly swap into lowest position
+      if (A[p-3] >  A[p-2]) mergeSortLongSwap(A+p-3, A+p-2);                    // Possibly swap into highest position
+     }
+   }
+
+  for (int s = 4; s < N; s <<= 1)                                               // Partition half size for blocks of 16 or more for normal merge sort
    {const int S = s << 1;                                                       // Partition full size
 
     for (int p = 0; p < N; p += S)                                              // Partition start
@@ -39,8 +67,6 @@ void mergeSortLong(long *A, const int N)                                        
       memcpy(A+p, W, (S < N-p ? S : N-p) * sizeof(long));                       // Copy back from work area to array being sorted
      }
    }
-
-  free(W);                                                                      // Free work area
  }
 
 #if (__INCLUDE_LEVEL__ == 0)
@@ -73,6 +99,16 @@ void test10()                                                                   
   for(int i = 1; i < N; i++) assert(array[i] >= array[i-1]);                    // Check that the resulting array is in ascending order
  }
 
+void test1a()                                                                   // Tests
+ {const int N = 21;
+  long array[N];
+  for(int i = 0; i < N; i++) array[i] = (i * i) % N;                            // Load array in a somewhat random manner
+
+  mergeSortLong(array, N);
+
+  for(int i = 1; i < N; i++) assert(array[i] >= array[i-1]);
+ }
+
 void test1k()                                                                   // Tests
  {const int N = 1024;
   long array[N];
@@ -91,9 +127,10 @@ void tests()                                                                    
  }
 
 int main()                                                                      // Run tests
- {tests();
+ {//test1a();
+  tests();
   return 0;
  }
 #endif
 // sde -mix -- ./long
-// 365085
+// 288627 274511

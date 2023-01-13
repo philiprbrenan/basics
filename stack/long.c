@@ -2,6 +2,9 @@
 // Stack of long integers
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
+#define _GNU_SOURCE
+#ifndef CStackLong
+#define CStackLong
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
@@ -160,4 +163,5 @@ static void say(char *format, ...)
   va_end(p);
   fprintf(stderr, "\n");
  }
+#endif
 #endif

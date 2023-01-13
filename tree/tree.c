@@ -2,6 +2,7 @@
 // Tree in C - Keys are null terminated strings, data is a pointer to anything.
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc., 2022
 //------------------------------------------------------------------------------
+#define _GNU_SOURCE
 #ifndef Ctree
 #define Ctree
 #include <stdlib.h>
@@ -367,6 +368,13 @@ TreeFindResult TreeLast(TreeNode **root)
 #if (__INCLUDE_LEVEL__ == 0)
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
+int *boxInt(int a)
+ {int *m = malloc(sizeof(int));
+  *m = a;
+  return m;
+ }
+
 int main()
  {TreeNode *Root = 0;
   TreeNode **root = &Root;

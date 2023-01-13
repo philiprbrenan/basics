@@ -77,7 +77,7 @@ long firstElementStackLong(StackLong *s, int *rc)                               
     return 0;
    }
   if (rc != 0) *rc = 1;
-  return s->arena[0];
+  return s->arena[s->base];
  }
 
 long lastElementStackLong(StackLong *s, int *rc)                                // Return the last element of the stack

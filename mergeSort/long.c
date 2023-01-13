@@ -11,19 +11,32 @@
 void mergeSortLong(long *A, const int N)                                        // In place stable merge sort
  {long *W = malloc(N * sizeof(long));                                           // Work area - malloc faster than calloc
 
-  for (int s = 1; s < N; s <<= 1)                                               // Partition half size
+  for (int p = 1; p < N; p += 2)                                                // Sorting the first set of partitions is easy
+   {if (A[p]   > A[p-1]) continue;
+        A[p-1] = A[p-1] ^ A[p];                                                 // Swap with xor as it is a little faster
+        A[p]   = A[p-1] ^ A[p];
+        A[p-1] = A[p-1] ^ A[p];
+   }
+
+  for (int s = 2; s < N; s <<= 1)                                               // Partition half size
    {const int S = s << 1;                                                       // Partition full size
 
     for (int p = 0; p < N; p += S)                                              // Partition start
      {int a = p, b = a+s, i = 0;                                                // Position in each half partition
 
-      for (;i < S && a < p+s && b < p+S && a < N && b < N && p+i < N;)          // Choose next lowest element from each partition
-       {W[i++] = A[A[a] <= A[b] ? a++ : b++];                                   // Stability: we take the lowest element first or the first equal element
+      if (A[b] >= A[b-1]) continue;                                             // The partitions are already ordered
+
+      const int aa = p+s, bb = p+S < N ? p+S : N;
+      for (;a < aa && b < bb;) W[i++] = A[A[a] <= A[b] ? a++ : b++];            // Choose the lowest element first or the first equal element to obtain a stable sort
+
+      const   int ma  = p+s - a;
+      if (ma) memcpy(W+i, A+a, ma * sizeof(long));                              // Rest of first partition
+      else
+       {const int bpS = p+S - b, piN = N - (p + i), mb = bpS < piN ? bpS : piN;
+        memcpy(W+i, A+b, mb * sizeof(long));                                    // Rest of second partition
        }
 
-      for (     ; a < p+s && p+i < N;)     W[i++] = A[a++];                     // Add trailing elements
-      for (     ; b < p+S && p+i < N;)     W[i++] = A[b++];
-      for (i = 0; i < S   && p+i < N; i++) A[p+i] = W[i];                       // Copy back from work area to array being sorted
+      memcpy(A+p, W, (S < N-p ? S : N-p) * sizeof(long));                       // Copy back from work area to array being sorted
      }
    }
 
@@ -57,13 +70,24 @@ void test10()                                                                   
   mergeSortLong(array, N);
 
   for(int i = 0; i < N; i++) assert(array[i] == i);                             // Check that the resulting array has the expected values
-  for(int i = 1; i < N; i++) assert(array[i] >  array[i-1]);                    // Check that the resulting array is in ascending order
+  for(int i = 1; i < N; i++) assert(array[i] >= array[i-1]);                    // Check that the resulting array is in ascending order
+ }
+
+void test1k()                                                                   // Tests
+ {const int N = 1024;
+  long array[N];
+  for(int i = 0; i < N; i++) array[i] = (i * i) % N;                            // Load array in a somewhat random manner
+
+  mergeSortLong(array, N);
+
+  for(int i = 1; i < N; i++) assert(array[i] >= array[i-1]);                    // Check that the resulting array is in ascending order
  }
 
 void tests()                                                                    // Tests
  {test1();
   test2();
   test10();
+  test1k();
  }
 
 int main()                                                                      // Run tests
@@ -72,4 +96,4 @@ int main()                                                                      
  }
 #endif
 // sde -mix -- ./long
-// 201727
+// 365085

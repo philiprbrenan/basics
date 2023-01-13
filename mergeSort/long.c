@@ -29,7 +29,7 @@ void mergeSortLong(long *A, const int N)                                        
       const int aa = p+s, bb = p+S < N ? p+S : N;
       for (;a < aa && b < bb;) W[i++] = A[A[a] <= A[b] ? a++ : b++];            // Choose the lowest element first or the first equal element to obtain a stable sort
 
-      const   int ma  = p+s - a;
+      const int ma = p+s - a;
       if (ma) memcpy(W+i, A+a, ma * sizeof(long));                              // Rest of first partition
       else
        {const int bpS = p+S - b, piN = N - (p + i), mb = bpS < piN ? bpS : piN;

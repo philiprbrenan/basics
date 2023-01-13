@@ -66,15 +66,15 @@ char *getNextLine()
   return s;
  }
 
-int max(const int i, const int j)
+inline int max(const int i, const int j)
  {return i > j ? i : j;
  }
 
-int min(const int i, const int j)
+inline int min(const int i, const int j)
  {return i < j ? i : j;
  }
 
-int abs(const int i)
+inline int abs(const int i)
  {return i < 0 ? -i : i;
  }
 
@@ -102,12 +102,6 @@ void printHex(const FILE *f, const char * a, const int A)
    {fprintf((FILE *)f, "%02x", a[i]);
    }
   fprintf((FILE *)f, "\n");
- }
-
-int *boxInt(int a)
- {int *m = malloc(sizeof(int));
-  *m = a;
-  return m;
  }
 
 char **split(char *String, char *separator)                                     // Split a string into words

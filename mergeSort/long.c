@@ -1,8 +1,10 @@
-// Ashley to Puerta Vallarta for Easter
 //------------------------------------------------------------------------------
 // In place stable merge sort.
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
+#define _GNU_SOURCE
+#ifndef CmergeSort
+#define CmergeSort
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
@@ -123,6 +125,7 @@ int main()                                                                      
   tests();
   return 0;
  }
+#endif
 #endif
 // sde -mix -- ./long
 // 274557

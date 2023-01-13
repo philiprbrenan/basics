@@ -31,7 +31,26 @@ void mergeSortLong(long *A, const int N)                                        
  }
 
 #if (__INCLUDE_LEVEL__ == 0)
-void tests()                                                                    // Tests
+void test1()                                                                    // Tests
+ {const int N = 1;
+  long array[1] = {1};
+
+  mergeSortLong(array, N);
+
+  assert(array[0] == 1);
+ }
+
+void test2()                                                                    // Tests
+ {const int N = 2;
+  long array[2] = {2,1};
+
+  mergeSortLong(array, N);
+
+  assert(array[0] == 1);
+  assert(array[1] == 2);
+ }
+
+void test10()                                                                    // Tests
  {const int N = 10;
   long array[10] = {9,1,2,3,7,5,6,4,8,0};
 
@@ -39,6 +58,12 @@ void tests()                                                                    
 
   for(int i = 0; i < N; i++) assert(array[i] == i);                             // Check that the resulting array has the expected values
   for(int i = 1; i < N; i++) assert(array[i] >  array[i-1]);                    // Check that the resulting array is in ascending order
+ }
+
+void tests()                                                                    // Tests
+ {test1();
+  test2();
+  test10();
  }
 
 int main()                                                                      // Run tests

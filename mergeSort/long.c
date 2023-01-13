@@ -46,7 +46,7 @@ void mergeSortLong(long *A, const int N)                                        
      }
    }
 
-  for (int s = 4; s < N; s <<= 1)                                               // Partition half size for blocks of 16 or more for normal merge sort
+  for (int s = 4; s < N; s <<= 1)                                               // Partition half size for blocks of 8 or more for normal merge sort
    {const int S = s << 1;                                                       // Partition full size
 
     for (int p = 0; p < N; p += S)                                              // Partition start

@@ -66,6 +66,15 @@ static TreeNode *TreeAllocNode()
   return n;
  }
 
+static int compareMemory(const char * a, const int A, const char *b, const int B)
+ {const int l = min(A, B);
+  const int c = memcmp(a, b, l);
+  if (c != 0) return c;
+  if (A < B)  return -1;
+  if (A > B)  return +1;
+  return  0;
+ }
+
 static void TreeSplitRootNode(TreeNode **root)
  {assert(root != 0);
   TreeNode *p = *root;

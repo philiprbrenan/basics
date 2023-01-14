@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-void say(char *format, ...)
+static void say(char *format, ...)
  {va_list p;
   va_start (p, format);
   int i = vfprintf(stderr, format, p);
@@ -22,7 +22,7 @@ void say(char *format, ...)
   fprintf(stderr, "\n");
  }
 
-char *ssay(char *format, ...)                                                   // Say something into a string
+static char *ssay(char *format, ...)                                                   // Say something into a string
  {va_list p;
   va_start (p, format);
   char *result;
@@ -32,7 +32,7 @@ char *ssay(char *format, ...)                                                   
   return result;
  }
 
-void stop(char *format, ...)
+static void stop(char *format, ...)
  {va_list p;
   va_start (p, format);
   int i = vfprintf(stderr, format, p);                                          // Stop after saying something
@@ -42,7 +42,7 @@ void stop(char *format, ...)
   exit(1);
  }
 
-void out(char *format, ...)
+static void out(char *format, ...)
  {va_list p;
   va_start (p, format);
   int i = vfprintf(stdout, format, p);
@@ -51,14 +51,14 @@ void out(char *format, ...)
   fprintf(stdout, "\n");
  }
 
-int getNextInt()
+static int getNextInt()
  {int i = 0;
   const int j = scanf("%d", &i);
   assert(j > 0);
   return i;
  }
 
-char *getNextLine()
+static char *getNextLine()
  {char *s = 0;
   size_t n = 0;
   const int j = getline(&s, &n, stdin);
@@ -66,19 +66,15 @@ char *getNextLine()
   return s;
  }
 
-inline int max(const int i, const int j)
+static inline int max(const int i, const int j)
  {return i > j ? i : j;
  }
 
-inline int min(const int i, const int j)
+static inline int min(const int i, const int j)
  {return i < j ? i : j;
  }
 
-inline int abs(const int i)
- {return i < 0 ? -i : i;
- }
-
-int compareMemory(const char * a, const int A, const char *b, const int B)
+static int compareMemory(const char * a, const int A, const char *b, const int B)
  {const int l = min(A, B);
   const int c = memcmp(a, b, l);
   if (c != 0) return c;
@@ -87,24 +83,24 @@ int compareMemory(const char * a, const int A, const char *b, const int B)
   return  0;
  }
 
-void printNL(const FILE *f)
+static void printNL(const FILE *f)
  {fputc('\n', (FILE *)f);
  }
 
-void printChars(const FILE *f, const char * a, const int A)
+static void printChars(const FILE *f, const char * a, const int A)
  {for(int i = 0; i < A; ++i)
    {fputc(a[i], (FILE *)f);
    }
  }
 
-void printHex(const FILE *f, const char * a, const int A)
+static void printHex(const FILE *f, const char * a, const int A)
  {for(int i = 0; i < A; ++i)
    {fprintf((FILE *)f, "%02x", a[i]);
    }
   fprintf((FILE *)f, "\n");
  }
 
-char **split(char *String, char *separator)                                     // Split a string into words
+static char **split(char *String, char *separator)                                     // Split a string into words
  {int        l = strlen(String), b = (l+1)*(1 + sizeof(char *));
   void *     m = malloc(b);                                                     // Space for words
   char **words = m;
@@ -136,7 +132,6 @@ int main()
    }
   printChars(stdout, "def", 2); printNL(stdout);
   printHex  (stdout, "abc", 3); //printNL(stdout);
-  if (1) {int *i = boxInt(1); assert(*i == 1);}
 
   if (1)
    {char **c = split("a  b  c", " ");

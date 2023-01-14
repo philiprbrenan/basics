@@ -17,7 +17,7 @@ static inline void mergeSortLongSwap(long *a, long *b)                          
   *a = *a ^ *b;
  }
 
-void mergeSortLong(long *A, const int N)                                        // In place stable merge sort
+static void mergeSortLong(long *A, const int N)                                 // In place stable merge sort
  {long W[N];                                                                    // Work area - how much stack space can we have?
 
   for (int p = 1; p < N; p += 2)                                                // Sorting the first set of partitions is easy

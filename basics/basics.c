@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-static void say(char *format, ...)
+static void say(char *format, ...)                                              // Say something
  {va_list p;
   va_start (p, format);
   int i = vfprintf(stderr, format, p);
@@ -22,7 +22,7 @@ static void say(char *format, ...)
   fprintf(stderr, "\n");
  }
 
-static char *ssay(char *format, ...)                                                   // Say something into a string
+static char *ssay(char *format, ...)                                            // Say something into a string
  {va_list p;
   va_start (p, format);
   char *result;
@@ -32,17 +32,17 @@ static char *ssay(char *format, ...)                                            
   return result;
  }
 
-static void stop(char *format, ...)
+static void stop(char *format, ...)                                             // Stop after saying something
  {va_list p;
   va_start (p, format);
-  int i = vfprintf(stderr, format, p);                                          // Stop after saying something
+  int i = vfprintf(stderr, format, p);
   assert(i > 0);
   va_end(p);
   fprintf(stderr, "\n");
   exit(1);
  }
 
-static void out(char *format, ...)
+static void out(char *format, ...)                                              // Say something to stdout
  {va_list p;
   va_start (p, format);
   int i = vfprintf(stdout, format, p);
@@ -51,14 +51,14 @@ static void out(char *format, ...)
   fprintf(stdout, "\n");
  }
 
-static int getNextInt()
+static int getNextInt()                                                         // Get the next integer from stdin
  {int i = 0;
   const int j = scanf("%d", &i);
   assert(j > 0);
   return i;
  }
 
-static char *getNextLine()
+static char *getNextLine()                                                      // Get the next line of input from the current position up to and including the next new line
  {char *s = 0;
   size_t n = 0;
   const int j = getline(&s, &n, stdin);
@@ -66,21 +66,12 @@ static char *getNextLine()
   return s;
  }
 
-static inline int max(const int i, const int j)
+static inline int max(const int i, const int j)                                 // Maximum of two integers
  {return i > j ? i : j;
  }
 
-static inline int min(const int i, const int j)
+static inline int min(const int i, const int j)                                 // Minimum ot two integers
  {return i < j ? i : j;
- }
-
-static int compareMemory(const char * a, const int A, const char *b, const int B)
- {const int l = min(A, B);
-  const int c = memcmp(a, b, l);
-  if (c != 0) return c;
-  if (A < B)  return -1;
-  if (A > B)  return +1;
-  return  0;
  }
 
 static void printNL(const FILE *f)
@@ -124,12 +115,6 @@ int main()
   assert(1 == min(1, 2));
   assert(2 == max(1, 2));
   assert(2 == abs(-2));
-  if (1)
-   {const char *a = "a", *b = "aa";
-    assert( 0 == compareMemory(a, 1, b, 1));
-    assert(-1 == compareMemory(a, 1, b, 2));
-    assert(+1 == compareMemory(b, 2, a, 1));
-   }
   printChars(stdout, "def", 2); printNL(stdout);
   printHex  (stdout, "abc", 3); //printNL(stdout);
 

@@ -10,11 +10,7 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
-
-#if (__INCLUDE_LEVEL__ == 0)
-static void say (char *format, ...);
-#endif
-// Each get routine sets an optional return code indicating the success or failure of the operation while returning the result directly to minimize the amount of code that has to be written when it is known in advance that the operation will succeed.
+#include "basics/basics.c"
 
 typedef struct StackLong                                                        // A stack of longs
  {long *arena;                                                                  // Array of elements
@@ -32,15 +28,15 @@ StackLong *newStackLong()                                                       
   return s;
  }
 
-long nStackLong(StackLong *s)                                                   // The number of elements on the stack
+static long nStackLong(StackLong *s)                                            // The number of elements on the stack
  {return s->next - s->base;
  }
 
-int isEmptyStackLong(StackLong *s)                                              // Whether the stack is empty
+static int isEmptyStackLong(StackLong *s)                                       // Whether the stack is empty
  {return nStackLong(s) == 0;
  }
 
-long getStackLong(StackLong *s, long i, int *rc)                                // Get an element from the stack by its index
+static long getStackLong(StackLong *s, long i, int *rc)                         // Get an element from the stack by its index
  {const long p = s->base + i;
   if (p < s->next)                                                              // Success
    {if (rc != 0) *rc = 1;
@@ -50,7 +46,7 @@ long getStackLong(StackLong *s, long i, int *rc)                                
   return 0;
  }
 
-void pushStackLong(StackLong *s, long l)                                        // Push an element onto the stack
+static void pushStackLong(StackLong *s, long l)                                 // Push an element onto the stack
  {if (s->size == 0)
    {s->size  = 16;
     s->arena = calloc(s->size, sizeof(long));
@@ -67,14 +63,14 @@ void pushStackLong(StackLong *s, long l)                                        
   s->arena[s->next++] = l;
  }
 
-StackLong *cloneStackLong(StackLong *a)                                         // Clone a stack
+static StackLong *cloneStackLong(StackLong *a)                                  // Clone a stack
  {StackLong *b = newStackLong();
   const long N = nStackLong(a);
   for(long i = 0; i < N; ++i) pushStackLong(b, a->arena[i]);
   return b;
  }
 
-long firstElementStackLong(StackLong *s, int *rc)                               // Return the first element of the stack
+static long firstElementStackLong(StackLong *s, int *rc)                        // Return the first element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -83,7 +79,7 @@ long firstElementStackLong(StackLong *s, int *rc)                               
   return s->arena[s->base];
  }
 
-long lastElementStackLong(StackLong *s, int *rc)                                // Return the last element of the stack
+static long lastElementStackLong(StackLong *s, int *rc)                         // Return the last element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -92,7 +88,7 @@ long lastElementStackLong(StackLong *s, int *rc)                                
   return s->arena[s->next-1];
  }
 
-long popStackLong(StackLong *s, int *rc)                                        // Pop a value off the stack
+static long popStackLong(StackLong *s, int *rc)                                 // Pop a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -101,7 +97,7 @@ long popStackLong(StackLong *s, int *rc)                                        
   return s->arena[--s->next];
  }
 
-long shiftStackLong(StackLong *s, int *rc)                                      // Shift a value off the stack
+static long shiftStackLong(StackLong *s, int *rc)                               // Shift a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -153,15 +149,6 @@ static void tests()                                                             
 int main()                                                                      // Run tests and calculate from command line
  {tests();
   return 0;
- }
-
-static void say(char *format, ...)
- {va_list p;
-  va_start (p, format);
-  int i = vfprintf(stderr, format, p);
-  assert(i > 0);
-  va_end(p);
-  fprintf(stderr, "\n");
  }
 #endif
 #endif

@@ -43,30 +43,30 @@ typedef struct TreeEntries                                                      
   TreeEntry *e;                                                                 // Entries
  } TreeEntries;
 
-void TreePrint(TreeNode **p);
+static void TreePrint(TreeNode **p);
 
-int TreeNodeIsLeaf(TreeNode *p)
+static int TreeNodeIsLeaf(TreeNode *p)
  {assert(p != 0);
   return p->n[0] == 0;
  }
 
-int TreeNodeIsFull(TreeNode *p)
+static int TreeNodeIsFull(TreeNode *p)
  {assert(p != 0);
   return p->size == TreeNode_width;
  }
 
-void TreeClearNode(TreeNode *n)
+static void TreeClearNode(TreeNode *n)
  {assert(n != 0);
   memset(n, 0, sizeof(TreeNode));
  }
 
-TreeNode *TreeAllocNode()
+static TreeNode *TreeAllocNode()
  {TreeNode *n = malloc(sizeof(TreeNode));
   TreeClearNode(n);
   return n;
  }
 
-void TreeSplitRootNode(TreeNode **root)
+static void TreeSplitRootNode(TreeNode **root)
  {assert(root != 0);
   TreeNode *p = *root;
   assert(p != 0);
@@ -92,7 +92,7 @@ void TreeSplitRootNode(TreeNode **root)
   l->size = r->size = 1;
  }
 
-int TreeSplitNonRootNode(TreeNode *p, TreeNode *q)
+static int TreeSplitNonRootNode(TreeNode *p, TreeNode *q)
  {assert(p != 0);
   assert(q != 0);
   if (!TreeNodeIsFull(q)) return 0;
@@ -138,7 +138,7 @@ int TreeSplitNonRootNode(TreeNode *p, TreeNode *q)
   return 1;
  }
 
-void TreePut(TreeNode **root, char *key, int keyLength, int data)
+static void TreePut(TreeNode **root, char *key, int keyLength, int data)
  {if (*root == 0)
    {TreeNode *n = *root = TreeAllocNode();
     n->k[0] = key;   n->l[0] = keyLength;
@@ -214,7 +214,7 @@ void TreePut(TreeNode **root, char *key, int keyLength, int data)
    }
  }
 
-void TreePrint2(TreeNode *p, int d)
+static void TreePrint2(TreeNode *p, int d)
  {if (p == 0) return;
   fprintf(stderr, "\n");
   assert(d >= 0 && d < 99);
@@ -230,16 +230,16 @@ void TreePrint2(TreeNode *p, int d)
   if (p->n[3] != 0) TreePrint2(p->n[3], d+1);
  }
 
-void TreePrint(TreeNode **P)
+static void TreePrint(TreeNode **P)
  {TreePrint2(*P, 0);
  }
 
-int TreeSize(TreeNode **P)
+static int TreeSize(TreeNode **P)
  {TreeNode *p = *P;
   return p == 0 ? 0 : p->size + TreeSize(p->n+0) + TreeSize(p->n+1) + TreeSize(p->n+2) + TreeSize(p->n+3);
  }
 
-void TreeEntryLoad(TreeNode *p, TreeEntries *e)
+static void TreeEntryLoad(TreeNode *p, TreeEntries *e)
  {if (p->n[0] != 0) TreeEntryLoad(p->n[0], e);
   if (p->size >  0) {e->e[e->i].k = p->k[0]; e->e[e->i].l = p->l[0]; e->e[e->i].d = p->d[0]; ++e->i;}
 
@@ -251,7 +251,7 @@ void TreeEntryLoad(TreeNode *p, TreeEntries *e)
   if (p->n[3] != 0) TreeEntryLoad(p->n[3], e);
  }
 
-TreeEntries *TreeEntriesLoad(TreeNode **root)
+static TreeEntries *TreeEntriesLoad(TreeNode **root)
  {const int n = TreeSize(root), s = sizeof(TreeEntries) + sizeof(TreeEntry) * n;
   TreeEntries *e = malloc(s);
   memset(e, 0, s);
@@ -263,7 +263,7 @@ TreeEntries *TreeEntriesLoad(TreeNode **root)
   return e;
  }
 
-TreeFindResult TreeFind(TreeNode **root, char *key, int keyLength)
+static TreeFindResult TreeFind(TreeNode **root, char *key, int keyLength)
  {TreeFindResult r; memset(&r, 0, sizeof(r)); r.R = *root;
   if (root == 0) return r;
   int loopCount = 0;
@@ -324,7 +324,7 @@ TreeFindResult TreeFind(TreeNode **root, char *key, int keyLength)
   return r;
  }
 
-TreeFindResult TreeFirst(TreeNode **root)
+static TreeFindResult TreeFirst(TreeNode **root)
  {TreeFindResult r; memset(&r, 0, sizeof(r)); r.R = *root;
   if (root == 0) return r;
 
@@ -344,7 +344,7 @@ TreeFindResult TreeFirst(TreeNode **root)
   return r;
  }
 
-TreeFindResult TreeLast(TreeNode **root)
+static TreeFindResult TreeLast(TreeNode **root)
  {TreeFindResult r; memset(&r, 0, sizeof(r)); r.R = *root;
   if (root == 0) return r;
 

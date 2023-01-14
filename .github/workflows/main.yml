@@ -18,6 +18,10 @@ jobs:
       run: |
         gcc -I. 2d/2d.c -lm;      ./a.out
 
+    - name: Basics
+      run: |
+        gcc -I. basics/basics.c;  ./a.out
+
     - name: Bits
       run: |
         gcc -I. bits/bits.c;      ./a.out

@@ -19,7 +19,7 @@ typedef struct StackLong                                                        
   long base;                                                                    // Base of stack
  } StackLong;
 
-StackLong *newStackLong()                                                       // Create a new stack
+static StackLong *newStackLong()                                                // Create a new stack
  {StackLong *s = calloc(sizeof(StackLong), 1);
   s->arena = 0;
   s->size  = 0;

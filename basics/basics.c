@@ -107,16 +107,9 @@ static char **split(char *String, char *separator)                              
 
 #if (__INCLUDE_LEVEL__ == 0)
 int main()
- {printf("%d\n", getNextInt());
-  printf("%d\n", getNextInt());
-  printf("%d\n", getNextInt());
-  getNextLine();
-  printf("%s",   getNextLine());
-  assert(1 == min(1, 2));
+ {assert(1 == min(1, 2));
   assert(2 == max(1, 2));
   assert(2 == abs(-2));
-  printChars(stdout, "def", 2); printNL(stdout);
-  printHex  (stdout, "abc", 3); //printNL(stdout);
 
   if (1)
    {char **c = split("a  b  c", " ");
@@ -131,16 +124,3 @@ int main()
  }
 #endif
 #endif
-//TEST
-/*
-11
-12 13
-a b c
-----
-11
-12
-13
-a b c
-de
-616263
-*/

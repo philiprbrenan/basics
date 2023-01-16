@@ -40,7 +40,11 @@ jobs:
 
     - name: Simd
       run: |
-        gcc -I. simd/test.c -mavx512f; sde -mix -- ./a.out
+        wget -O sde.tar.xz https://downloadmirror.intel.com/751535/sde-external-9.14.0-2022-10-25-lin.tar.xz
+        tar -xf sde.tar.xz
+        mv sde-external*lin/ sde
+        tree
+        gcc -I. simd/test.c -mavx512f; sde/sde64 -mix -- ./a.out
         cat sde-mix-out.txt
 
     - name: StackLong

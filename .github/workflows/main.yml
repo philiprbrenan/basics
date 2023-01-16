@@ -38,6 +38,11 @@ jobs:
       run: |
         gcc -I. modulo/modulo.c;  ./a.out
 
+    - name: Simd
+      run: |
+        gcc -I. simd/test.c -mavx512f; sde -mix -- ./a.out
+        cat sde-mix-out.txt
+
     - name: StackLong
       run: |
         gcc -I. stack/long.c;     ./a.out

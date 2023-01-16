@@ -40,7 +40,7 @@ jobs:
 
     - name: Simd
       run: |
-        wget -O sde.tar.xz https://downloadmirror.intel.com/751535/sde-external-9.14.0-2022-10-25-lin.tar.xz
+        wget -q -O sde.tar.xz https://downloadmirror.intel.com/751535/sde-external-9.14.0-2022-10-25-lin.tar.xz
         tar -xf sde.tar.xz
         mv sde-external*lin/ sde
         tree

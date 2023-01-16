@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <immintrin.h>
 #include <x86intrin.h>
 
 void say(char *format, ...)                                                     // Say something
@@ -62,13 +61,11 @@ static int z8Eq(__m512i z, long l1, long l2, long l3, long l4, long l5, long l6,
   return 0;
  }
 
-
 static void printZ8(__m512i z)
  {for(int i = 0; i < 8; ++i)
    {say("%2d  %8ld", i, z[i]);
    }
  }
-
 
 static void test1()
  {long i[16] = {1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1, 0};
@@ -93,10 +90,22 @@ static void test3()
   assert(z8Eq(u, 2, 4, 6, 8, 7, 5, 3, 1) == 0);
  }
 
+static void test4()
+ {long i[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  long j[8] = {};
+
+  __m512i z = _mm512_loadu_si512(i+1);
+  _mm512_storeu_si512(j, z);
+  __m512i y = _mm512_loadu_si512(j);
+
+  assert(z8Eq(y, 2, 3, 4, 5, 6, 7, 8, 9) == 0);
+ }
+
 static void tests()
  {test1();
   test2();
   test3();
+  test4();
  }
 
 int main()

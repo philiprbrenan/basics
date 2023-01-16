@@ -10,6 +10,43 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <x86intrin.h>
+
+void say(char *format, ...)                                                     // Say something
+ {va_list p;
+  va_start (p, format);
+  int i = vfprintf(stderr, format, p);
+  assert(i > 0);
+  va_end(p);
+  fprintf(stderr, "\n");
+ }
+
+static inline __m512i mergeSortLongLoadLowerValues(long *i)                     // Given an array of 16 integers, partitioned into 8 pairs and load the lower half of each pair into a z
+ {__m512i a = _mm512_loadu_si512(i);
+  __m512i b = _mm512_loadu_si512(i+8);
+  __m512i l = _mm512_maskz_compress_epi64 (0b1010101, b);                       // Upper values from first z
+          l = _mm512_inserti64x4 (l, *(__m256i *)&l, 1);
+          l = _mm512_mask_compress_epi64 (l, 0b1010101, a);                     // Lower values from first z
+
+  return  l;
+ }
+
+static inline __m512i mergeSortLongLoadUpperValues(long *i)                     // Given an array of 16 integers, partitioned into 8 pairs and load the upper half of each pair into a z
+ {__m512i a = _mm512_loadu_si512(i);
+  __m512i b = _mm512_loadu_si512(i+8);
+  __m512i l = _mm512_maskz_compress_epi64 (0b10101010, b);                      // Upper values from first z
+          l = _mm512_inserti64x4 (l, *(__m256i *)&l, 1);
+          l = _mm512_mask_compress_epi64 (l, 0b10101010, a);                    // Lower values from first z
+
+  return  l;
+ }
+
+static inline void mergeSortLongCompareAndSwapZ8(__m512i *a, __m512i *b)        // Given an array of 16 integers, partitioned into 8 pairs, swap the lower half of each pair with the upper half if they and load the upper half of each pair into a z
+ {__mmask8 k = _mm512_cmpgt_epu64_mask (*a, *b);
+  *a = _mm512_mask_xor_epi64 (*a, k, *a, *b);
+  *b = _mm512_mask_xor_epi64 (*b, k, *a, *b);
+  *a = _mm512_mask_xor_epi64 (*a, k, *a, *b);
+ }
 
 static inline void mergeSortLongSwap(long *a, long *b)                          // Swap two numbers using xor
  {*a = *a ^ *b;                                                                 // Swap with xor as it is a little faster
@@ -20,9 +57,23 @@ static inline void mergeSortLongSwap(long *a, long *b)                          
 static void mergeSortLong(long *A, const int N)                                 // In place stable merge sort
  {long W[N];                                                                    // Work area - how much stack space can we have?
 
-  for (int p = 1; p < N; p += 2)                                                // Sorting the first set of partitions is easy
-   {if (A[p] >= A[p-1]) continue;                                               // Already sorted
-    mergeSortLongSwap(A+p-1, A+p);                                              // Swap with xor as it is a little faster
+
+  if (1)                                                                        // Sort the first 8 sets of pairs using AVX512
+   {int p;
+for(int i = 0; i < N; ++i) say("AAAA %2d  %2d", i, A[i]);
+    for (p = 15; p < N; p += 16)                                                // Sort the first 8 sets of pairs using AVX512
+     {__m512i l = mergeSortLongLoadLowerValues(A+p-15);
+      __m512i u = mergeSortLongLoadUpperValues(A+p-7);
+      mergeSortLongCompareAndSwapZ8(&l, &u);
+      _mm512_storeu_si512(A+p-15, l);
+      _mm512_storeu_si512(A+p-7,  u);
+     }
+for(int i = 0; i < N; ++i) say("BBBB %2d  %2d", i, A[i]);
+
+    for (; p < N; p += 2)                                                       // Sort any remaining pairs
+     {if (A[p] >= A[p-1]) continue;                                             // Already sorted
+      mergeSortLongSwap(A+p-1, A+p);                                            // Swap with xor as it is a little faster
+     }
    }
 
   if (1)                                                                        // Sort the second set of partitions of size 4  by direct swaps
@@ -121,7 +172,7 @@ void tests()                                                                    
  }
 
 int main()                                                                      // Run tests
- {//test1a();
+ {test1a();
   tests();
   return 0;
  }

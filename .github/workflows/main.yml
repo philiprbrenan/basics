@@ -14,6 +14,12 @@ jobs:
       with:
         ref: 'main'
 
+    - name: Sde
+      run: |
+        wget -q -O sde.tar.xz https://downloadmirror.intel.com/751535/sde-external-9.14.0-2022-10-25-lin.tar.xz
+        tar -xf sde.tar.xz
+        mv sde-external*lin/ sde
+
     - name: 2d
       run: |
         gcc -I. 2d/2d.c -lm;      ./a.out
@@ -32,17 +38,11 @@ jobs:
 
     - name: MergeSortLong
       run: |
-        gcc -I. mergeSort/long.c; ./a.out
+        gcc -I. mergeSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
 
     - name: Modulo
       run: |
         gcc -I. modulo/modulo.c;  ./a.out
-
-    - name: Sde
-      run: |
-        wget -q -O sde.tar.xz https://downloadmirror.intel.com/751535/sde-external-9.14.0-2022-10-25-lin.tar.xz
-        tar -xf sde.tar.xz
-        mv sde-external*lin/ sde
 
     - name: Simd
       run: |

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// In place stable merge sort.
+// In place stable merge sort using AVX 512 to reduce execution count.
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 #define _GNU_SOURCE
@@ -11,17 +11,9 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <x86intrin.h>
+#include "basics/basics.c"
 
-void say(char *format, ...)                                                     // Say something
- {va_list p;
-  va_start (p, format);
-  int i = vfprintf(stderr, format, p);
-  assert(i > 0);
-  va_end(p);
-  fprintf(stderr, "\n");
- }
-
-static inline __m512i mergeSortLongLoadLowerValues(long *i)                     // Given an array of 16 integers, partitioned into 8 pairs and load the lower half of each pair into a z
+static inline __m512i mergeSortLongLoadLowerValues(long *i)                     // Partition 16 integers into 8 pairs and load the lower half of each pair into a z
  {__m512i a = _mm512_loadu_si512(i);
   __m512i b = _mm512_loadu_si512(i+8);
   __m512i l = _mm512_maskz_compress_epi64 (0b1010101, b);                       // Upper values from first z
@@ -31,7 +23,7 @@ static inline __m512i mergeSortLongLoadLowerValues(long *i)                     
   return  l;
  }
 
-static inline __m512i mergeSortLongLoadUpperValues(long *i)                     // Given an array of 16 integers, partitioned into 8 pairs and load the upper half of each pair into a z
+static inline __m512i mergeSortLongLoadUpperValues(long *i)                     // Partition 16 integers into 8 pairs and load the upper half of each pair into a z
  {__m512i a = _mm512_loadu_si512(i);
   __m512i b = _mm512_loadu_si512(i+8);
   __m512i l = _mm512_maskz_compress_epi64 (0b10101010, b);                      // Upper values from first z
@@ -41,11 +33,27 @@ static inline __m512i mergeSortLongLoadUpperValues(long *i)                     
   return  l;
  }
 
-static inline void mergeSortLongCompareAndSwapZ8(__m512i *a, __m512i *b)        // Given an array of 16 integers, partitioned into 8 pairs, swap the lower half of each pair with the upper half if they and load the upper half of each pair into a z
+static inline void mergeSortLongCompareAndSwapZ8(__m512i *a, __m512i *b)        // Partition 16 integers into 8 pairs, swap the lower half of each pair with the upper half if they and load the upper half of each pair into a z
  {__mmask8 k = _mm512_cmpgt_epu64_mask (*a, *b);
   *a = _mm512_mask_xor_epi64 (*a, k, *a, *b);
   *b = _mm512_mask_xor_epi64 (*b, k, *a, *b);
   *a = _mm512_mask_xor_epi64 (*a, k, *a, *b);
+ }
+
+static inline void mergeSortLongStoreLowerAndUpperValues                        // Interleave the lower and upper values and save back into memory
+ (__m512i l, __m512i u, long *memory)
+ {__m512i a = _mm512_maskz_expand_epi64 (0b01010101,    l);                     // Interleave lower half
+  __m512i b = _mm512_maskz_expand_epi64 (0b10101010,    u);
+  __m512i c = _mm512_mask_mov_epi64     (a, 0b10101010, b);
+              _mm512_storeu_si512       (memory,        c);
+
+  __m512i L = _mm512_maskz_compress_epi64 (0b11110000,  l);                     // Interleave upper half
+  __m512i U = _mm512_maskz_compress_epi64 (0b11110000,  u);
+
+  __m512i A = _mm512_maskz_expand_epi64 (0b01010101,    L);
+  __m512i B = _mm512_maskz_expand_epi64 (0b10101010,    U);
+  __m512i C = _mm512_mask_mov_epi64     (A, 0b10101010, B);
+              _mm512_storeu_si512       (memory+8,      C);
  }
 
 static inline void mergeSortLongSwap(long *a, long *b)                          // Swap two numbers using xor
@@ -54,32 +62,21 @@ static inline void mergeSortLongSwap(long *a, long *b)                          
   *a = *a ^ *b;
  }
 
-static void printZ8(__m512i z)
- {for(int i = 0; i < 8; ++i)
-   {say("%2d  %8ld", i, z[i]);
-   }
- }
-
 static void mergeSortLong(long *A, const int N)                                 // In place stable merge sort
  {long W[N];                                                                    // Work area - how much stack space can we have?
 
-for(int i = 0; i < N; ++i) say("AAAA %2d  %2d", i, A[i]);
-
-  if (1)                                                                        // Sort the first 8 sets of pairs using AVX512
+  if (1)                                                                        // Sort the 8 sets of pairs using AVX512
    {int p;
-    for (p = 0; p + 15 < N; p += 16)                                            // Sort the first 8 sets of pairs using AVX512
+    for (p = 0; p + 15 < N; p += 16)
      {__m512i l = mergeSortLongLoadLowerValues(A+p);
       __m512i u = mergeSortLongLoadUpperValues(A+p);
       mergeSortLongCompareAndSwapZ8(&l, &u);
-printZ8(u);
-      _mm512_storeu_si512(A+p+0, l);
-      _mm512_storeu_si512(A+p+8, u);
+      mergeSortLongStoreLowerAndUpperValues(l, u, A+p);
      }
-for(int i = 0; i < N; ++i) say("BBBB %2d  %2d", i, A[i]);
 
-    for (; p < N; p += 2)                                                       // Sort any remaining pairs
-     {if (A[p] >= A[p-1]) continue;                                             // Already sorted
-      mergeSortLongSwap(A+p-1, A+p);                                            // Swap with xor as it is a little faster
+    for (; p+1 < N; p += 2)                                                     // Sort any remaining pairs
+     {if (A[p+1] >= A[p]) continue;                                              // Already sorted
+      mergeSortLongSwap(A+p+1, A+p);                                            // Swap with xor as it is a little faster
      }
    }
 
@@ -152,9 +149,9 @@ void test10()                                                                   
  }
 
 void test1a()                                                                   // Tests
- {const int N = 21;
+ {const int N = 32;
   long array[N];
-  for(int i = 0; i < N; i++) array[i] = (i * i) % N;                            // Load array in a somewhat random manner
+  for(int i = 0; i < N; i++) array[i] = N - i; //(i * i) % N;                            // Load array in a somewhat random manner
 
   mergeSortLong(array, N);
 
@@ -179,11 +176,11 @@ void tests()                                                                    
  }
 
 int main()                                                                      // Run tests
- {test1a();
+ {//test1a();
   tests();
   return 0;
  }
 #endif
 #endif
 // sde -mix -- ./long
-// 274557
+// Without vectorization: 274557    With vectorization: 120197

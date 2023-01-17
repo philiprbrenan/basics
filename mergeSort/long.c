@@ -63,17 +63,17 @@ static void printZ8(__m512i z)
 static void mergeSortLong(long *A, const int N)                                 // In place stable merge sort
  {long W[N];                                                                    // Work area - how much stack space can we have?
 
+for(int i = 0; i < N; ++i) say("AAAA %2d  %2d", i, A[i]);
 
   if (1)                                                                        // Sort the first 8 sets of pairs using AVX512
    {int p;
-for(int i = 0; i < N; ++i) say("AAAA %2d  %2d", i, A[i]);
-    for (p = 15; p < N; p += 16)                                                // Sort the first 8 sets of pairs using AVX512
-     {__m512i l = mergeSortLongLoadLowerValues(A+p-15);
-      __m512i u = mergeSortLongLoadUpperValues(A+p-7);
-printZ8(l);
+    for (p = 0; p + 15 < N; p += 16)                                            // Sort the first 8 sets of pairs using AVX512
+     {__m512i l = mergeSortLongLoadLowerValues(A+p);
+      __m512i u = mergeSortLongLoadUpperValues(A+p);
       mergeSortLongCompareAndSwapZ8(&l, &u);
-      _mm512_storeu_si512(A+p-15, l);
-      _mm512_storeu_si512(A+p-7,  u);
+printZ8(u);
+      _mm512_storeu_si512(A+p+0, l);
+      _mm512_storeu_si512(A+p+8, u);
      }
 for(int i = 0; i < N; ++i) say("BBBB %2d  %2d", i, A[i]);
 

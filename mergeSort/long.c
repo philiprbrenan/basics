@@ -16,7 +16,7 @@
 static inline __m512i mergeSortLongLoadLowerValues(long *i)                     // Partition 16 integers into 8 pairs and load the lower half of each pair into a z
  {__m512i a = _mm512_loadu_si512(i);
   __m512i b = _mm512_loadu_si512(i+8);
-  __m512i l = _mm512_maskz_compress_epi64 (0b1010101, b);                       // Upper values from first z
+  __m512i l = _mm512_maskz_compress_epi64 (0b1010101, b);                       // Upper values from second z
           l = _mm512_inserti64x4 (l, *(__m256i *)&l, 1);
           l = _mm512_mask_compress_epi64 (l, 0b1010101, a);                     // Lower values from first z
 
@@ -26,7 +26,7 @@ static inline __m512i mergeSortLongLoadLowerValues(long *i)                     
 static inline __m512i mergeSortLongLoadUpperValues(long *i)                     // Partition 16 integers into 8 pairs and load the upper half of each pair into a z
  {__m512i a = _mm512_loadu_si512(i);
   __m512i b = _mm512_loadu_si512(i+8);
-  __m512i l = _mm512_maskz_compress_epi64 (0b10101010, b);                      // Upper values from first z
+  __m512i l = _mm512_maskz_compress_epi64 (0b10101010, b);                      // Upper values from second z
           l = _mm512_inserti64x4 (l, *(__m256i *)&l, 1);
           l = _mm512_mask_compress_epi64 (l, 0b10101010, a);                    // Lower values from first z
 
@@ -65,7 +65,7 @@ static inline void mergeSortLongSwap(long *a, long *b)                          
 static void mergeSortLong(long *A, const int N)                                 // In place stable merge sort
  {long W[N];                                                                    // Work area - how much stack space can we have?
 
-  if (1)                                                                        // Sort the 8 sets of pairs using AVX512
+  if (0)                                                                        // Sort 8 pairs at a time using AVX512 instructions
    {int p;
     for (p = 0; p + 15 < N; p += 16)
      {__m512i l = mergeSortLongLoadLowerValues(A+p);
@@ -75,12 +75,18 @@ static void mergeSortLong(long *A, const int N)                                 
      }
 
     for (; p+1 < N; p += 2)                                                     // Sort any remaining pairs
-     {if (A[p+1] >= A[p]) continue;                                              // Already sorted
+     {if (A[p+1] >= A[p]) continue;                                             // Already sorted
       mergeSortLongSwap(A+p+1, A+p);                                            // Swap with xor as it is a little faster
      }
    }
+  else
+   {for (int p = 1; p < N; p += 2)                                              // Sorting the first set of partitions is easy
+     {if (A[p] >= A[p-1]) continue;                                             // Already sorted
+      mergeSortLongSwap(A+p-1, A+p);                                            // Swap with xor as it is a little faster
+     }
+   }
 
-  if (1)                                                                        // Sort the second set of partitions of size 4  by direct swaps
+  if (1)                                                                        // Sort partitions of size 4 using direct swaps
    {int p = 3;
     for (; p < N; p += 4)                                                       // In blocks of 4
      {if (A[p-1] >= A[p-2]) continue;                                           // Already sorted
@@ -151,7 +157,7 @@ void test10()                                                                   
 void test1a()                                                                   // Tests
  {const int N = 32;
   long array[N];
-  for(int i = 0; i < N; i++) array[i] = N - i; //(i * i) % N;                            // Load array in a somewhat random manner
+  for(int i = 0; i < N; i++) array[i] = (i * i) % N;                            // Load array in a somewhat random manner
 
   mergeSortLong(array, N);
 
@@ -159,7 +165,7 @@ void test1a()                                                                   
  }
 
 void test1k()                                                                   // Tests
- {const int N = 1024;
+ {const int N = 999;
   long array[N];
   for(int i = 0; i < N; i++) array[i] = (i * i) % N;                            // Load array in a somewhat random manner
 
@@ -183,4 +189,4 @@ int main()                                                                      
 #endif
 #endif
 // sde -mix -- ./long
-// Without vectorization: 274557    With vectorization: 120197
+// Without vectorization: 268010    With vectorization: 272242

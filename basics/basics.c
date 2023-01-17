@@ -105,6 +105,12 @@ static char **split(char *String, char *separator)                              
   return words;
  }
 
+//static void printZ8(__m512i z)
+// {for(int i = 0; i < 8; ++i)
+//   {say("%2d  %8ld", i, z[i]);
+//   }
+// }
+
 #if (__INCLUDE_LEVEL__ == 0)
 int main()
  {assert(1 == min(1, 2));

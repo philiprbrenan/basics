@@ -2,6 +2,7 @@
 // Bits in C
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc., 2022
 //------------------------------------------------------------------------------
+#define _GNU_SOURCE
 #ifndef Cbits
 #define Cbits
 #include <stdlib.h>
@@ -10,14 +11,12 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <x86intrin.h>
+#include "basics/basics.c"
 
-void say(char *format, ...)                                                     // Say something
- {va_list p;
-  va_start (p, format);
-  int i = vfprintf(stderr, format, p);
-  assert(i > 0);
-  va_end(p);
-  fprintf(stderr, "\n");
+static void printZ8(__m512i z)
+ {for(int i = 0; i < 8; ++i)
+   {say("%2d  %8ld", i, z[i]);
+   }
  }
 
 static inline __m512i loadLowerValues(long *i)                                  // Given an array of 16 integers, partitioned into 8 pairs and load the lower half of each pair into a z
@@ -40,6 +39,21 @@ static inline __m512i loadUpperValues(long *i)                                  
   return  l;
  }
 
+static inline void storeLowerAndUpperValues(__m512i l, __m512i u, long *i)   // Interleave the lower and upper values into memory
+ {__m512i a = _mm512_maskz_expand_epi64 (0b01010101, l);                     // Interleave lower half
+  __m512i b = _mm512_maskz_expand_epi64 (0b10101010, u);
+  __m512i c = _mm512_mask_mov_epi64     (a, 0b10101010, b);
+              _mm512_storeu_si512       (i, c);
+
+  __m512i L = _mm512_maskz_compress_epi64 (0b11110000, l);                      // Interleave upper half
+  __m512i U = _mm512_maskz_compress_epi64 (0b11110000, u);
+
+  __m512i A = _mm512_maskz_expand_epi64 (0b01010101, L);
+  __m512i B = _mm512_maskz_expand_epi64 (0b10101010, U);
+  __m512i C = _mm512_mask_mov_epi64     (A, 0b10101010, B);
+              _mm512_storeu_si512       (i+8, C);
+ }
+
 static inline void compareAndSwapZ8(__m512i *a, __m512i *b)                     // Given an array of 16 integers, partitioned into 8 pairs, swap the lower half of each pair with the upper half if they and load the upper half of each pair into a z
  {__mmask8 k = _mm512_cmpgt_epu64_mask (*a, *b);
   *a = _mm512_mask_xor_epi64 (*a, k, *a, *b);
@@ -59,12 +73,6 @@ static int z8Eq(__m512i z, long l1, long l2, long l3, long l4, long l5, long l6,
   if (z[6] != l7) return 7;
   if (z[7] != l8) return 8;
   return 0;
- }
-
-static void printZ8(__m512i z)
- {for(int i = 0; i < 8; ++i)
-   {say("%2d  %8ld", i, z[i]);
-   }
  }
 
 static void test1()
@@ -101,11 +109,22 @@ static void test4()
   assert(z8Eq(y, 2, 3, 4, 5, 6, 7, 8, 9) == 0);
  }
 
+static void test5()
+ {long A[16] = {1, 3, 5, 7, 9, 11, 13, 15, 2, 4, 6, 8, 10, 12, 14, 16};
+  long B[16] = {};
+
+  __m512i l = _mm512_loadu_si512(A);
+  __m512i u = _mm512_loadu_si512(A+8);
+  storeLowerAndUpperValues(l, u, B);
+  for(int i = 0; i < 16; ++i) assert(B[i] == i+ 1);
+ }
+
 static void tests()
  {test1();
   test2();
   test3();
   test4();
+  test5();
  }
 
 int main()

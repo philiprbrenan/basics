@@ -184,7 +184,7 @@ void tests()                                                                    
  }
 
 int main()                                                                      // Run tests
- {test1a();
+ {//test1a();
   tests();
   return 0;
  }

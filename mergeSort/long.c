@@ -188,7 +188,7 @@ void test1a()                                                                   
  }
 
 void test1k()                                                                   // Tests
- {const int N = 64;
+ {const int N = 128;
   long *A = malloc(sizeof(long) * N);
   for(int i = 0; i < N; i++) A[i] = (i * i) % N;                                // Load array in a somewhat random manner
 

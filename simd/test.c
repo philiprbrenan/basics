@@ -19,6 +19,14 @@ static void printZ8(__m512i z)
    }
  }
 
+static inline __m512i maxZ8(__m512i a, __m512i b)                               // Maximums of two z
+ {return _mm512_max_epu64 (a, b);
+ }
+
+static inline __m512i minZ8(__m512i a, __m512i b)                               // Minimums of two z
+ {return _mm512_min_epu64 (a, b);
+ }
+
 static inline __m512i loadLowerValues(long *i)                                  // Given an array of 16 integers, partitioned into 8 pairs and load the lower half of each pair into a z
  {__m512i a = _mm512_loadu_si512(i);
   __m512i b = _mm512_loadu_si512(i+8);
@@ -119,12 +127,25 @@ static void test5()
   for(int i = 0; i < 16; ++i) assert(B[i] == i+ 1);
  }
 
+static void test6()
+ {long A[8] = {11,  2, 13,  4, 15,  6, 17,  8};
+  long B[8] = { 1, 12,  3, 14,  5, 16,  7, 18};
+
+  __m512i a = _mm512_loadu_si512(A);
+  __m512i b = _mm512_loadu_si512(B);
+
+  __m512i c = maxZ8(a, b);
+  __m512i d = minZ8(a, b);
+  for(int i = 0; i < 8; ++i) say("%2d %2d %2d %2d %2d", i, a[i], b[i], c[i], d[i]);
+ }
+
 static void tests()
  {test1();
   test2();
   test3();
   test4();
   test5();
+  test6();
  }
 
 int main()

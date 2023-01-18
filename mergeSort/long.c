@@ -100,7 +100,7 @@ static void mergeSortLong(long *Z, const int N)                                 
   if (1)                                                                        // Normal merge sort starting with half partitions of size 4
    {long *W = malloc(sizeof(long) * N);
 
-    if (1)
+    if (0)
      {const int s = 4, S = 8;                                                   // Partition full size
 
       for (int p = 0; p + s < N; p += S)                                        // Partition start
@@ -121,7 +121,7 @@ static void mergeSortLong(long *Z, const int N)                                 
        }
      }
 
-    for (int s = 8; s < N; s <<= 1)                                             // Partition sizes
+    for (int s = 4; s < N; s <<= 1)                                             // Partition sizes
      {const int S = s << 1;                                                     // Partition full size
 
       for (int p = 0; p + s < N; p += S)                                        // Partition start

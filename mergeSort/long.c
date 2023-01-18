@@ -3,8 +3,8 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// Without vectorization: 766,926,803
-// With    vectorization: 373,208,275 instructions executed
+// Without vectorization: 766,929,373
+// With    vectorization: 373,045,138 instructions executed
 #define _GNU_SOURCE
 #ifndef CmergeSort
 #define CmergeSort
@@ -44,7 +44,7 @@ static void mergeSortLong(long *Z, const int N)                                 
     return;
    }
 
-  if (1)                                                                        // Partition into blocks of 16 into 8 pairs then sort the pairs using AVX512 instructions
+  if (1)                                                                        // Partition as pairs then sort the pairs using AVX512 instructions
    {int p;
     for (p = 0; p + 31 < N; p += 32)
      {__m512i a = _mm512_loadu_si512(Z+p+ 0);                                   // Pick up partition
@@ -65,7 +65,8 @@ static void mergeSortLong(long *Z, const int N)                                 
       Z[p+10] = A[5]; Z[p+11] = B[5];
       Z[p+12] = A[6]; Z[p+13] = B[6];
       Z[p+14] = A[7]; Z[p+15] = B[7];
-      Z[p+16] = C[0]; Z[p+17] = D[0];
+
+      Z[p+16] = C[0]; Z[p+17] = D[0];                                           // Unroll the loop
       Z[p+18] = C[1]; Z[p+19] = D[1];
       Z[p+20] = C[2]; Z[p+21] = D[2];
       Z[p+22] = C[3]; Z[p+23] = D[3];
@@ -96,10 +97,31 @@ static void mergeSortLong(long *Z, const int N)                                 
      }
    }
 
-  if (1)
+  if (1)                                                                        // Normal merge sort starting with half partitions of size 4
    {long *W = malloc(sizeof(long) * N);
 
-    for (int s = 4; s < N; s <<= 1)                                             // Normal merge sort starting with half partitions of size 4
+    if (1)
+     {const int s = 4, S = 8;                                                   // Partition full size
+
+      for (int p = 0; p + s < N; p += S)                                        // Partition start
+       {int a = p, b = a+s, i = 0;                                              // Position in each half partition
+        if (Z[b] >= Z[b-1]) continue;                                           // The partitions are already ordered
+
+        const int aa = p+s, bb = p+S < N ? p+S : N;
+        for (;a < aa && b < bb;) W[i++] = Z[Z[a] <= Z[b] ? a++ : b++];          // Choose the lowest element first or the first equal element to obtain a stable sort
+
+        const int ma = p+s - a;
+        if (ma) memcpy(W+i, Z+a, ma * sizeof(long));                            // Rest of first partition
+        else
+         {const int bpS = p+S - b, piN = N - (p+i), mb = bpS < piN ? bpS : piN;
+          memcpy(W+i, Z+b, mb * sizeof(long));                                  // Rest of second partition
+         }
+
+        memcpy(Z+p, W, (S < N-p ? S : N-p) * sizeof(long));                     // Copy back from work area to array being sorted
+       }
+     }
+
+    for (int s = 8; s < N; s <<= 1)                                             // Partition sizes
      {const int S = s << 1;                                                     // Partition full size
 
       for (int p = 0; p + s < N; p += S)                                        // Partition start
@@ -166,7 +188,7 @@ void test1a()                                                                   
  }
 
 void test1k()                                                                   // Tests
- {const int N = 1024;
+ {const int N = 1024*1024;
   long *A = malloc(sizeof(long) * N);
   for(int i = 0; i < N; i++) A[i] = (i * i) % N;                                // Load array in a somewhat random manner
 

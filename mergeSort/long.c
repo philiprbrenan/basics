@@ -16,13 +16,13 @@
 #include <x86intrin.h>
 #include "basics/basics.c"
 
-static inline void mergeSortLongSwap(long *a, long *b)                          // Swap two numbers using xor as it is a little faster than using a temporary
+static inline void mergeSortLongSwap(long * const a, long * const b)            // Swap two numbers using xor as it is a little faster than using a temporary
  {*a = *a ^ *b;
   *b = *a ^ *b;
   *a = *a ^ *b;
  }
 
-static inline void mergeSortLongMiniMax(long *Z, const int p)                   // Sort pairs using AVX512 instructions
+static inline void mergeSortLongMiniMax(long * const Z, const int p)            // Sort pairs using AVX512 instructions
  {__m512i a = _mm512_loadu_si512(Z+p+ 0);                                       // Pick up partition
   __m512i b = _mm512_loadu_si512(Z+p+ 8);
 
@@ -33,7 +33,7 @@ static inline void mergeSortLongMiniMax(long *Z, const int p)                   
  }
 
 static inline void mergeSortLongBlock                                           // Sort a partition of a specified half size
- (long *Z, long *W, const int N, const int s)
+ (long * const Z, long * const W, const int N, const int s)
  {const int S = s << 1;                                                         // Partition full size
 
   for (int p = 0; p + s < N; p += S)                                            // Partition start
@@ -56,7 +56,7 @@ static inline void mergeSortLongBlock                                           
 
 static void mergeSortLong(long *Z, const int N)                                 // In place stable merge sort
  {if (0)                                                                        // Shortest implementation for reference purposes
-   {long *W = malloc(sizeof(long) * N);
+   {long * const W = malloc(sizeof(long) * N);
     for (int s = 1; s < N; s <<= 1)                                             // Partition half size
      {const int S = s << 1;                                                     // Partition full size
 
@@ -90,7 +90,8 @@ static void mergeSortLong(long *Z, const int N)                                 
   if (1)                                                                        // Sort partitions of size 4 using direct swaps
    {int p = 0;
     for (; p + 3 < N; p += 4)
-     {long *p0 = Z+p+0, *p1 = Z+p+1, *p2 = Z+p+2, *p3 = Z+p+3;
+     {long * const p0 = Z+p+0, * const p1 = Z+p+1,
+           * const p2 = Z+p+2, * const p3 = Z+p+3;
       if (*p2 >= *p1) continue;                                                 // Already sorted
       /**/            mergeSortLongSwap(p1, p2);                                // Not sorted so swap
       if (*p2 >  *p3) mergeSortLongSwap(p2, p3);                                // Swap highest in first partition into position
@@ -109,8 +110,10 @@ static void mergeSortLong(long *Z, const int N)                                 
   if (1)                                                                        // Sort partitions of size 8 using direct swaps
    {int p = 0;
     for (; p + 7 < N; p += 8)
-     {long *p0 = Z+p+0, *p1 = Z+p+1, *p2 = Z+p+2, *p3 = Z+p+3;
-      long *p4 = Z+p+4, *p5 = Z+p+5, *p6 = Z+p+6, *p7 = Z+p+7;
+     {long * const p0 = Z+p+0, * const p1 = Z+p+1,
+           * const p2 = Z+p+2, * const p3 = Z+p+3,
+           * const p4 = Z+p+4, * const p5 = Z+p+5,
+           * const p6 = Z+p+6, * const p7 = Z+p+7;
       if (*p4 >= *p3) continue;                                                 // Already sorted
       /**/            mergeSortLongSwap(p3, p4);                                // Not sorted so swap
       if (*p4 >  *p5)                                                           // Bubble element 3 up as far as possible
@@ -157,7 +160,7 @@ static void mergeSortLong(long *Z, const int N)                                 
     if (N == p-3 || N == p-2 || N == p-1)                                       // Partition with 5-7 elements, (smaller blocks will already be sorted)
      {for  (int i = p-4; i < N; ++i)                                            // Insertion sort the remaining 1-3 elements into position
        {for(int j = 0;   j < 4; ++j)
-         {long *a = Z+i-j, *b = a - 1;
+         {long * const a = Z+i-j, * const b = a - 1;
           if (*b > *a) mergeSortLongSwap(b, a);  else break;
          }
        }
@@ -172,7 +175,7 @@ static void mergeSortLong(long *Z, const int N)                                 
       if (N >= 32)
        {mergeSortLongBlock    (Z, W, N, 32);
         if (N >= 64)
-         {long *W = malloc(sizeof(long) * N);
+         {long * const W = malloc(sizeof(long) * N);
           for (int s = 64; s < N; s <<= 1)
            {mergeSortLongBlock(Z, W, N,  s);
            }

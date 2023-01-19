@@ -29,17 +29,10 @@ static inline void mergeSortLongMiniMax(long *Z, const int p)                   
   __m512i A = _mm512_min_epu64 (a, b);                                          // Maximum and minimum of each pair
   __m512i B = _mm512_max_epu64 (a, b);
 
-  Z[p+ 0] = A[0]; Z[p+ 1] = B[0];                                               // Reload minimum and maximum back into partition
-  Z[p+ 2] = A[1]; Z[p+ 3] = B[1];
-  Z[p+ 4] = A[2]; Z[p+ 5] = B[2];
-  Z[p+ 6] = A[3]; Z[p+ 7] = B[3];
-  Z[p+ 8] = A[4]; Z[p+ 9] = B[4];
-  Z[p+10] = A[5]; Z[p+11] = B[5];
-  Z[p+12] = A[6]; Z[p+13] = B[6];
-  Z[p+14] = A[7]; Z[p+15] = B[7];
+  for(int i = 0; i < 8; ++i) {Z[p+i+i] = A[i]; Z[p+i+i+1] = B[i];}              // Reload minimum and maximum back into partition
  }
 
-static inline void mergeSortLongBlock                                           // Sort a block of a specified size
+static inline void mergeSortLongBlock                                           // Sort a partition of a specified half size
  (long *Z, long *W, const int N, const int s)
  {const int S = s << 1;                                                         // Partition full size
 
@@ -173,15 +166,15 @@ static void mergeSortLong(long *Z, const int N)                                 
 
   if (N >= 8)                                                                   // Normal merge sort of partitions of 8 and beyond
    {long W[256];
-    mergeSortLongBlock      (Z, W, N, 8);
+    mergeSortLongBlock        (Z, W, N,  8);
     if (N >= 16)
-     {mergeSortLongBlock    (Z, W, N, 16);
+     {mergeSortLongBlock      (Z, W, N, 16);
       if (N >= 32)
        {mergeSortLongBlock    (Z, W, N, 32);
         if (N >= 64)
          {long *W = malloc(sizeof(long) * N);
-          for (int s = 64; s < N; s <<= 1)                                        // Partitions of 32 and beyond
-           {mergeSortLongBlock(Z, W, N, s);
+          for (int s = 64; s < N; s <<= 1)
+           {mergeSortLongBlock(Z, W, N,  s);
            }
           free(W);
          }

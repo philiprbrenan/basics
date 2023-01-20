@@ -52,7 +52,7 @@ jobs:
       run: |
         gcc -I. modulo/modulo.c;  ./a.out
 
-    - name: QuiclSortLong
+    - name: QuickSortLong
       run: |
         gcc -I. quickSort/long.c     -mavx512f; sde/sde64 -mix -- ./a.out
 

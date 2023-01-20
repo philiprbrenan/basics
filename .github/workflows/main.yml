@@ -40,6 +40,10 @@ jobs:
       run: |
         gcc -I. heapSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
 
+    - name: InsertionSort
+      run: |
+        gcc -I. insertionSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
+
     - name: MergeSortLong
       run: |
         gcc -I. mergeSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out

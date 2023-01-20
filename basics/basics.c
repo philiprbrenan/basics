@@ -105,6 +105,12 @@ static char **split(char *String, char *separator)                              
   return words;
  }
 
+static inline void swapLong(long * const a, long * const b)                     // Swap two long integers using xor as it is a little faster than using a temporary
+ {*a = *a ^ *b;
+  *b = *a ^ *b;
+  *a = *a ^ *b;
+ }
+
 //static void printZ8(__m512i z)
 // {for(int i = 0; i < 8; ++i)
 //   {say("%2d  %8ld", i, z[i]);
@@ -124,6 +130,13 @@ int main()
     assert(strcmp(c[2], "c") == 0);
     assert(       c[3]       == 0);
     free(c);
+   }
+
+  if (1)
+   {long a = 1, b = 2;
+    swapLong(&a, &b);
+    assert(a == 2);
+    assert(b == 1);
    }
 
   return 0;

@@ -3,8 +3,8 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// Without vectorization: 2,619,211
-// With    vectorization: 1,172,377 instructions executed
+// Without vectorization: 2,337,063
+// With    vectorization: 1,172,085 instructions executed
 #define _GNU_SOURCE
 #ifndef CmergeSort
 #define CmergeSort
@@ -15,12 +15,7 @@
 #include <stdarg.h>
 #include <x86intrin.h>
 #include "basics/basics.c"
-
-static inline void mergeSortLongSwap(long * const a, long * const b)            // Swap two numbers using xor as it is a little faster than using a temporary
- {*a = *a ^ *b;
-  *b = *a ^ *b;
-  *a = *a ^ *b;
- }
+#include "heapSort/long.c"
 
 static inline void mergeSortLongMiniMax(long * const Z, const int p)            // Sort pairs using AVX512 instructions
  {__m512i a = _mm512_loadu_si512(Z+p+ 0);                                       // Pick up partition
@@ -79,11 +74,12 @@ static void mergeSortLong(long *Z, const int N)                                 
   if (1)                                                                        // Partition as pairs then sort the pairs using AVX512 instructions
    {int p = 0;
     if (N >= 16)                                                                // Whole blocks of 16 can be sorted using AVX512
-     {for (p = 16; p + 16 < N; p += 16)  mergeSortLongMiniMax(Z, p);
+     {for (p = 16; p + 16 < N; p += 16)
+       mergeSortLongMiniMax(Z, p);
      }
     for (; p+1 < N; p += 2)                                                     // Sort any remaining pairs
      {if               (Z[p+1] >= Z[p]) continue;                               // Already sorted
-      mergeSortLongSwap(Z+p+1,    Z+p);                                         // Swap with xor as it is a little faster
+      swapLong(Z+p+1,    Z+p);                                                  // Swap with xor as it is a little faster
      }
    }
 
@@ -93,17 +89,17 @@ static void mergeSortLong(long *Z, const int N)                                 
      {long * const p0 = Z+p+0, * const p1 = Z+p+1,
            * const p2 = Z+p+2, * const p3 = Z+p+3;
       if (*p2 >= *p1) continue;                                                 // Already sorted
-      /**/            mergeSortLongSwap(p1, p2);                                // Not sorted so swap
-      if (*p2 >  *p3) mergeSortLongSwap(p2, p3);                                // Swap highest in first partition into position
+      /**/            swapLong(p1, p2);                                         // Not sorted so swap
+      if (*p2 >  *p3) swapLong(p2, p3);                                         // Swap highest in first partition into position
 
       if (*p0 >  *p1)                                                           // Swap lowest in first partition into position
-       {mergeSortLongSwap(p0, p1);
-        if (*p1 >  *p2) mergeSortLongSwap(p1, p2);
+       {swapLong(p0, p1);
+        if (*p1 >  *p2) swapLong(p1, p2);
        }
      }
     if (N == p-1)                                                               // Partition with 3 elements, (smaller blocks will already be sorted)
-     {if (Z[p-3] >  Z[p-2]) mergeSortLongSwap(Z+p-3, Z+p-2);                    // Possibly swap into lowest position
-      if (Z[p-4] >  Z[p-3]) mergeSortLongSwap(Z+p-4, Z+p-3);                    // Possibly swap into highest position
+     {if (Z[p-3] >  Z[p-2]) swapLong(Z+p-3, Z+p-2);                             // Possibly swap into lowest position
+      if (Z[p-4] >  Z[p-3]) swapLong(Z+p-4, Z+p-3);                             // Possibly swap into highest position
      }
    }
 
@@ -115,44 +111,44 @@ static void mergeSortLong(long *Z, const int N)                                 
            * const p4 = Z+p+4, * const p5 = Z+p+5,
            * const p6 = Z+p+6, * const p7 = Z+p+7;
       if (*p4 >= *p3) continue;                                                 // Already sorted
-      /**/            mergeSortLongSwap(p3, p4);                                // Not sorted so swap
+      /**/            swapLong(p3, p4);                                         // Not sorted so swap
       if (*p4 >  *p5)                                                           // Bubble element 3 up as far as possible
-       {mergeSortLongSwap(p4, p5);
+       {swapLong(p4, p5);
         if (*p5 >  *p6)
-         {mergeSortLongSwap(p5, p6);
-          if (*p6 >  *p7) mergeSortLongSwap(p6, p7);
+         {swapLong(p5, p6);
+          if (*p6 >  *p7) swapLong(p6, p7);
          }
        }
 
       if (*p2 >  *p3)                                                           // Bubble element 2 up as far as possible
-       {mergeSortLongSwap(p2, p3);
+       {swapLong(p2, p3);
         if (*p3 >  *p4)
-         {mergeSortLongSwap(p3, p4);
+         {swapLong(p3, p4);
           if (*p4 >  *p5)
-           {mergeSortLongSwap(p4, p5);
-            if (*p5 >  *p6) mergeSortLongSwap(p5, p6);
+           {swapLong(p4, p5);
+            if (*p5 >  *p6) swapLong(p5, p6);
            }
          }
        }
 
       if (*p1 >  *p2)                                                           // Bubble element 1 up as far as possible
-       {mergeSortLongSwap(p1, p2);
+       {swapLong(p1, p2);
         if (*p2 >  *p3)
-         {mergeSortLongSwap(p2, p3);
+         {swapLong(p2, p3);
           if (*p3 >  *p4)
-           {mergeSortLongSwap(p3, p4);
-            if (*p4 >  *p5) mergeSortLongSwap(p4, p5);
+           {swapLong(p3, p4);
+            if (*p4 >  *p5) swapLong(p4, p5);
            }
          }
        }
 
       if (*p0 >  *p1)                                                           // Bubble element 0 up as far as possible
-       {mergeSortLongSwap(p0, p1);
+       {swapLong(p0, p1);
         if (*p1 >  *p2)
-         {mergeSortLongSwap(p1, p2);
+         {swapLong(p1, p2);
           if (*p2 >  *p3)
-           {mergeSortLongSwap(p2, p3);
-            if (*p3 >  *p4) mergeSortLongSwap(p3, p4);
+           {swapLong(p2, p3);
+            if (*p3 >  *p4) swapLong(p3, p4);
            }
          }
        }
@@ -161,10 +157,17 @@ static void mergeSortLong(long *Z, const int N)                                 
      {for  (int i = p-4; i < N; ++i)                                            // Insertion sort the remaining 1-3 elements into position
        {for(int j = 0;   j < 4; ++j)
          {long * const a = Z+i-j, * const b = a - 1;
-          if (*b > *a) mergeSortLongSwap(b, a);  else break;
+          if (*b > *a) swapLong(b, a);  else break;
          }
        }
      }
+   }
+  else
+   {int p = 0;
+    for (; p+7 < N; p += 8)                                                     // Alternatively try heap sort on each partition of 8
+     {heapSortLong(Z+p, 8);
+     }
+    heapSortLong(Z+p, N-p);
    }
 
   if (N >= 8)                                                                   // Normal merge sort of partitions of 8 and beyond
@@ -206,6 +209,22 @@ void test2()                                                                    
   assert(array[1] == 2);
  }
 
+void test3()                                                                    // Tests
+ {const int N = 3;
+  long array[3] = {2,1,3};
+
+  mergeSortLong(array, N);
+  for(int i = 0; i < N; ++i) assert(array[i] == i+1);
+ }
+
+void test4()                                                                    // Tests
+ {const int N = 4;
+  long array[4] = {4,2,1,3};
+
+  mergeSortLong(array, N);
+  for(int i = 0; i < N; ++i) assert(array[i] == i+1);
+ }
+
 void test10()                                                                    // Tests
  {const int N = 10;
   long array[10] = {9,1,2,3,7,5,6,4,8,0};
@@ -242,6 +261,8 @@ void test1k()                                                                   
 void tests()                                                                    // Tests
  {test1();
   test2();
+  test3();
+  test4();
   test10();
   test1k();
  }

@@ -38,7 +38,7 @@ jobs:
 
     - name: HeapSortLong
       run: |
-        gcc -I. heapSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
+        gcc -I. heapSort/long.c      -mavx512f; sde/sde64 -mix -- ./a.out
 
     - name: InsertionSort
       run: |
@@ -46,7 +46,7 @@ jobs:
 
     - name: MergeSortLong
       run: |
-        gcc -I. mergeSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
+        gcc -I. mergeSort/long.c     -mavx512f; sde/sde64 -mix -- ./a.out
 
     - name: Modulo
       run: |
@@ -54,11 +54,11 @@ jobs:
 
     - name: QuiclSortLong
       run: |
-        gcc -I. quickSort/long.c -mavx512f; sde/sde64 -mix -- ./a.out
+        gcc -I. quickSort/long.c     -mavx512f; sde/sde64 -mix -- ./a.out
 
     - name: Simd
       run: |
-        gcc -I. simd/test.c -mavx512f; sde/sde64 -mix -- ./a.out
+        gcc -I. simd/test.c          -mavx512f; sde/sde64 -mix -- ./a.out
         cat sde-mix-out.txt
 
     - name: StackLong

@@ -52,7 +52,7 @@ static inline void mergeSortLongBlock                                           
  }
 
 static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
- {if (1)                                                                        // Shortest implementation for reference purposes
+ {if (0)                                                                        // Shortest implementation for reference purposes
    {long * const W = malloc(sizeof(long) * N);
     for (long s = 1; s < N; s <<= 1) mergeSortLongBlock(Z, W, N, s);            // Sort at each partition size
     free(W);
@@ -79,11 +79,11 @@ static void mergeSortLong(long * const Z, const long N)                         
     for (; p + 3 < N; p += 4)
      {long * const p0 = Z+p+0, * const p1 = Z+p+1,
            * const p2 = Z+p+2, * const p3 = Z+p+3;
-      if (*p2 >= *p1) continue;                                                 // Already sorted
+      if   (*p2 >= *p1)  continue;                                              // Already sorted
       /**/               swapLong(p1, p2);                                      // Not sorted so swap
-      if (*p2 >  *p3)    swapLong(p2, p3);
+      if   (*p2 >  *p3)  swapLong(p2, p3);
 
-      if (*p0 >  *p1)  { swapLong(p0, p1);
+      if   (*p0 >  *p1) {swapLong(p0, p1);
         if (*p1 >  *p2)  swapLong(p1, p2);
        }
      }

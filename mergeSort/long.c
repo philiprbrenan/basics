@@ -74,7 +74,7 @@ static void mergeSortLong(long * const Z, const long N)                         
      }
    }
 
-  if (1)                                                                        // Sort partitions of size 4 using direct swaps
+  if (1)                                                                        // Sort partitions of size 4 using in place bubble sort
    {long p = 0;
     for (; p + 3 < N; p += 4)
      {long * const p0 = Z+p+0, * const p1 = Z+p+1,
@@ -93,7 +93,7 @@ static void mergeSortLong(long * const Z, const long N)                         
      }
    }
 
-  if (1)                                                                        // Sort partitions of size 8 using direct swaps
+  if (1)                                                                        // Sort partitions of size 8 using in place bubble sort
    {long p = 0;
     for (; p + 7 < N; p += 8)
      {long * const p0 = Z+p+0, * const p1 = Z+p+1,
@@ -143,7 +143,7 @@ static void mergeSortLong(long * const Z, const long N)                         
      }
    }
 
-  if (N >= 8)                                                                   // Normal merge sort of partitions of 8 and beyond
+  if (N >= 8)                                                                   // Normal merge sort for partitions of 8 and beyond
    {long W[512];           mergeSortLongBlock(Z, W, N, 1<<3);
     if       (N >= 1<<4) { mergeSortLongBlock(Z, W, N, 1<<4);
       if     (N >= 1<<5) { mergeSortLongBlock(Z, W, N, 1<<5);
@@ -197,7 +197,7 @@ void test4()                                                                    
   for(int i = 0; i < N; ++i) assert(array[i] == i+1);
  }
 
-void test10()                                                                    // Tests
+void test10()                                                                   // Tests
  {const int N = 10;
   long array[10] = {9,1,2,3,7,5,6,4,8,0};
 

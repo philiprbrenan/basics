@@ -3,8 +3,8 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// No optimizations: 1,121,144 instructions executed
-// Optimized       :   918,874 instructions executed
+// No optimizations: 959,723 instructions executed
+// Optimized       : 748,973 instructions executed
 #define _GNU_SOURCE
 #ifndef CmergeSort
 #define CmergeSort
@@ -19,7 +19,11 @@
 
 static inline void mergeSortLongCopy                                            // Copy elements from one location in memory to another
  (long * const T, long * const S, const long N)                                 // Move the specified number of longs
- {for (long p = 0; p < N; ++p) T[p] = S[p];                                     // Add trailing elements
+ {long p, q;
+  const long B = 9;                                                             // Chosen by experimentation
+  if (N == 1) {T[0] = S[0]; return;}
+  for (p = 0; p + B < N; p += B) for (q = 0; q < B; q++) T[p+q] = S[p+q];       // The inner loop gets unrolled by gcc
+  for (     ; p     < N; p++)                            T[p]   = S[p];
  }
 
 static inline void mergeSortLongBlock                                           // Sort a partition of a specified half size
@@ -31,6 +35,13 @@ static inline void mergeSortLongBlock                                           
     if (Z[a] >= Z[a-1]) continue;                                               // The partitions are already ordered
     mergeSortLongCopy(W, Z+a, b);                                               // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
 
+    const long B = 13;                                                          // Chosen by experimentation
+    for (;a > p+B && b > B;)                                                    // Choose next highest element from each partition
+     {for(long j = 0; j < B; ++j)
+       {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                             // Stability: we take the highest element first or the first equal element
+       }
+     }
+
     for (;a > p && b > 0;)                                                      // Choose next highest element from each partition
      {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                               // Stability: we take the highest element first or the first equal element
      }
@@ -41,16 +52,26 @@ static inline void mergeSortLongBlock                                           
  }
 
 static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
- {if (0)                                                                        // Shortest implementation for reference purposes
+ {if (1)                                                                        // Shortest implementation for reference purposes
    {long * const W = malloc(sizeof(long) * N);
     for (long s = 1; s < N; s <<= 1) mergeSortLongBlock(Z, W, N, s);            // Sort at each partition size
     free(W);
     return;
    }
 
-  for (long p = 0; p+1 < N; p += 2)                                             // Sort pairs
-   {if (Z[p+1] >= Z[p]) continue;                                               // Already sorted
-    swapLong(Z+p+1, Z+p);                                                       // Swap with xor as it is a little faster
+  if (1)                                                                        // Sort partitions of size 4 using direct swaps
+   {long p = 0;
+    const long  B = 10;                                                         // Chosen by experimentation
+    for   (     p = 0; p+B+B < N;   p += B+B)                                   // Sort pairs
+     {for (long q = 0; q+1   < B+B; q += 2)
+       {if (Z[p+q+1] >= Z[p+q]) continue;                                       // Already sorted
+        swapLong(Z+p+q+1, Z+p+q);                                               // Swap with xor as it is a little faster
+       }
+     }
+    for (            ; p+1 < N; p += 2)                                         // Sort remaining pairs
+     {if (Z[p+1] >= Z[p]) continue;                                             // Already sorted
+      swapLong(Z+p+1, Z+p);                                                     // Swap with xor as it is a little faster
+     }
    }
 
   if (1)                                                                        // Sort partitions of size 4 using direct swaps
@@ -123,7 +144,7 @@ static void mergeSortLong(long * const Z, const long N)                         
    }
 
   if (N >= 8)                                                                   // Normal merge sort of partitions of 8 and beyond
-   {long W[256];           mergeSortLongBlock(Z, W, N, 1<<3);
+   {long W[512];           mergeSortLongBlock(Z, W, N, 1<<3);
     if       (N >= 1<<4) { mergeSortLongBlock(Z, W, N, 1<<4);
       if     (N >= 1<<5) { mergeSortLongBlock(Z, W, N, 1<<5);
         if   (N >= 1<<6) { mergeSortLongBlock(Z, W, N, 1<<6);

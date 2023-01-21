@@ -58,7 +58,7 @@ jobs:
 
     - name: Simd
       run: |
-        #gcc -I. simd/test.c          -mavx512f; sde/sde64 -mix -- ./a.out
+        #gcc -I. simd/test.c         -mavx512f; sde/sde64 -mix -- ./a.out
         #cat sde-mix-out.txt
 
     - name: StackLong

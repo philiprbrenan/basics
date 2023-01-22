@@ -3,8 +3,8 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc., 2022
 //------------------------------------------------------------------------------
 #define _GNU_SOURCE
-#ifndef Cbasics
-#define Cbasics
+#ifndef Basics
+#define Basics
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>

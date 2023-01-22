@@ -19,7 +19,7 @@ typedef struct StackLong                                                        
   long base;                                                                    // Base of stack
  } StackLong;
 
-static StackLong *newStackLong()                                                // Create a new stack
+inline static StackLong *newStackLong()                                         // Create a new stack
  {StackLong *s = calloc(sizeof(StackLong), 1);
   s->arena = 0;
   s->size  = 0;
@@ -28,15 +28,15 @@ static StackLong *newStackLong()                                                
   return s;
  }
 
-static long nStackLong(StackLong *s)                                            // The number of elements on the stack
+inline static long nStackLong(StackLong *s)                                     // The number of elements on the stack
  {return s->next - s->base;
  }
 
-static int isEmptyStackLong(StackLong *s)                                       // Whether the stack is empty
+inline static int isEmptyStackLong(StackLong *s)                                // Whether the stack is empty
  {return nStackLong(s) == 0;
  }
 
-static long getStackLong(StackLong *s, long i, int *rc)                         // Get an element from the stack by its index
+inline static long getStackLong(StackLong *s, long i, int *rc)                  // Get an element from the stack by its index
  {const long p = s->base + i;
   if (p < s->next)                                                              // Success
    {if (rc != 0) *rc = 1;
@@ -46,7 +46,7 @@ static long getStackLong(StackLong *s, long i, int *rc)                         
   return 0;
  }
 
-static void pushStackLong(StackLong *s, long l)                                 // Push an element onto the stack
+inline static void pushStackLong(StackLong *s, long l)                                 // Push an element onto the stack
  {if (s->size == 0)
    {s->size  = 16;
     s->arena = calloc(s->size, sizeof(long));
@@ -63,14 +63,14 @@ static void pushStackLong(StackLong *s, long l)                                 
   s->arena[s->next++] = l;
  }
 
-static StackLong *cloneStackLong(StackLong *a)                                  // Clone a stack
+inline static StackLong *cloneStackLong(StackLong *a)                           // Clone a stack
  {StackLong *b = newStackLong();
   const long N = nStackLong(a);
   for(long i = 0; i < N; ++i) pushStackLong(b, a->arena[i]);
   return b;
  }
 
-static long firstElementStackLong(StackLong *s, int *rc)                        // Return the first element of the stack
+inline static long firstElementStackLong(StackLong *s, int *rc)                 // Return the first element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -79,7 +79,7 @@ static long firstElementStackLong(StackLong *s, int *rc)                        
   return s->arena[s->base];
  }
 
-static long lastElementStackLong(StackLong *s, int *rc)                         // Return the last element of the stack
+inline static long lastElementStackLong(StackLong *s, int *rc)                  // Return the last element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -88,7 +88,7 @@ static long lastElementStackLong(StackLong *s, int *rc)                         
   return s->arena[s->next-1];
  }
 
-static long popStackLong(StackLong *s, int *rc)                                 // Pop a value off the stack
+inline static long popStackLong(StackLong *s, int *rc)                          // Pop a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -97,7 +97,7 @@ static long popStackLong(StackLong *s, int *rc)                                 
   return s->arena[--s->next];
  }
 
-static long shiftStackLong(StackLong *s, int *rc)                               // Shift a value off the stack
+inline static long shiftStackLong(StackLong *s, int *rc)                        // Shift a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;

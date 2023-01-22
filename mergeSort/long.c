@@ -6,7 +6,7 @@
 // No optimizations: 1,134,463 instructions executed
 // Optimized       :   726,005
 // We only copy the upper partition into the work area and then work down because the upper partition can be smaller in size than the lower one.
-// Need to binary search for the smallest element for the two being comapred so that we can do a block rather than a single move - but only in large partitions.
+// Need to binary search for the smallest element for the two being compared so that we can do a block rather than a single move - but only in large partitions.
 
 #define _GNU_SOURCE
 #ifndef MergeSortLong
@@ -123,7 +123,7 @@ static void mergeSortLongOpti                                                   
         swapLong(Z+p+q+1, Z+p+q);                                               // Swap with xor as it is a little faster
        }
      }
-    for (            ; p+1 < N; p += 2)                                         // Sort remaining pairs
+    for (            ; p+1   < N;   p += 2)                                     // Sort remaining pairs
      {if (Z[p+1] >= Z[p]) continue;                                             // Already sorted
       swapLong(Z+p+1, Z+p);                                                     // Swap with xor as it is a little faster
      }
@@ -155,11 +155,11 @@ static void mergeSortLongOpti                                                   
            * const p2 = Z+p+2, * const p3 = Z+p+3,
            * const p4 = Z+p+4, * const p5 = Z+p+5,
            * const p6 = Z+p+6, * const p7 = Z+p+7;
-      if     (*p4 >= *p3) continue;                                             // Already sorted
-      /**/                  swapLong(p3, p4);                                   // Not sorted so swap
-      if     (*p4 >  *p5) { swapLong(p4, p5);
-        if   (*p5 >  *p6) { swapLong(p5, p6);
-          if (*p6 >  *p7)   swapLong(p6, p7);
+      if       (*p4 >= *p3) continue;                                           // Already sorted
+      /**/                    swapLong(p3, p4);                                 // Not sorted so swap
+      if       (*p4 >  *p5) { swapLong(p4, p5);
+        if     (*p5 >  *p6) { swapLong(p5, p6);
+          if   (*p6 >  *p7)   swapLong(p6, p7);
          }
        }
 

@@ -28,6 +28,10 @@ jobs:
       run: |
         gcc -I. basics/basics.c;  ./a.out
 
+    - name: BinarySearch
+      run: |
+        gcc -I. binarySearch/long.c; ./a.out
+
     - name: Bits
       run: |
         gcc -I. bits/bits.c;      ./a.out

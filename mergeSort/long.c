@@ -3,11 +3,14 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// No optimizations: 959,723 instructions executed
-// Optimized       : 748,973 instructions executed
+// No optimizations: 1,134,463 instructions executed
+// Optimized       :   726,005
+// We only copy the upper partition into the work area and then work down because the upper partition can be smaller in size than the lower one.
+// Need to binary search for the smallest element for the two being comapred so that we can do a block rather than a single move - but only in large partitions.
+
 #define _GNU_SOURCE
-#ifndef CmergeSort
-#define CmergeSort
+#ifndef MergeSortLong
+#define MergeSortLong
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
@@ -17,49 +20,101 @@
 #include "basics/basics.c"
 #include "heapSort/long.c"
 
-static inline void mergeSortLongCopy                                            // Copy elements from one location in memory to another
- (long * const T, long * const S, const long N)                                 // Move the specified number of longs
- {long p, q;
-  const long B = 9;                                                             // Chosen by experimentation
-  if (N == 1) {T[0] = S[0]; return;}
-  for (p = 0; p + B < N; p += B) for (q = 0; q < B; q++) T[p+q] = S[p+q];       // The inner loop gets unrolled by gcc
-  for (     ; p     < N; p++)                            T[p]   = S[p];
+static inline void mergeSortLongCopyBase                                        // Copy elements from one location in memory to another - basic version
+ (long * const T, long * const S, const long N)                                 // Target address, source address, number of longs
+ {for (long p = 0; p < N; p++) T[p] = S[p];
  }
 
-static inline void mergeSortLongBlock                                           // Sort a partition of a specified half size
- (long * const Z, long * const W, const long N, const long s)
+static void mergeSortLongBase                                                   // In place stable merge sort - Shortest implementation for reference purposes
+ (long * const Z, const long N)                                                 // Array to sort, size of array
+ {long * const W = malloc(sizeof(long) * N);                                    // Work area
+  for (long s = 1; s < N; s <<= 1)                                              // Sort at each partition size
+   {const long S = s << 1;                                                      // Partition full size
+
+    for (long p = 0; p + s < N; p += S)                                         // Zip two partitions together from the top downwards
+     {long a = p+s, b = p+S < N ? s : N-a, i = a+b;                             // Position in each half partition
+      if (Z[a] >= Z[a-1]) continue;                                             // The partitions are already ordered
+      mergeSortLongCopyBase(W, Z+a, b);                                         // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
+
+      for (;a > p && b > 0;)                                                    // Choose next highest element from each partition
+       {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                             // Stability: we take the highest element first or the first equal element
+       }
+
+      mergeSortLongCopyBase(Z+p, W, b);                                         // Add trailing elements
+     }
+   }
+  free(W);
+ }
+
+static inline void mergeSortLongCopyOpti                                        // Copy elements from one location in memory to another - optimized version
+ (long * const T, long * const S, const long N)                                 // Target address, source address, number of longs
+ {long p = 0;
+  const long A = 9;                                                             // Chosen by experimentation
+  switch(N)
+   {case 1: T[0] = S[0]; return;
+    case 2: T[0] = S[0]; T[1] = S[1]; return;
+    case 3: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; return;
+    case 4: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; return;
+    case 5: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; return;
+    case 6: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; return;
+    case 7: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; return;
+    case 8: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; T[7] = S[7]; return;
+    default:
+      for (; p + A < N; p += A)
+       {T[p+0] = S[p+0];
+        T[p+1] = S[p+1];
+        T[p+2] = S[p+2];
+        T[p+3] = S[p+3];
+        T[p+4] = S[p+4];
+        T[p+5] = S[p+5];
+        T[p+6] = S[p+6];
+        T[p+7] = S[p+7];
+        T[p+8] = S[p+8];
+       }
+      for (; p < N; p++) T[p] = S[p];
+   }
+ }
+
+static inline void mergeSortLongBlockOpti                                       // Sort a partition of a specified half size - optimized version
+ (long * const Z, long * const W, const long N, const long s)                   // Array to sort, Work array, size of array (and work array), size of half partition, optimize flag
  {const long S = s << 1;                                                        // Partition full size
 
   for (long p = 0; p + s < N; p += S)                                           // Zip two partitions together from the top downwards
    {long a = p+s, b = p+S < N ? s : N-a, i = a+b;                               // Position in each half partition
     if (Z[a] >= Z[a-1]) continue;                                               // The partitions are already ordered
-    mergeSortLongCopy(W, Z+a, b);                                               // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
+    mergeSortLongCopyOpti(W, Z+a, b);                                           // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
 
-    const long B = 13;                                                          // Chosen by experimentation
-    for (;a > p+B && b > B;)                                                    // Choose next highest element from each partition
-     {for(long j = 0; j < B; ++j)
-       {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                             // Stability: we take the highest element first or the first equal element
+    const long A = 13;                                                          // Chosen by experimentation
+    if (s > A)
+     {for (;a > p+A && b > A;)                                                  // Choose next highest element from each partition
+       {for(long j = 0; j < A; ++j)
+         {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                           // Stability: we take the highest element first or the first equal element
+         }
+       }
+     }
+
+    const long B = 5;                                                           // Chosen by experimentation
+    if (s > B)
+     {for (;a > p+B && b > B;)                                                  // Choose next highest element from each partition
+       {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];
+        Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];
+        Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];
+        Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];
+        Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];
        }
      }
 
     for (;a > p && b > 0;)                                                      // Choose next highest element from each partition
      {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                               // Stability: we take the highest element first or the first equal element
      }
-
-    mergeSortLongCopy(Z+p, Z+p, a-p);                                           // Add trailing elements
-    mergeSortLongCopy(Z+p, W,   b);
+    if (a-p) mergeSortLongCopyOpti(Z+p, Z+p, a-p);                              // This never gets executed but gcc produces faster code with it in place.
+    else     mergeSortLongCopyOpti(Z+p, W,   b);                                // Add trailing elements
    }
  }
 
-static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
- {if (0)                                                                        // Shortest implementation for reference purposes
-   {long * const W = malloc(sizeof(long) * N);
-    for (long s = 1; s < N; s <<= 1) mergeSortLongBlock(Z, W, N, s);            // Sort at each partition size
-    free(W);
-    return;
-   }
-
-  if (1)                                                                        // Sort partitions of size 4 using direct swaps
+static void mergeSortLongOpti                                                   // In place stable merge sort
+ (long * const Z, const long N)                                                 // Array to sort, size of array
+ {if (1)                                                                        // Sort partitions of size 2 using direct swaps
    {long p = 0;
     const long  B = 10;                                                         // Chosen by experimentation
     for   (     p = 0; p+B+B < N;   p += B+B)                                   // Sort pairs
@@ -137,28 +192,31 @@ static void mergeSortLong(long * const Z, const long N)                         
      {for  (long i = p-4; i < N; ++i)                                           // Insertion sort the remaining 1-3 elements into position
        {for(long j = 0;   j < 4; ++j)
          {long * const a = Z+i-j, * const b = a - 1;
-          if (*b > *a) swapLong(b, a);  else break;
+          if (*b > *a) swapLong(b, a); else break;
          }
        }
      }
    }
 
   if (N >= 8)                                                                   // Normal merge sort for partitions of 8 and beyond
-   {long W[512];           mergeSortLongBlock(Z, W, N, 1<<3);
-    if       (N >= 1<<4) { mergeSortLongBlock(Z, W, N, 1<<4);
-      if     (N >= 1<<5) { mergeSortLongBlock(Z, W, N, 1<<5);
-        if   (N >= 1<<6) { mergeSortLongBlock(Z, W, N, 1<<6);
-          if (N >= 1<<7)
-           {long * const W = malloc(sizeof(long) * N);
-            for (long s = 1<<7; s < N; s <<= 1)
-             {mergeSortLongBlock(Z, W, N, s);
-             }
-            free(W);
+   {long W[512];           mergeSortLongBlockOpti(Z, W, N, 1<<3);
+    if       (N >= 1<<4) { mergeSortLongBlockOpti(Z, W, N, 1<<4);
+      if     (N >= 1<<5) { mergeSortLongBlockOpti(Z, W, N, 1<<5);
+        if   (N >= 1<<6)
+         {long * const W = malloc(sizeof(long) * N);
+          for (long s = 1<<6; s < N; s <<= 1)
+           {mergeSortLongBlockOpti(Z, W, N, s);
            }
+          free(W);
          }
        }
      }
    }
+ }
+
+static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
+ {mergeSortLongBase(Z, N);                                                      // In place stable merge sort
+  //mergeSortLongOpti(Z, N);
  }
 
 #if (__INCLUDE_LEVEL__ == 0)

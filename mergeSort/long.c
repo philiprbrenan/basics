@@ -215,8 +215,8 @@ static void mergeSortLongOpti                                                   
  }
 
 static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
- {mergeSortLongBase(Z, N);                                                      // In place stable merge sort
-  //mergeSortLongOpti(Z, N);
+ {//mergeSortLongBase(Z, N);                                                      // In place stable merge sort
+  mergeSortLongOpti(Z, N);
  }
 
 #if (__INCLUDE_LEVEL__ == 0)

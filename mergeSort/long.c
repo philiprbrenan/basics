@@ -19,7 +19,7 @@
 #include "basics/basics.c"
 #include "binarySearch/long.c"
 
-static inline void mergeSortLongCopyBase                                        // Copy elements from one location in memory to another - basic version
+static inline void mergeSortCopyLong                                            // Copy elements from one location in memory to another - basic version
  (long * const T, long * const S, const long N)                                 // Target address, source address, number of longs
  {switch(N)
    {case 1: T[0] = S[0]; return;
@@ -49,7 +49,7 @@ static inline void mergeSortLongCopyBase                                        
    }
  }
 
-static void mergeSortLongBase                                                   // In place stable merge sort - Shortest implementation for reference purposes
+static void mergeSortLong                                                       // In place stable merge sort
  (long * const Z, const long N)                                                 // Array to sort, size of array
  {long * const W = malloc(sizeof(long) * N);                                    // Work area
   for (long s = 1; s < N; s <<= 1)                                              // Sort at each partition size
@@ -58,20 +58,16 @@ static void mergeSortLongBase                                                   
     for (long p = 0; p + s < N; p += S)                                         // Zip two partitions together from the top downwards
      {long a = p+s, b = p+S < N ? s : N-a, i = a+b;                             // Position in each half partition
       if (Z[a] >= Z[a-1]) continue;                                             // The partitions are already ordered
-      mergeSortLongCopyBase(W, Z+a, b);                                         // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
+      mergeSortCopyLong(W, Z+a, b);                                             // Copy upper partition (which might be smaller than the lower partition) to work area so that we can merge back into main array from bottom.
 
       for (;a > p && b > 0;)                                                    // Choose next highest element from each partition
        {Z[--i] = Z[a-1] > W[b-1] ? Z[--a] : W[--b];                             // Stability: we take the highest element first or the first equal element
        }
 
-      mergeSortLongCopyBase(Z+p, W, b);                                         // Add trailing elements
+      mergeSortCopyLong(Z+p, W, b);                                             // Add trailing elements
      }
    }
   free(W);
- }
-
-static void mergeSortLong(long * const Z, const long N)                         // In place stable merge sort
- {mergeSortLongBase(Z, N);                                                      // In place stable merge sort
  }
 
 #if (__INCLUDE_LEVEL__ == 0)

@@ -3,7 +3,7 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// No optimizations: 1,058,796 instructions executed
+// 1,058,796 instructions executed
 // We only copy the upper partition into the work area and then work down because the upper partition can be smaller in size than the lower one.
 // Using binary search seems to slow things down
 

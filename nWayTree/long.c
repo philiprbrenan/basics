@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <x86intrin.h>
+#include "array/long.c"
 #include "basics/basics.c"
 
 #define NWayTreeLongNumberOfKeysPerNode 8
@@ -42,72 +43,6 @@ typedef struct NWayTreeLongFindResult                                           
   NWayTreeLongFindComparison cmp;                                               // Result of the last comparison
   long index;                                                                   // Index in the node of equal element
  } NWayTreeLongFindResult;
-
-// Array operations on longs. We assume that there is enough room in the space allocated for each array to perform each operation safely.
-
-static void NWayTreeLongPushLong                                                // Push a long onto an array
- (long *a, long l, long b)
- {a[l] = b;
- }
-
-static long NWayTreeLongPopLong                                                 // Pop a long from an array
- (long *a, long l)
- {return a[l-1];
- }
-
-static long NWayTreeLongShiftLong                                               // Shift a long from an array
- (long *a, long l)
- {const long b = a[0];
-  memmove(a, a+1, (l-1)*sizeof(long));
-  return b;
- }
-
-static void NWayTreeLongUnShiftLong                                             // Unshift a long onto an array
- (long *a, long l, long b)
- {memmove(a+1, a, l*sizeof(long));
-  a[0] = b;
- }
-
-static void NWayTreeLongInsertLong                                              // Insert a long into an array
- (long *a, long l, long b, long i)                                              // Array, length of array, item to insert, index to insert at
- {memmove(a+i+1, a+i, (l-i)*sizeof(long));
-  a[i] = b;
- }
-
-static void NWayTreeLongDeleteLong                                              // Delete a long from an array
- (long *a, long l, long i)                                                      // Array, length of array, index to delete at
- {memmove(a+i, a+i+1, (l-i-1)*sizeof(long));
-  a[i] = b;
- }
-
-static void NWayTreeLongTestArrayLong                                           // Test operations on long arrays
-
-
-// Array operations on nodes
-
-static void NWayTreeLongPushNode                                                // Push a long onto an array
- (NWayTreeLongNode **a, long l, NWayTreeLongNode *b)
- {a[l] = b;
- }
-
-static NWayTreeLongNode *NWayTreeLongPopNode                                    // Pop a node from an array
- (NWayTreeLongNode **a, long l)
- {return a[l-1];
- }
-
-static NWayTreeLongNode *NWayTreeLongShiftNode                                  // Shift a node from an array
- (NWayTreeLongNode **a, long l)
- {NWayTreeLongNode * const b = a[0];
-  memmove(a, a+1, (l-1)*sizeof(long));
-  return b;
- }
-
-static void NWayTreeLongUnShiftNode                                             // Unshift a node onto an array
- (NWayTreeLongNode **a, long l, NWayTreeLongNode *b)
- {memmove(a+1, a, l*sizeof(long));
-  a[0] = b;
- }
-
 
 
 static NWayTreeLongTree *NWayTreeLongNewTree()                                  // Create a new tree

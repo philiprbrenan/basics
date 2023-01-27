@@ -27,6 +27,7 @@ jobs:
     - name: Array
       run: |
         gcc -I. array/long.c;     ./a.out
+        gcc -I. array/void.c;     ./a.out
 
     - name: Basics
       run: |

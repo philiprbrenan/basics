@@ -17,36 +17,36 @@
 #include <x86intrin.h>
 #include "basics/basics.c"
 
-static void ArrayVoidPushVoid                                                   // Push onto an array
+static void ArrayVoidPush                                                       // Push onto an array
  (void **a, long l, void *b)
  {a[l] = b;
  }
 
-static void *ArrayVoidPopVoid                                                   // Pop from an array
+static void *ArrayVoidPop                                                       // Pop from an array
  (void **a, long l)
  {return a[l-1];
  }
 
-static void *ArrayVoidShiftVoid                                                 // Shift from an array
+static void *ArrayVoidShift                                                     // Shift from an array
  (void **a, long l)
  {void * const b = a[0];
   memmove(a, a+1, (l-1)*sizeof(long));
   return b;
  }
 
-static void ArrayVoidUnShiftVoid                                                // Unshift onto an array
+static void ArrayVoidUnShift                                                    // Unshift onto an array
  (void **a, long l, void *b)
  {memmove(a+1, a, (l-1)*sizeof(long));
   a[0] = b;
  }
 
-static void ArrayVoidInsertVoid                                                 // Insert into an array
+static void ArrayVoidInsert                                                     // Insert into an array
  (void **a, long l, void *b, long i)                                            // Array, length of array, item to insert, index to insert at
  {memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
   a[i] = b;
  }
 
-static void ArrayVoidDeleteVoid                                                 // Delete from an array
+static void ArrayVoidDelete                                                     // Delete from an array
  (void **a, long l, long i)                                                     // Array, length of array, index to delete at
  {memmove(a+i, a+i+1, (l-i-1)*sizeof(long));
  }
@@ -59,25 +59,25 @@ void tests()                                                                    
   long  B[N];
   for(long i = 0; i < N; ++i) {A[i] = B+i; B[i] = i;}
 
-  ArrayVoidDeleteVoid(A, N, 4);
+  ArrayVoidDelete(A, N, 4);
   assert(*(long *)A[3] == 3);
   assert(*(long *)A[4] == 5);
 
   long c1 = 44;
-  ArrayVoidInsertVoid(A, N, &c1, 4);
+  ArrayVoidInsert(A, N, &c1, 4);
   assert(*(long *)A[3] == 3); assert(*(long *)A[4] == c1); assert(*(long *)A[5] == 5);
 
   long c99 = 99;
-  assert(*(long *)ArrayVoidPopVoid (A, N)   ==  9);
-                  ArrayVoidPushVoid(A, N-1,  &c99);
-  assert(*(long *)ArrayVoidPopVoid (A, N)   == c99);
+  assert(*(long *)ArrayVoidPop (A, N)   ==  9);
+                  ArrayVoidPush(A, N-1,  &c99);
+  assert(*(long *)ArrayVoidPop (A, N)   == c99);
 
-  assert(*(long *)ArrayVoidShiftVoid(A, N) == 0);
-  assert(*(long *)ArrayVoidShiftVoid(A, N) == 1);
+  assert(*(long *)ArrayVoidShift(A, N) == 0);
+  assert(*(long *)ArrayVoidShift(A, N) == 1);
 
   long c2 = 11, c3 = 22;
-  ArrayVoidUnShiftVoid(A, N, &c3);
-  ArrayVoidUnShiftVoid(A, N, &c2);
+  ArrayVoidUnShift(A, N, &c3);
+  ArrayVoidUnShift(A, N, &c2);
   assert(*(long *)A[0] == c2);
   assert(*(long *)A[1] == c3);
  }

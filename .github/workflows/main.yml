@@ -24,6 +24,10 @@ jobs:
       run: |
         gcc -I. 2d/2d.c -lm;      ./a.out
 
+    - name: Array
+      run: |
+        gcc -I. array/long.c;     ./a.out
+
     - name: Basics
       run: |
         gcc -I. basics/basics.c;  ./a.out

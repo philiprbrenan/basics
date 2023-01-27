@@ -3,7 +3,7 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// 1,058,796 instructions executed
+// // 1,057,170 instructions executed
 // We only copy the upper partition into the work area and then work down because the upper partition can be smaller in size than the lower one.
 // Using binary search seems to slow things down
 
@@ -22,14 +22,15 @@
 static inline void mergeSortCopyLong                                            // Copy elements from one location in memory to another - basic version
  (long * const T, long * const S, const long N)                                 // Target address, source address, number of longs
  {switch(N)
-   {case 1: T[0] = S[0]; return;
-    case 2: T[0] = S[0]; T[1] = S[1]; return;
-    case 3: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; return;
-    case 4: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; return;
-    case 5: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; return;
-    case 6: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; return;
-    case 7: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; return;
-    case 8: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; T[7] = S[7]; return;
+   {case  1: T[0] = S[0]; return;
+    case  2: T[0] = S[0]; T[1] = S[1]; return;
+    case  3: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; return;
+    case  4: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; return;
+    case  5: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; return;
+    case  6: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; return;
+    case  7: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; return;
+    case  8: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; T[7] = S[7]; return;
+    case  9: T[0] = S[0]; T[1] = S[1]; T[2] = S[2]; T[3] = S[3]; T[4] = S[4]; T[5] = S[5]; T[6] = S[6]; T[7] = S[7]; T[8] = S[8]; return;
     default:
      {long p = 0;
       const long A = 9;                                                         // Chosen by experimentation

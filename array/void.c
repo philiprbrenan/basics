@@ -22,6 +22,13 @@ static void ArrayVoidPush                                                       
  {a[l] = b;
  }
 
+static void ArrayVoidPushArray                                                  // Push an array onto an array
+ (void **A, long a, void **B, long b)
+ {for(long i = 0; i < b; ++i)
+   {A[a+i] = B[i];
+   }
+ }
+
 static void *ArrayVoidPop                                                       // Pop from an array
  (void **a, long l)
  {return a[l-1];
@@ -46,9 +53,11 @@ static void ArrayVoidInsert                                                     
   a[i] = b;
  }
 
-static void ArrayVoidDelete                                                     // Delete from an array
- (void **a, long l, long i)                                                     // Array, length of array, index to delete at
- {memmove(a+i, a+i+1, (l-i-1)*sizeof(long));
+static void *ArrayVoidDelete                                                    // Delete from an array returning the element deleted
+ (void **A, long l, long i)                                                     // Array, length of array, index to delete at
+ {void * const a = A[i];
+  memmove(A+i, A+i+1, (l-i-1)*sizeof(long));
+  return a;
  }
 
 #if (__INCLUDE_LEVEL__ == 0)
@@ -59,7 +68,7 @@ void tests()                                                                    
   long  B[N];
   for(long i = 0; i < N; ++i) {A[i] = B+i; B[i] = i;}
 
-  ArrayVoidDelete(A, N, 4);
+  assert(*(long *)ArrayVoidDelete(A, N, 4) == 4);
   assert(*(long *)A[3] == 3);
   assert(*(long *)A[4] == 5);
 
@@ -80,6 +89,16 @@ void tests()                                                                    
   ArrayVoidUnShift(A, N, &c2);
   assert(*(long *)A[0] == c2);
   assert(*(long *)A[1] == c3);
+
+
+  ArrayVoidPushArray(A, 2, A, 2);
+  assert(*(long *)A[0] == c2); assert(*(long *)A[1] == c3);
+  assert(*(long *)A[2] == c2); assert(*(long *)A[3] == c3);
+
+  assert(*(long *)ArrayVoidDelete(A, N, 3) == c3);
+  assert(*(long *)A[3] == 44);
+//  for(long i = 0; i < N; ++i) say("%2d %ld", i, *(long *)A[i]);
+
  }
 
 int main()                                                                      // Run tests

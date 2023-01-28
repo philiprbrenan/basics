@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <x86intrin.h>
 #include "array/long.c"
+#include "array/void.c"
 #include "basics/basics.c"
 
 #define NWayTreeLongNumberOfKeysPerNode 8
@@ -285,10 +286,10 @@ static void NWayTreeLongFillFromLeftOrRight                                     
   if (dir)                                                                      //  Fill from right
    {assert(i < p->length);                                                      //  Cannot fill from right
     NWayTreeLongNode *r = p->down[i+1];                                         //  Right sibling
-    n->keys[n->length] = p->keys[i]; p->keys[i] = NWayTreeLongShiftLong(r->keys, r->length);  //  Transfer key
-    n->data[n->length] = p->data[i]; p->data[i] = NWayTreeLongShiftLong(r->data, r->length);  //  Transfer data
+    n->keys[n->length] = p->keys[i]; p->keys[i] = ArrayLongShift(r->keys, r->length);  //  Transfer key
+    n->data[n->length] = p->data[i]; p->data[i] = ArrayLongShift(r->data, r->length);  //  Transfer data
     if (!NWayTreeLongIsLeaf(n))                                                   //  Transfer node if not a leaf
-     {NWayTreeLongPushNode(n->down, n->length, NWayTreeLongShiftNode(r->down, r->length));
+     {ArrayVoidPush((void *)n->down, n->length, (void *)ArrayVoidShift((void *)r->down, r->length));
       n->down[n->length+1]->up = n;
      }
     r->length--; n->length++;
@@ -297,10 +298,10 @@ static void NWayTreeLongFillFromLeftOrRight                                     
    {assert(i);                                                                  //  Cannot fill from left
     long I = i-1;
     NWayTreeLongNode *n = p->down[I];                                           //  Left sibling
-    NWayTreeLongUnShiftLong(n->keys, n->length, p->keys[I]); p->keys[I] = NWayTreeLongPopLong(n->keys, n->length); //  Transfer key
-    NWayTreeLongUnShiftLong(n->data, n->length, p->data[I]); p->data[I] = NWayTreeLongPopLong(n->data, n->length); //  Transfer data
+    ArrayLongUnShift(n->keys, n->length, p->keys[I]); p->keys[I] = ArrayLongPop(n->keys, n->length); //  Transfer key
+    ArrayLongUnShift(n->data, n->length, p->data[I]); p->data[I] = ArrayLongPop(n->data, n->length); //  Transfer data
     if (!NWayTreeLongIsLeaf(n))                                                 //  Transfer node if not a leaf
-     {NWayTreeLongUnShiftNode(n->down, n->length, NWayTreeLongPopNode(n->down, n->length));
+     {ArrayVoidUnShift((void *)n->down, n->length, (void *)ArrayVoidPop((void *)n->down, n->length));
       n->down[0]->up = n;
      }
    }
@@ -320,7 +321,11 @@ static void NWayTreeLong mergeWithLeftOrRight                                   
     long I = i+1;
     NWayTreeLongNode *r = p->down[I];                                           // Leaf on right
     assert(NWayTreeLongHalfFull(r));                                            // Confirm right leaf is half full
-    push $n->keys->@*, splice($p->keys->@*, $i, 1), $r->keys->@*;               // Transfer keys
+
+    ArrayLongPush(n->keys, ->@*, splice($p->keys->@*, $i, 1);                             // Transfer keys
+    push $n->keys->@*, splice($p->keys->@*, $i, 1);                             // Transfer keys
+    push $n->keys->@*, $r->keys->@*;
+
     push $n->data->@*, splice($p->data->@*, $i, 1), $r->data->@*;               // Transfer data
     if (!leaf $n)                                                               // Children of merged node
      {push $n->node->@*, $r->node->@*;                                          // Children of merged node

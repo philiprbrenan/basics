@@ -47,6 +47,12 @@ static void ArrayLongUnShift                                                    
   a[0] = b;
  }
 
+static void ArrayLongUnShiftArray                                               // Unshift an array onto an array
+ (long *A, long a, long *B, long b)
+ {memmove(A+b, A, a * sizeof(long));
+  memmove(A,   B, b * sizeof(long));
+ }
+
 static void ArrayLongInsert                                                     // Insert into an array
  (long *a, long l, long b, long i)                                              // Array, length of array, item to insert, index to insert at
  {memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
@@ -68,7 +74,7 @@ void ArrayLongPrint(long *a, long l)                                            
 
 #if (__INCLUDE_LEVEL__ == 0)
 
-void tests()                                                                    // Tests
+void test1()                                                                    // Tests
  {long N = 10;
   long A[N];
   for(long i = 0; i < N; ++i) A[i] = i;
@@ -95,6 +101,20 @@ void tests()                                                                    
 
   assert(ArrayLongDelete(A, N, 3) == 11);
   assert(A[3] == 44);
+ }
+
+void test2()                                                                    // Tests
+ {long N = 10;
+  long A[N];
+  for(long i = 0; i < N; ++i) A[i] = i < N>>1 ? i : 0;
+  ArrayLongUnShiftArray(A, N>>1, A, N>>1);
+  assert(A[6] == 1);
+  assert(A[9] == 4);
+ }
+
+void tests()                                                                    // Tests
+ {test1();
+  test2();
  }
 
 int main()                                                                      // Run tests

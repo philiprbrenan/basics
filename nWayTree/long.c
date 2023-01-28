@@ -322,29 +322,36 @@ static void NWayTreeLong mergeWithLeftOrRight                                   
     NWayTreeLongNode *r = p->down[I];                                           // Leaf on right
     assert(NWayTreeLongHalfFull(r));                                            // Confirm right leaf is half full
 
-    ArrayLongPush(n->keys, ->@*, splice($p->keys->@*, $i, 1);                             // Transfer keys
-    push $n->keys->@*, splice($p->keys->@*, $i, 1);                             // Transfer keys
-    push $n->keys->@*, $r->keys->@*;
+    ArrayLongPush(n->keys, n->length,   ArrayLongDelete(p->keys, p->length, I));// Merge keys
+    ArrayLongPush(n->keys, n->length+1, r->keys, r->length);
+    ArrayLongPush(n->data, n->length,   ArrayLongDelete(p->data, p->length, I));// Merge data
+    ArrayLongPush(n->data, n->length+1, r->data, r->length);
 
-    push $n->data->@*, splice($p->data->@*, $i, 1), $r->data->@*;               // Transfer data
-    if (!leaf $n)                                                               // Children of merged node
-     {push $n->node->@*, $r->node->@*;                                          // Children of merged node
-      reUp $n, $r->node;                                                        // Update parent of children of right node
+    if (!NWayTreeLongIsLeaf(n))                                                 // Children of merged node
+     {ArrayVoidPush(n->down, n->length, r->down, r->length);
+      NWayTreeLongReUp(n);                                                      // Update parent of children of right node
      }
-    splice $p->node->@*, $I, 1;                                                 // Remove link from parent to right child
+    ArrayVoidDelete(p->node, I);                                                // Remove link from parent to right child
+    n->length += 1 + r->length; --p->length;
+    free(r);
    }
   else                                                                          // Merge with left hand sibling
-   {$i > 0 or confess;                                                          // Cannot fill from left
-    long I = $i-1;
-    long l = $p->node->[$I];                                                    // Node on left
-    confess unless halfFull($l);                                                // Confirm right leaf is half full
-    unshift $n->keys->@*, $l->keys->@*, splice $p->keys->@*, $I, 1;             // Transfer keys
-    unshift $n->data->@*, $l->data->@*, splice $p->data->@*, $I, 1;             // Transfer data
-    if (!leaf $n)                                                               // Children of merged node
-     {unshift $n->node->@*, $l->node->@*;                                       // Children of merged node
-      reUp $n, $l->node;                                                        // Update parent of children of left node
+   {assert(i > 0);                                                              // Cannot fill from left
+    long I = i-1;
+    NWayTreeLongNode *l = p->node->[$I];                                        // Node on left
+    assert(NWayTreeLongHalfFull(l));                                            // Confirm left leaf is half full
+    ArrayLongUnShift     (n->keys, n->length,   ArrayLongDelete(p->keys, p->length, I));// Transfer keys
+    ArrayLongUnShiftArray(n->keys, n->length+1, r->keys, r->length);
+    ArrayLongUnShift     (n->data, n->length,   ArrayLongDelete(p->data, p->length, I));// Transfer data
+    ArrayLongUnShiftArray(n->data, n->length+1, r->data, r->length);
+
+    if (!NWayTreeLongIsLeaf(n))                                                 // Children of merged node
+     {ArrayLongUnshift(n->node, n->length, l->node, l->length);
+      NWayTreeLongReUp(n);                                                      // Update parent of children of left node
      }
-    splice $p->node->@*, $I, 1;                                                 // Remove link from parent to left child
+    ArrayVoidDelete(p->node, I);                                                // Remove link from parent to right child
+    n->length += 1 + l->length; --p->length;
+    free(l);
    }
  }
 

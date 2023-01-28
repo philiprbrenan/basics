@@ -47,6 +47,12 @@ static void ArrayVoidUnShift                                                    
   a[0] = b;
  }
 
+static void ArrayVoidUnShiftArray                                               // Unshift an array onto an array
+ (void **A, long a, void **B, long b)
+ {memmove(A+b, A, a * sizeof(void *));
+  memmove(A,   B, b * sizeof(void *));
+ }
+
 static void ArrayVoidInsert                                                     // Insert into an array
  (void **a, long l, void *b, long i)                                            // Array, length of array, item to insert, index to insert at
  {memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
@@ -62,7 +68,7 @@ static void *ArrayVoidDelete                                                    
 
 #if (__INCLUDE_LEVEL__ == 0)
 
-void tests()                                                                    // Tests
+void test1()                                                                    // Tests
  {long N = 10;
   void *A[N];
   long  B[N];
@@ -99,6 +105,21 @@ void tests()                                                                    
   assert(*(long *)A[3] == 44);
 //  for(long i = 0; i < N; ++i) say("%2d %ld", i, *(long *)A[i]);
 
+ }
+
+void test2()                                                                    // Tests
+ {long N = 10;
+  void *A[N];
+  long  B[N];
+  for(long i = 0; i < N; ++i) {B[i] = i < N>>1 ? i : 0; A[i] = B+i;}
+  ArrayVoidUnShiftArray(A, N>>1, A, N>>1);
+  assert(*(long *)A[6] == 1);
+  assert(*(long *)A[9] == 4);
+ }
+
+void tests()                                                                    // Tests
+ {test1();
+  test2();
  }
 
 int main()                                                                      // Run tests

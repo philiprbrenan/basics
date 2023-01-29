@@ -110,6 +110,7 @@ void test2()                                                                    
   ArrayLongUnShiftArray(A, N>>1, A, N>>1);
   assert(A[6] == 1);
   assert(A[9] == 4);
+  ArrayLongPrint(A, N);
  }
 
 void tests()                                                                    // Tests

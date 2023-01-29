@@ -19,7 +19,7 @@ typedef struct StackLong                                                        
   long base;                                                                    // Base of stack
  } StackLong;
 
-inline static StackLong *newStackLong()                                         // Create a new stack
+inline static StackLong *StackLongNew()                                         // Create a new stack
  {StackLong *s = calloc(sizeof(StackLong), 1);
   s->arena = 0;
   s->size  = 0;
@@ -28,15 +28,15 @@ inline static StackLong *newStackLong()                                         
   return s;
  }
 
-inline static long nStackLong(StackLong *s)                                     // The number of elements on the stack
+inline static long StackLongN(StackLong *s)                                     // The number of elements on the stack
  {return s->next - s->base;
  }
 
-inline static int isEmptyStackLong(StackLong *s)                                // Whether the stack is empty
- {return nStackLong(s) == 0;
+inline static int StackLongIsEmpty(StackLong *s)                                // Whether the stack is empty
+ {return StackLongN(s) == 0;
  }
 
-inline static long getStackLong(StackLong *s, long i, int *rc)                  // Get an element from the stack by its index
+inline static long StackLongGet(StackLong *s, long i, int *rc)                  // Get an element from the stack by its index
  {const long p = s->base + i;
   if (p < s->next)                                                              // Success
    {if (rc != 0) *rc = 1;
@@ -46,7 +46,7 @@ inline static long getStackLong(StackLong *s, long i, int *rc)                  
   return 0;
  }
 
-inline static void pushStackLong(StackLong *s, long l)                                 // Push an element onto the stack
+inline static void StackLongPush(StackLong *s, long l)                                 // Push an element onto the stack
  {if (s->size == 0)
    {s->size  = 16;
     s->arena = calloc(s->size, sizeof(long));
@@ -63,14 +63,14 @@ inline static void pushStackLong(StackLong *s, long l)                          
   s->arena[s->next++] = l;
  }
 
-inline static StackLong *cloneStackLong(StackLong *a)                           // Clone a stack
- {StackLong *b = newStackLong();
-  const long N = nStackLong(a);
-  for(long i = 0; i < N; ++i) pushStackLong(b, a->arena[i]);
+inline static StackLong *StackLongClone(StackLong *a)                           // Clone a stack
+ {StackLong *b = StackLongNew();
+  const long N = StackLongN(a);
+  for(long i = 0; i < N; ++i) StackLongPush(b, a->arena[i]);
   return b;
  }
 
-inline static long firstElementStackLong(StackLong *s, int *rc)                 // Return the first element of the stack
+inline static long StackLongFirstElement(StackLong *s, int *rc)                 // Return the first element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -79,7 +79,7 @@ inline static long firstElementStackLong(StackLong *s, int *rc)                 
   return s->arena[s->base];
  }
 
-inline static long lastElementStackLong(StackLong *s, int *rc)                  // Return the last element of the stack
+inline static long StackLongLastElement(StackLong *s, int *rc)                  // Return the last element of the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -88,7 +88,7 @@ inline static long lastElementStackLong(StackLong *s, int *rc)                  
   return s->arena[s->next-1];
  }
 
-inline static long popStackLong(StackLong *s, int *rc)                          // Pop a value off the stack
+inline static long StackLongPop(StackLong *s, int *rc)                          // Pop a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -97,7 +97,7 @@ inline static long popStackLong(StackLong *s, int *rc)                          
   return s->arena[--s->next];
  }
 
-inline static long shiftStackLong(StackLong *s, int *rc)                        // Shift a value off the stack
+inline static long StackLongShift(StackLong *s, int *rc)                        // Shift a value off the stack
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -111,39 +111,39 @@ static void tests()                                                             
  {const int N = 10;
   int rc;
 
-  StackLong *s = newStackLong();
-  for(int i = 0; i < N; ++i) pushStackLong(s, i+1);
-  assert(nStackLong(s) == N);
+  StackLong *s = StackLongNew();
+  for(int i = 0; i < N; ++i) StackLongPush(s, i+1);
+  assert(StackLongN(s) == N);
 
-  StackLong *t = cloneStackLong(s);
-  assert(nStackLong(t) == N);
-  assert(lastElementStackLong(t, &rc) == N); assert(rc == 1);
+  StackLong *t = StackLongClone(s);
+  assert(StackLongN(t) == N);
+  assert(StackLongLastElement(t, &rc) == N); assert(rc == 1);
 
-  assert(getStackLong(t, 1, &rc) == 2);  assert(rc == 1);
-  assert(getStackLong(t, 2, &rc) == 3);  assert(rc == 1);
-  assert(getStackLong(t,22, &rc) == 0);  assert(rc == 0);
+  assert(StackLongGet(t, 1, &rc) == 2);  assert(rc == 1);
+  assert(StackLongGet(t, 2, &rc) == 3);  assert(rc == 1);
+  assert(StackLongGet(t,22, &rc) == 0);  assert(rc == 0);
 
-  assert(popStackLong(t, 0) == N-0);
-  assert(popStackLong(t, 0) == N-1);
-  assert(popStackLong(t, 0) == N-2);
-  assert(nStackLong(t) == N-3);
+  assert(StackLongPop(t, 0) == N-0);
+  assert(StackLongPop(t, 0) == N-1);
+  assert(StackLongPop(t, 0) == N-2);
+  assert(StackLongN(t) == N-3);
 
-  assert(shiftStackLong(t, 0) == 1);
-  assert(shiftStackLong(t, 0) == 2);
-  assert(shiftStackLong(t, 0) == 3);
-  assert(nStackLong(t) == N-6);
+  assert(StackLongShift(t, 0) == 1);
+  assert(StackLongShift(t, 0) == 2);
+  assert(StackLongShift(t, 0) == 3);
+  assert(StackLongN(t) == N-6);
 
   for(int i = 0; i < N; ++i)
-   {assert(i + popStackLong(s, &rc) == N);
+   {assert(i + StackLongPop(s, &rc) == N);
     assert(rc == 1);
    }
-  assert(nStackLong(s) == 0);
-  assert(isEmptyStackLong(s));
+  assert(StackLongN(s) == 0);
+  assert(StackLongIsEmpty(s));
 
-  assert(popStackLong(s, &rc) == 0);
+  assert(StackLongPop(s, &rc) == 0);
   assert(rc == 0);
 
-  assert(nStackLong(s) == 0);
+  assert(StackLongN(s) == 0);
  }
 
 int main()                                                                      // Run tests and calculate from command line

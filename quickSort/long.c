@@ -34,14 +34,14 @@ inline static long quickSortLongPartitionUp(long *Z, long s, long e)            
  }
 
 inline static void quickSortLong(long *Z, long N)                               // Quick Sort an array in place using two pivots and a stack (for speed) rather than recursion with the middle partition processed to pack mimal elements aginst the lower pivot and maximal elements against the upper pivot . Array to sort
- {StackLong *S = newStackLong();                                                // Start of each partition to be sorted
-  StackLong *E = newStackLong();                                                // End   of each partition to be sorted
+ {StackLong *S = StackLongNew();                                                // Start of each partition to be sorted
+  StackLong *E = StackLongNew();                                                // End   of each partition to be sorted
   const long L = N - 1;
 
-  pushStackLong(S, 0); pushStackLong(E, L);                                     // Initial partition
+  StackLongPush(S, 0); StackLongPush(E, L);                                     // Initial partition
 
-  for(;nStackLong(S) > 0;)                                                      // Sort partitions waiting to be sorted.
-   {long s = popStackLong(S, 0), e = popStackLong(E, 0);                        // Start of partition, end of partition
+  for(;StackLongN(S) > 0;)                                                      // Sort partitions waiting to be sorted.
+   {long s = StackLongPop(S, 0), e = StackLongPop(E, 0);                        // Start of partition, end of partition
     if (s >= e || s >= L) continue;                                             // Empty or single element partition is already sorted
     if (e - s < 8)                                                              // Use Insertion Sort on small partitions of large arrays
      {insertionSortLong(Z+s, e - s+1);
@@ -64,9 +64,9 @@ inline static void quickSortLong(long *Z, long N)                               
 //      else if (Z[i] == Z[q]) swapLong(Z+i, Z+(me--));
 //     }
 
-    pushStackLong(S, s);   pushStackLong(E, p-1);                               // New partitions to sort
-    pushStackLong(S, ms);  pushStackLong(E, me);
-    pushStackLong(S, q+1); pushStackLong(E, e);
+    StackLongPush(S, s);   StackLongPush(E, p-1);                               // New partitions to sort
+    StackLongPush(S, ms);  StackLongPush(E, me);
+    StackLongPush(S, q+1); StackLongPush(E, e);
   }
 }
 

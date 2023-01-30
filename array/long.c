@@ -55,7 +55,7 @@ static void ArrayLongUnShiftArray                                               
 
 static void ArrayLongInsert                                                     // Insert into an array
  (long *a, long l, long b, long i)                                              // Array, length of array, item to insert, index to insert at
- {memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
+ {if (i < l) memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
   a[i] = b;
  }
 
@@ -110,12 +110,30 @@ void test2()                                                                    
   ArrayLongUnShiftArray(A, N>>1, A, N>>1);
   assert(A[6] == 1);
   assert(A[9] == 4);
-  ArrayLongPrint(A, N);
+  //ArrayLongPrint(A, N);
+ }
+
+void test3()                                                                    // Tests
+ {long N = 10;
+  long A[N];
+  for(long i = 0; i < N; ++i) A[i] = i;
+
+  ArrayLongInsert(A, 1, 11, 1);
+  assert(A[0] ==  0);
+  assert(A[1] == 11);
+  assert(A[2] ==  2);
+
+  ArrayLongInsert(A, 1, 10, 0);
+  assert(A[0] == 10);
+  assert(A[1] == 11);
+  assert(A[2] ==  2);
+//  ArrayLongPrint(A, N);
  }
 
 void tests()                                                                    // Tests
  {test1();
   test2();
+  test3();
  }
 
 int main()                                                                      // Run tests

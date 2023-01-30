@@ -19,7 +19,7 @@
 #include "array/long.c"
 #include "array/void.c"
 #include "basics/basics.c"
-#include "stack/long.c"
+#include "stack/char.c"
 
 #define NWayTreeLongNumberOfKeysPerNode 3
 
@@ -69,23 +69,46 @@ static NWayTreeLongFindResult NWayTreeLongNewFindResult                         
   return r;
  }
 
-static void NWayTreeLongPrint2                                                  // Print the keys in a tree
- (NWayTreeLongNode *node, long in, StackLong *p)
+static void NWayTreeLongToString2                                                  // Print the keys in a tree
+ (NWayTreeLongNode *node, long in, StackChar *p)
  {if (!node || !node->length) return;
 
-  NWayTreeLongPrint2(node->down[0], in+1, p);
+  NWayTreeLongToString2(node->down[0], in+1, p);
   for(long i = 0; i < node->length; ++i)
-   {for(long j = 0; j < in * 3; ++j) StackLongPush(p, ' ');
+   {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
     char C[100];
     sprintf(C, "%4ld  %4ld\n", node->keys[i], node->data[i]);
-    for(char *c = C; *c; ++c) StackLongPush(p, *c);
-    NWayTreeLongPrint2(node->down[i+1], in+1, p);
+    for(char *c = C; *c; ++c) StackCharPush(p, *c);
+    NWayTreeLongToString2(node->down[i+1], in+1, p);
    }
  }
 
-static void NWayTreeLongPrint(NWayTreeLongTree *tree)                           // Print the keys in a tree
- {StackLong *p = StackLongNew();
-  if (tree->node) NWayTreeLongPrint2(tree->node, 0, p);
+static StackChar *NWayTreeLongToString(NWayTreeLongTree *tree)                  // Print a tree as a string
+ {StackChar *p = StackCharNew();
+  if (tree->node) NWayTreeLongToString2(tree->node, 0, p);
+  return p;
+ }
+
+static void NWayTreeLongPrintErr(NWayTreeLongTree *tree)                        // Print a tree on stderr
+ {StackChar *s = NWayTreeLongToString(tree);
+  say("%s", s->arena+s->base);
+  free(s);
+ }
+
+static void NWayTreeLongPrintErrAsC(NWayTreeLongTree *tree)                        // Print a tree as C strings on stderr
+ {StackChar *s = NWayTreeLongToString(tree);
+  fputc('\"', stderr);
+  for(long i = s->base; i < s->next-s->base; ++i)
+   {const char c = s->arena[i];
+    if (c == '\n') {fputs("\\n\"\n", stderr); fputc('"', stderr);} else putc(c, stderr);
+   }
+  fputs("\"", stderr);
+  free(s);
+ }
+
+static long NWayTreeLongEqText(NWayTreeLongTree *tree, char * text)
+ {StackChar *s = NWayTreeLongToString(tree);
+  return strncmp(s->arena+s->base, text, s->next-s->base) == 0;
  }
 
 static long NWayTreeLongMinimumNumberOfKeys()                                   //P Minimum number of keys per node.
@@ -161,7 +184,7 @@ static int NWayTreeLongSplitFullNode                                            
     if (p->down[0] == node)                                                     // Splitting the first child - move everything up
      {memmove(p->keys+1, p->keys,  p->length    * L);
       memmove(p->data+1, p->data,  p->length    * L);
-      memmove(p->down+1, p->down, (p->length++) * L);
+      memmove(p->down+1, p->down, (++p->length) * L);
       p->keys[0] = node->keys[n];
       p->data[0] = node->data[n];
       p->down[0] = l;
@@ -174,17 +197,17 @@ static int NWayTreeLongSplitFullNode                                            
       p->down[++p->length] = r;
      }
     else                                                                        // Splitting a middle child:
-     {for(long i = 1; i < p->length - 1; ++i)
-       {if (p->down[i] == node)                                             // Find the node that points from the parent to the current node
-         {memmove(p->keys+L*(i+1), p->keys+L*i, (p->length-1) * L);
-          memmove(p->data+L*(i+1), p->data+L*i, (p->length-1) * L);
-          memmove(p->down+L*(i+1), p->down+L*i, (p->length-1) * L);
+     {for(long i = 1; i < p->length; ++i)
+       {if (p->down[i] == node)                                                 // Find the node that points from the parent to the current node
+         {memmove(p->keys+i+1, p->keys+i, (p->length-i)   * L);
+          memmove(p->data+i+1, p->data+i, (p->length-i)   * L);
+          memmove(p->down+i+1, p->down+i, (p->length-i+1) * L);
           p->keys[i]   = node->keys[n];
           p->data[i]   = node->data[n];
-          p->down[i-1] = l;
-          p->down[i]    = r;
+          p->down[i]   = l;
+          p->down[i+1] = r;
           ++p->length;
-          break;
+          return 1;
          }
        }
       assert(0);
@@ -481,18 +504,20 @@ static void NWayTreeLongInsert                                                  
    {
     NWayTreeLongFindResult r = NWayTreeLongFindAndSplit(tree, key);             // Check for existing key
 
-say("AAAA");
+say("AAAA key=%ld", key);
+NWayTreeLongPrintErr(tree);
+
     if (r.cmp == equal)                                                         // Found an equal key whose data we can update
      {n->data[r.index] = data;
      }
     else                                                                        // We have room for the insert
      {long index = r.index;
-say("BBBB");
+say("BBBB %d %ld", r.cmp, r.index);
       if (r.cmp == higher) ++index;                                             // Position at which to insert new key
       NWayTreeLongNode *n = r.node;
-say("CCCC %ld %ld", n->length, index);
+say("CCCC %ld %ld %ld length=%ld index=%ld", n->keys[0], n->keys[1], n->keys[2], n->length, index);
       ArrayLongInsert(n->keys, n->length, key,  index);
-say("DDDD");
+say("DDDD %ld %ld %ld length=%ld", n->keys[0], n->keys[1], n->keys[2], n->length);
       ArrayLongInsert(n->data, n->length, data, index);
       ++n->length;
 say("EEEE");
@@ -769,7 +794,7 @@ static void NWayTreeLong size($)                                                
 void test1()                                                                    // Tests
  {NWayTreeLongTree *tree = NWayTreeLongNewTree();
   for(int i = 0; i < 1; ++i) NWayTreeLongInsert(tree, i, 2);
-  NWayTreeLongPrint(tree);
+  NWayTreeLongToString(tree);
   assert(tree->node->data[0] == 2);
   assert(tree->size == 1);
  }
@@ -777,7 +802,7 @@ void test1()                                                                    
 void test2()                                                                    // Tests
  {NWayTreeLongTree *tree = NWayTreeLongNewTree();
   for(int i = 0; i < 2; ++i) NWayTreeLongInsert(tree, i, i+2);
-  NWayTreeLongPrint(tree);
+  NWayTreeLongToString(tree);
   assert(tree->node->data[0] == 2);
   assert(tree->node->data[1] == 3);
   assert(tree->size == 2);
@@ -786,7 +811,7 @@ void test2()                                                                    
 void test3()                                                                    // Tests
  {NWayTreeLongTree *tree = NWayTreeLongNewTree();
   for(int i = 0; i < 3; ++i) NWayTreeLongInsert(tree, i, i+2);
-  NWayTreeLongPrint(tree);
+  NWayTreeLongToString(tree);
   assert(tree->node->data[0] == 2);
   assert(tree->node->data[1] == 3);
   assert(tree->node->data[2] == 4);
@@ -824,7 +849,7 @@ void test4a()                                                                   
   assert(t->node->down[1]->data[0] == 6);
  }
 
-void test4b()                                                                   // Tree has multiple nodes
+void test4b()                                                                   // First down
  {NWayTreeLongTree *t  = NWayTreeLongNewTree();
   NWayTreeLongNode *p  = createNode3(10, 20, 30); p->length = 2;
   NWayTreeLongNode *n0 = createNode3(01, 02, 03);
@@ -834,18 +859,105 @@ void test4b()                                                                   
   p->down[1] = n1; n1->up = p;
   p->down[2] = n2; n2->up = p;
   t->node    = p;
-  say("AAAA");
-  NWayTreeLongPrint(t);
 
-  long r = NWayTreeLongSplitFullNode(t, n0);
-  assert(r);
-  say("BBBB");
-  NWayTreeLongPrint(t);
+  assert(NWayTreeLongEqText(t,
+"      1     2\n"
+"      2     4\n"
+"      3     6\n"
+"  10    20\n"
+"     11    22\n"
+"     12    24\n"
+"     13    26\n"
+"  20    40\n"
+"     21    42\n"
+"     22    44\n"
+"     23    46\n"
+));
+
+  long r = NWayTreeLongSplitFullNode(t, n0); if (r){}
+  assert(NWayTreeLongEqText(t,
+"      1     2\n"
+"   2     4\n"
+"      3     6\n"
+"  10    20\n"
+"     11    22\n"
+"     12    24\n"
+"     13    26\n"
+"  20    40\n"
+"     21    42\n"
+"     22    44\n"
+"     23    46\n"
+));
+//NWayTreeLongPrintErrAsC(t);
+ }
+
+void test4c()                                                                   // Mid down
+ {NWayTreeLongTree *t  = NWayTreeLongNewTree();
+  NWayTreeLongNode *p  = createNode3(10, 20, 30); p->length = 2;
+  NWayTreeLongNode *n0 = createNode3(01, 02, 03);
+  NWayTreeLongNode *n1 = createNode3(11, 12, 13);
+  NWayTreeLongNode *n2 = createNode3(21, 22, 23);
+  p->down[0] = n0; n0->up = p;
+  p->down[1] = n1; n1->up = p;
+  p->down[2] = n2; n2->up = p;
+  t->node    = p;
+
+  assert(p->down[1] == n1);
+
+  long r = NWayTreeLongSplitFullNode(t, n1); if (r){}
+  NWayTreeLongPrintErrAsC(t);
+  assert(NWayTreeLongEqText(t,
+"      1     2\n"
+"      2     4\n"
+"      3     6\n"
+"  10    20\n"
+"     11    22\n"
+"  12    24\n"
+"     13    26\n"
+"  20    40\n"
+"     21    42\n"
+"     22    44\n"
+"     23    46\n"
+));
+//NWayTreeLongPrintErrAsC(t);
+ }
+
+void test4d()                                                                   // Final node
+ {NWayTreeLongTree *t  = NWayTreeLongNewTree();
+  NWayTreeLongNode *p  = createNode3(10, 20, 30); p->length = 2;
+  NWayTreeLongNode *n0 = createNode3(01, 02, 03);
+  NWayTreeLongNode *n1 = createNode3(11, 12, 13);
+  NWayTreeLongNode *n2 = createNode3(21, 22, 23);
+  p->down[0] = n0; n0->up = p;
+  p->down[1] = n1; n1->up = p;
+  p->down[2] = n2; n2->up = p;
+  t->node    = p;
+
+  assert(p->down[1] == n1);
+
+  long r = NWayTreeLongSplitFullNode(t, n2); if (r){}
+  NWayTreeLongPrintErrAsC(t);
+  assert(NWayTreeLongEqText(t,
+"      1     2\n"
+"      2     4\n"
+"      3     6\n"
+"  10    20\n"
+"     11    22\n"
+"     12    24\n"
+"     13    26\n"
+"  20    40\n"
+"     21    42\n"
+"  22    44\n"
+"     23    46\n"
+));
+//NWayTreeLongPrintErrAsC(t);
  }
 
 void test4()                                                                    // Tests
  {test4a();
   test4b();
+  test4c();
+  test4d();
  }
 
 void test5()                                                                    // Tests
@@ -853,7 +965,7 @@ void test5()                                                                    
   for(int i = 0; i < 4; ++i)
    {NWayTreeLongInsert(tree, i, i+2);
    }
-  NWayTreeLongPrint(tree);
+  NWayTreeLongPrintErr(tree);
   assert(tree->node->data[0] == 2);
   assert(tree->node->data[1] == 3);
   assert(tree->node->data[2] == 4);
@@ -864,7 +976,8 @@ void tests()                                                                    
  {//test1();
   //test2();
   //test3();
-  test4b();
+  //test4();
+    test5();
  }
 
 int main()                                                                      // Run tests

@@ -55,7 +55,7 @@ static void ArrayVoidUnShiftArray                                               
 
 static void ArrayVoidInsert                                                     // Insert into an array
  (void **a, long l, void *b, long i)                                            // Array, length of array, item to insert, index to insert at
- {memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
+ {if (i < l) memmove(a+i+1, a+i, (l-i-1)*sizeof(long));
   a[i] = b;
  }
 
@@ -117,9 +117,30 @@ void test2()                                                                    
   assert(*(long *)A[9] == 4);
  }
 
+void test3()                                                                    // Tests
+ {long N = 10;
+  void *A[N];
+  long  B[N];
+  for(long i = 0; i < N; ++i) {B[i] = i < N>>1 ? i : 0; A[i] = B+i;}
+
+  long c10 = 10, c11 = 11;
+  ArrayVoidInsert(A, 1, &c11, 1);
+  assert(*(long *)A[0] ==  0);
+  assert(*(long *)A[1] == 11);
+  assert(*(long *)A[2] ==  2);
+
+  ArrayVoidInsert(A, 1, &c10, 0);
+  assert(*(long *)A[0] == 10);
+  assert(*(long *)A[1] == 11);
+  assert(*(long *)A[2] ==  2);
+//  ArrayLongPrint(A, N);
+ }
+
+
 void tests()                                                                    // Tests
  {test1();
   test2();
+  test3();
  }
 
 int main()                                                                      // Run tests

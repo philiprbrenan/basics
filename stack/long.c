@@ -28,15 +28,18 @@ inline static StackLong *StackLongNew()                                         
   return s;
  }
 
-inline static long StackLongN(StackLong *s)                                     // The number of elements on the stack
+inline static long StackLongN                                                   // The number of elements on the stack
+ (StackLong *s)
  {return s->next - s->base;
  }
 
-inline static int StackLongIsEmpty(StackLong *s)                                // Whether the stack is empty
+inline static int StackLongIsEmpty                                              // Whether the stack is empty
+ (StackLong *s)
  {return StackLongN(s) == 0;
  }
 
-inline static long StackLongGet(StackLong *s, long i, int *rc)                  // Get an element from the stack by its index
+inline static long StackLongGet                                                 // Get an element from the stack by its index
+ (StackLong *s, long i, long *rc)
  {const long p = s->base + i;
   if (p < s->next)                                                              // Success
    {if (rc != 0) *rc = 1;
@@ -46,7 +49,8 @@ inline static long StackLongGet(StackLong *s, long i, int *rc)                  
   return 0;
  }
 
-inline static void StackLongPush(StackLong *s, long l)                                 // Push an element onto the stack
+inline static void StackLongPush                                                // Push an element onto the stack
+ (StackLong *s, long l)
  {if (s->size == 0)
    {s->size  = 16;
     s->arena = calloc(s->size, sizeof(long));
@@ -63,14 +67,16 @@ inline static void StackLongPush(StackLong *s, long l)                          
   s->arena[s->next++] = l;
  }
 
-inline static StackLong *StackLongClone(StackLong *a)                           // Clone a stack
+inline static StackLong *StackLongClone                                         // Clone a stack
+ (StackLong *a)
  {StackLong *b = StackLongNew();
   const long N = StackLongN(a);
   for(long i = 0; i < N; ++i) StackLongPush(b, a->arena[i]);
   return b;
  }
 
-inline static long StackLongFirstElement(StackLong *s, int *rc)                 // Return the first element of the stack
+inline static long StackLongFirstElement                                        // Return the first element of the stack
+ (StackLong *s, long *rc)
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -79,7 +85,8 @@ inline static long StackLongFirstElement(StackLong *s, int *rc)                 
   return s->arena[s->base];
  }
 
-inline static long StackLongLastElement(StackLong *s, int *rc)                  // Return the last element of the stack
+inline static long StackLongLastElement                                         // Return the last element of the stack
+ (StackLong *s, long *rc)
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -88,7 +95,8 @@ inline static long StackLongLastElement(StackLong *s, int *rc)                  
   return s->arena[s->next-1];
  }
 
-inline static long StackLongPop(StackLong *s, int *rc)                          // Pop a value off the stack
+inline static long StackLongPop                                                 // Pop a value off the stack
+ (StackLong *s, long *rc)
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -97,7 +105,8 @@ inline static long StackLongPop(StackLong *s, int *rc)                          
   return s->arena[--s->next];
  }
 
-inline static long StackLongShift(StackLong *s, int *rc)                        // Shift a value off the stack
+inline static long StackLongShift                                               // Shift a value off the stack
+ (StackLong *s, long *rc)
  {if (s->next <= s->base)
    {if (rc != 0) *rc = 0;
     return 0;
@@ -109,7 +118,7 @@ inline static long StackLongShift(StackLong *s, int *rc)                        
 #if (__INCLUDE_LEVEL__ == 0)
 static void tests()                                                             // Tests
  {const int N = 10;
-  int rc;
+  long rc;
 
   StackLong *s = StackLongNew();
   for(int i = 0; i < N; ++i) StackLongPush(s, i+1);

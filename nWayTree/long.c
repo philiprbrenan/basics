@@ -19,6 +19,7 @@
 #include "array/long.c"
 #include "array/void.c"
 #include "basics/basics.c"
+#include "stack/long.c"
 
 #define NWayTreeLongNumberOfKeysPerNode 3
 
@@ -68,19 +69,23 @@ static NWayTreeLongFindResult NWayTreeLongNewFindResult                         
   return r;
  }
 
-static void NWayTreeLongPrint2(NWayTreeLongNode *node, long in)                 // Print the keys in a tree
+static void NWayTreeLongPrint2                                                  // Print the keys in a tree
+ (NWayTreeLongNode *node, long in, StackLong *p)
  {if (!node || !node->length) return;
 
-  NWayTreeLongPrint2(node->down[0], in+1);
+  NWayTreeLongPrint2(node->down[0], in+1, p);
   for(long i = 0; i < node->length; ++i)
-   {for(long j = 0; j < in; ++j) fprintf(stderr, "   ");
-    say("%4ld  %4ld ", node->keys[i], node->data[i]);
-    NWayTreeLongPrint2(node->down[i+1], in+1);
+   {for(long j = 0; j < in * 3; ++j) StackLongPush(p, ' ');
+    char C[100];
+    sprintf(C, "%4ld  %4ld\n", node->keys[i], node->data[i]);
+    for(char *c = C; *c; ++c) StackLongPush(p, *c);
+    NWayTreeLongPrint2(node->down[i+1], in+1, p);
    }
  }
 
 static void NWayTreeLongPrint(NWayTreeLongTree *tree)                           // Print the keys in a tree
- {if (tree->node) NWayTreeLongPrint2(tree->node, 0);
+ {StackLong *p = StackLongNew();
+  if (tree->node) NWayTreeLongPrint2(tree->node, 0, p);
  }
 
 static long NWayTreeLongMinimumNumberOfKeys()                                   //P Minimum number of keys per node.
@@ -154,9 +159,7 @@ static int NWayTreeLongSplitFullNode                                            
     NWayTreeLongNode *p = node->up;                                             // Existing parent node
     l->up = r->up = p;                                                          // Connect children to parent
     if (p->down[0] == node)                                                     // Splitting the first child - move everything up
-     {
-say("ZZZZZ %ld", r->length);
-      memmove(p->keys+1, p->keys,  p->length    * L);
+     {memmove(p->keys+1, p->keys,  p->length    * L);
       memmove(p->data+1, p->data,  p->length    * L);
       memmove(p->down+1, p->down, (p->length++) * L);
       p->keys[0] = node->keys[n];

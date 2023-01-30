@@ -501,26 +501,18 @@ static void NWayTreeLongInsert                                                  
     n->length++; tree->size++;
    }
   else                                                                          // Insert node
-   {
-    NWayTreeLongFindResult r = NWayTreeLongFindAndSplit(tree, key);             // Check for existing key
-
-say("AAAA key=%ld", key);
-NWayTreeLongPrintErr(tree);
+   {NWayTreeLongFindResult r = NWayTreeLongFindAndSplit(tree, key);             // Check for existing key
 
     if (r.cmp == equal)                                                         // Found an equal key whose data we can update
      {n->data[r.index] = data;
      }
     else                                                                        // We have room for the insert
      {long index = r.index;
-say("BBBB %d %ld", r.cmp, r.index);
       if (r.cmp == higher) ++index;                                             // Position at which to insert new key
       NWayTreeLongNode *n = r.node;
-say("CCCC %ld %ld %ld length=%ld index=%ld", n->keys[0], n->keys[1], n->keys[2], n->length, index);
       ArrayLongInsert(n->keys, n->length, key,  index);
-say("DDDD %ld %ld %ld length=%ld", n->keys[0], n->keys[1], n->keys[2], n->length);
       ArrayLongInsert(n->data, n->length, data, index);
       ++n->length;
-say("EEEE");
       NWayTreeLongSplitFullNode(tree, n);                                       // Split if the leaf is full to force keys up the tree
      }
    }
@@ -966,10 +958,11 @@ void test5()                                                                    
    {NWayTreeLongInsert(tree, i, i+2);
    }
   NWayTreeLongPrintErr(tree);
-  assert(tree->node->data[0] == 2);
-  assert(tree->node->data[1] == 3);
-  assert(tree->node->data[2] == 4);
-  assert(tree->size == 4);
+  NWayTreeLongNode *n = tree->node, *l = n->down[0], *r = n->down[1];
+  assert(n->length  == 1);
+  assert(l->data[0] == 2);
+  assert(r->data[0] == 4);
+  assert(r->data[1] == 5);
  }
 
 void tests()                                                                    // Tests

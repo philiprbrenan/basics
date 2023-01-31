@@ -77,7 +77,8 @@ static void NWayTreeLongToString2                                               
   for(long i = 0; i < node->length; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
     char C[100];
-    sprintf(C, "%4ld  %4ld\n", node->keys[i], node->data[i]);
+    sprintf(C, "%4ld                                %4ld\n",
+               node->keys[i], node->data[i]);
     for(char *c = C; *c; ++c) StackCharPush(p, *c);
     NWayTreeLongToString2(node->down[i+1], in+1, p);
    }
@@ -249,7 +250,9 @@ static int NWayTreeLongSplitFullNode                                            
 static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          //P Find a key in a tree splitting full nodes along the path to the key.
  (NWayTreeLongTree *tree, long key)
  {for(long pass = 0; pass < 999; ++pass)                                        // Restart the traversal if we are forced to split a node - we can probably do better by restarting at the parent
-   {NWayTreeLongNode *node = tree->node;
+   {
+
+    NWayTreeLongNode *node = tree->node;
     if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);
 
     if (NWayTreeLongSplitFullNode(tree, node))                                  // Split the root node if necessary
@@ -257,7 +260,9 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
      }
 
     for(long j = 0; j < 999; ++j)                                               // Step down through the tree
-     {if (key < node->keys[0])                                                  // Less than smallest key in node
+     {
+
+       if (key < node->keys[0])                                                  // Less than smallest key in node
        {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
          (tree, node, key, lower, 0);                                           // Smallest key in tree
         node = node->down[0];
@@ -268,6 +273,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
       if (key > node->keys[last])                                               // Greater than largest key in node
        {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
          (tree, node, key, higher, last);
+
         node = node->down[last+1];
         continue;
        }
@@ -496,7 +502,8 @@ static NWayTreeLongNode *NWayTreeLongRightMost(NWayTreeLongNode *node)          
   assert(0);
  }
 
-static long NWayTreeLongDepth(NWayTreeLongNode *node)                           // Return the depth of a node within a tree.
+static long NWayTreeLongDepth                                                   // Return the depth of a node within a tree.
+ (NWayTreeLongNode *node)
  {if (!node->up && !node->length) return 0;                                     // We are at the root and it is empty
   for(long n = 0; n < 999; ++n)
    {if (!node->up) return n;
@@ -522,8 +529,8 @@ static void NWayTreeLongInsert                                                  
         return;
        }
       if (key < n->keys[i])                                                     // We have reached the insertion point
-       {ArrayLongInsert(n->keys, n->length, i, key);
-        ArrayLongInsert(n->data, n->length, i, data);
+       {ArrayLongInsert(n->keys, n->length+1, key,  i);
+        ArrayLongInsert(n->data, n->length+1, data, i);
         n->length++; tree->size++;
         return;
        }
@@ -541,8 +548,8 @@ static void NWayTreeLongInsert                                                  
     else                                                                        // We have room for the insert
      {long index = r.index;
       if (r.cmp == higher) ++index;                                             // Position at which to insert new key
-      ArrayLongInsert(n->keys, n->length, key,  index);
-      ArrayLongInsert(n->data, n->length, data, index);
+      ArrayLongInsert(n->keys, n->length+1, key,  index);
+      ArrayLongInsert(n->data, n->length+1, data, index);
       ++n->length;
       NWayTreeLongSplitFullNode(tree, n);                                       // Split if the leaf is full to force keys up the tree
      }
@@ -817,14 +824,16 @@ static void NWayTreeLong size($)                                                
 void test1()                                                                    // Tests
  {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
   for(int i = 0; i < 1; ++i) NWayTreeLongInsert(tree, i, 2);
+  //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"   0     2\n"
+"   0                                   2\n"
 ));
  }
 
 void test2()                                                                    // Tests
  {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
   for(int i = 0; i < 2; ++i) NWayTreeLongInsert(tree, i, i+2);
+  NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
 "   0     2\n"
 "   1     3\n"
@@ -975,119 +984,208 @@ void test4()                                                                    
  }
 
 void testInsert1()                                                              // Insert tests
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  NWayTreeLongErrAsC(tree);
-  for(int i = 0; i < 1; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 1;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"   0     2\n"
+"   1                                   3\n"
 ));
  }
 
 void testInsert2()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 2; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 2;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"   0     2\n"
-"   1     3\n"
+"   1                                   3\n"
+"   2                                   4\n"
 ));
  }
 
 void testInsert3()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 3; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 3;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"      0     2\n"
-"   1     3\n"
-"      2     4\n"
+"   1                                   3\n"
+"   2                                   4\n"
+"   3                                   5\n"
 ));
  }
 
 void testInsert4()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 4; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 4;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"      0     2\n"
-"   1     3\n"
-"      2     4\n"
-"      3     5\n"
+"      1                                   3\n"
+"   2                                   4\n"
+"      3                                   5\n"
+"      4                                   6\n"
 ));
  }
 
 void testInsert5()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 5; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 5;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"      0     2\n"
-"   1     3\n"
-"      2     4\n"
-"   3     5\n"
-"      4     6\n"
+"      1                                   3\n"
+"   2                                   4\n"
+"      3                                   5\n"
+"   4                                   6\n"
+"      5                                   7\n"
 ));
  }
 
 void testInsert6()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 6; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 6;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"      0     2\n"
-"   1     3\n"
-"      2     4\n"
-"   3     5\n"
-"      4     6\n"
-"      5     7\n"
+"      1                                   3\n"
+"   2                                   4\n"
+"      3                                   5\n"
+"   4                                   6\n"
+"      5                                   7\n"
+"      6                                   8\n"
 ));
  }
 
 void testInsert7()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 7; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 7;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"      0     2\n"
-"   1     3\n"
-"      2     4\n"
-"   3     5\n"
-"      4     6\n"
-"   5     7\n"
-"      6     8\n"
+"      1                                   3\n"
+"   2                                   4\n"
+"      3                                   5\n"
+"   4                                   6\n"
+"      5                                   7\n"
+"   6                                   8\n"
+"      7                                   9\n"
 ));
  }
 
 void testInsert8()
- {NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(int i = 0; i < 8; ++i)
-   {NWayTreeLongInsert(tree, i, i+2);
-   }
+ {const long N = 8;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 1; i <= N; ++i) NWayTreeLongInsert(tree, i, i+2);
   //NWayTreeLongErrAsC(tree);
   assert(NWayTreeLongEqText(tree,
-"         0     2\n"
-"      1     3\n"
-"         2     4\n"
-"   3     5\n"
-"         4     6\n"
-"      5     7\n"
-"         6     8\n"
-"         7     9\n"
+"         1                                   3\n"
+"      2                                   4\n"
+"         3                                   5\n"
+"   4                                   6\n"
+"         5                                   7\n"
+"      6                                   8\n"
+"         7                                   9\n"
+"         8                                  10\n"
+));
+ }
+
+void testInsert2r()
+ {const long N = 2;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"   1                                   2\n"
+"   2                                   3\n"
+));
+ }
+
+void testInsert3r()
+ {const long N = 3;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"   1                                   2\n"
+"   2                                   3\n"
+"   3                                   4\n"
+));
+ }
+
+void testInsert4r()
+ {const long N = 4;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"      1                                   2\n"
+"      2                                   3\n"
+"   3                                   4\n"
+"      4                                   5\n"
+));
+ }
+
+void testInsert5r()
+ {const long N = 5;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"      1                                   2\n"
+"   2                                   3\n"
+"      3                                   4\n"
+"   4                                   5\n"
+"      5                                   6\n"
+));
+ }
+
+void testInsert6r()
+ {const long N = 6;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"      1                                   2\n"
+"      2                                   3\n"
+"   3                                   4\n"
+"      4                                   5\n"
+"   5                                   6\n"
+"      6                                   7\n"
+));
+ }
+
+void testInsert7r()
+ {const long N = 7;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  //NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"      1                                   2\n"
+"   2                                   3\n"
+"      3                                   4\n"
+"   4                                   5\n"
+"      5                                   6\n"
+"   6                                   7\n"
+"      7                                   8\n"
+));
+ }
+
+void testInsert8r()
+ {const long N = 8;
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(int i = 0; i < N; ++i) NWayTreeLongInsert(tree, N-i, N-i+1);
+  NWayTreeLongErrAsC(tree);
+  assert(NWayTreeLongEqText(tree,
+"         1                                   2\n"
+"         2                                   3\n"
+"      3                                   4\n"
+"         4                                   5\n"
+"   5                                   6\n"
+"         6                                   7\n"
+"      7                                   8\n"
+"         8                                   9\n"
 ));
  }
 
@@ -1100,10 +1198,18 @@ void testInsert()                                                               
   testInsert6();
   testInsert7();
   testInsert8();
+  testInsert2r();
+  testInsert3r();
+  testInsert4r();
+  testInsert5r();
+  testInsert6r();
+  testInsert7r();
+  testInsert8r();
  }
 
 void tests()                                                                    // Tests
- {testInsert8(); exit(1);
+ {testInsert5(); exit(0);
+  testInsert();
   test1();
   test2();
   test3();

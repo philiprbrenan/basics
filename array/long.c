@@ -103,7 +103,7 @@ void test1()                                                                    
   assert(A[3] == 44);
  }
 
-void test2()                                                                    // Tests
+void test2()
  {long N = 10;
   long A[N];
   for(long i = 0; i < N; ++i) A[i] = i < N>>1 ? i : 0;
@@ -113,27 +113,59 @@ void test2()                                                                    
   //ArrayLongPrint(A, N);
  }
 
-void test3()                                                                    // Tests
- {long N = 10;
+void test3()
+ {long N = 4;
   long A[N];
-  for(long i = 0; i < N; ++i) A[i] = i;
+  for(long i = 0; i < N; ++i) A[i] = i+1;
+  //ArrayLongPrint(A, N);
 
   ArrayLongInsert(A, 1, 11, 1);
-  assert(A[0] ==  0);
+  //ArrayLongPrint(A, N);
+  assert(A[0] ==  1);
   assert(A[1] == 11);
-  assert(A[2] ==  2);
+  assert(A[2] ==  3);
 
   ArrayLongInsert(A, 1, 10, 0);
+  //ArrayLongPrint(A, N);
   assert(A[0] == 10);
   assert(A[1] == 11);
-  assert(A[2] ==  2);
-//  ArrayLongPrint(A, N);
+  assert(A[2] ==  3);
+  assert(A[3] ==  4);
+ }
+
+void test4()
+ {long N = 4;
+  long A[N];
+  for(long i = 0; i < N; ++i) A[i] = i+1;
+  //ArrayLongPrint (A, N);
+
+  ArrayLongInsert(A, 1, 11, 0);
+  //ArrayLongPrint (A, N);
+  assert(A[0] ==  11);
+  assert(A[1] ==   2);
+  assert(A[2] ==   3);
+ }
+
+void test5()
+ {long N = 4;
+  long A[N];
+  for(long i = 0; i < N; ++i) A[i] = i+1;
+  //ArrayLongPrint (A, N);
+
+  ArrayLongInsert(A, 3, 11, 2);
+  //ArrayLongPrint (A, N);
+  assert(A[0] ==   1);
+  assert(A[1] ==   2);
+  assert(A[2] ==  11);
+  assert(A[3] ==   4);
  }
 
 void tests()                                                                    // Tests
  {test1();
   test2();
   test3();
+  test4();
+  test5();
  }
 
 int main()                                                                      // Run tests

@@ -128,11 +128,11 @@ static void NWayTreeLongErrNode(NWayTreeLongNode *node)                         
   say("  Up     = %p", node->up);
   say("  Length = %ld", node->length);
   fprintf(stderr, "  Keys   : ");
-  for(long i = 0; i <  node->length; ++i) fprintf(stderr, " %ld", node->keys[i]);
+  for(long i = 0; i <  node->length; ++i) fprintf(stderr," %ld", node->keys[i]);
   fprintf(stderr, "\n  Data   : ");
-  for(long i = 0; i <  node->length; ++i) fprintf(stderr, " %ld", node->data[i]);
+  for(long i = 0; i <  node->length; ++i) fprintf(stderr," %ld", node->data[i]);
   fprintf(stderr, "\n  Down   : ");
-  for(long i = 0; i <= node->length; ++i) fprintf(stderr, " %p",  node->down[i]);
+  for(long i = 0; i <= node->length; ++i) fprintf(stderr," %p",  node->down[i]);
   say("\n");
  }
 
@@ -170,13 +170,13 @@ static long NWayTreeLongFull(NWayTreeLongNode *node)                            
  {return node->length == NWayTreeLongMaximumNumberOfKeys();
  }
 
-static long NWayTreeLongHalfFull(NWayTreeLongNode *node)                                                                 //P Confirm that a node is half full.
+static long NWayTreeLongHalfFull(NWayTreeLongNode *node)                        //P Confirm that a node is half full.
  {const long n = node->length;
   assert(n <= NWayTreeLongMaximumNumberOfKeys()+1);
   return n == NWayTreeLongMinimumNumberOfKeys();
  }
 //
-//static void NWayTreeLong root(NWayTreeLongTree *tree)                                                                     // Return the root node of a tree.
+//static void NWayTreeLong root(NWayTreeLongTree *tree)                         // Return the root node of a tree.
 // {my ($tree) = @_;                                                            // Tree
 // confess unless $tree;
 // for(; $tree->up; $tree = $tree->up) {}
@@ -200,21 +200,23 @@ static long NWayTreeLongCheckNode                                               
     return 1;
    }
   for(long i = 0; i <= node->length; ++i)                                       // Check that each child has a correct up reference
-   {NWayTreeLongNode *d = node->down[i];                                        // Step down
+   {NWayTreeLongNode * const d = node->down[i];                                 // Step down
     if (d)
      {if (d->length > NWayTreeLongMaximumNumberOfKeys())
-       {say("%s: Node %ld under %ld is too long at %ld", name, node->keys[0], d->keys[0], d->length);
+       {say("%s: Node %ld under %ld is too long at %ld",
+            name, node->keys[0], d->keys[0], d->length);
         return 2;
        }
 
       if (d->up != node)
-       {say("%s: Node %ld(%p) under %ld(%p) has wrong up pointer %ld(%p)", name, d->keys[0], d, node->keys[0], node, d->up->keys[0], d->up);
+       {say("%s: Node %ld(%p) under %ld(%p) has wrong up pointer %ld(%p)",
+             name, d->keys[0], d, node->keys[0], node, d->up->keys[0], d->up);
         return 3;
        }
      }
    }
 
-  NWayTreeLongNode *p = node->up;                                               // Check that parent connects to the current node
+  NWayTreeLongNode * const p = node->up;                                        // Check that parent connects to the current node
   if (p)
    {assert(p->length <= NWayTreeLongMaximumNumberOfKeys());
     int c = 0;                                                                  // Check that the parent has a down pointer to the current node
@@ -280,7 +282,7 @@ static long NWayTreeLongSplitFullNode                                           
 
   if (node->up)                                                                 // Not a root node
    {const long L = sizeof(long);
-    NWayTreeLongNode *p = node->up;                                             // Existing parent node
+    NWayTreeLongNode * const p = node->up;                                      // Existing parent node
     l->up = r->up = p;                                                          // Connect children to parent
     if (p->down[0] == node)                                                     // Splitting the first child - move everything up
      {memmove(p->keys+1, p->keys,  p->length    * L);
@@ -315,7 +317,7 @@ static long NWayTreeLongSplitFullNode                                           
      }
    }
   else                                                                          // Root node with single key after split
-   {NWayTreeLongNode *p = tree->node = NWayTreeLongNewNode();                   // Create a new parent node
+   {NWayTreeLongNode * const p = tree->node = NWayTreeLongNewNode();            // Create a new parent node
     l->up = r->up = p;                                                          // Connect children to parent
 
     p->keys[0] = node->keys[n];                                                 // Single key
@@ -329,42 +331,41 @@ static long NWayTreeLongSplitFullNode                                           
 
 static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          //P Find a key in a tree splitting full nodes along the path to the key.
  (NWayTreeLongTree *tree, long key)
- {for(long pass = 0; pass < NWayTreeLongMaxIterations; ++pass)                  // Restart the traversal if we are forced to split a node - we can probably do better by restarting at the parent
-   {NWayTreeLongNode *node = tree->node;
-    if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);
+ {NWayTreeLongNode *node = tree->node;
+  if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);
 
-    if (NWayTreeLongSplitFullNode(tree, node))                                  // Split the root node if necessary
-     {continue;
+  if (NWayTreeLongSplitFullNode(tree, node))                                    // Split the root node if necessary
+   {node = tree->node;
+   }
+
+  for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Step down through the tree
+   {if (key < node->keys[0])                                                    // Less than smallest key in node
+     {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
+       (tree, node, key, lower, 0);                                             // Smallest key in tree
+      NWayTreeLongNode * const n = node->down[0];
+      if (!NWayTreeLongSplitFullNode(tree, n)) node = n;                        // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
+      continue;
      }
 
-    for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                         // Step down through the tree
-     {if (key < node->keys[0])                                                  // Less than smallest key in node
-       {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-         (tree, node, key, lower, 0);                                           // Smallest key in tree
-        node = node->down[0];
-        if (NWayTreeLongSplitFullNode(tree, node)) break;                       // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
-        continue;
-       }
+    const long last = node->length-1;                                           // Greater than largest key in node
+    if (key > node->keys[last])                                                 // Greater than largest key in node
+     {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
+       (tree, node, key, higher, last);
 
-      const long last = node->length-1;                                         // Greater than largest key in node
-      if (key > node->keys[last])                                               // Greater than largest key in node
-       {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-         (tree, node, key, higher, last);
+      NWayTreeLongNode * const n = node->down[last+1];
+      if (!NWayTreeLongSplitFullNode(tree, n)) node = n;                        // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
+      continue;
+     }
 
-        node = node->down[last+1];
-        if (NWayTreeLongSplitFullNode(tree, node)) break;                       // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
-        continue;
+    for(long i = 1; i < node->length; ++i)                                      // Search the keys in this node as greater than least key and less than largest key
+     {if (key == node->keys[i])                                                 // Found key
+       {return NWayTreeLongNewFindResult(tree, node, key, equal, i);
        }
-      for(long i = 1; i < node->length; ++i)                                    // Search the keys in this node as greater than least key and less than largest key
-       {if (key == node->keys[i])                                               // Found key
-         {return NWayTreeLongNewFindResult(tree, node, key, equal, i);
-         }
-        if (key < node->keys[i])                                                // Greater than current key
-         {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult        // Leaf
-           (tree, node, key, lower, i);
-          node = node->down[i];
-          if (NWayTreeLongSplitFullNode(tree, node)) break;                     // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
-         }
+      if (key < node->keys[i])                                                  // Greater than current key
+       {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult          // Leaf
+         (tree, node, key, lower, i);
+        node = node->down[i];
+        if (NWayTreeLongSplitFullNode(tree, node)) break;                       // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
        }
      }
    }
@@ -373,10 +374,10 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
 
 static NWayTreeLongFindResult NWayTreeLongFind                                  // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
- {NWayTreeLongNode *node = tree->node;
+ {NWayTreeLongNode * node = tree->node;
   if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);   // Empty tree
 
-  for(long i = 0; i < NWayTreeLongMaxIterations; ++i)                                                 // Same code as above
+  for(long i = 0; i < NWayTreeLongMaxIterations; ++i)                           // Same code as above
    {if (key < node->keys[0])                                                    // Less than smallest key in node
      {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
        (tree, node, key, lower, 0);
@@ -405,9 +406,9 @@ static NWayTreeLongFindResult NWayTreeLongFind                                  
   assert(0);
  }
 
-static long NWayTreeLongIndexInParent                                          //P Get the index of a node in its parent.
+static long NWayTreeLongIndexInParent                                           //P Get the index of a node in its parent.
  (NWayTreeLongNode *node)
- {NWayTreeLongNode *p = node->up;
+ {NWayTreeLongNode * const p = node->up;
   assert(p);
   for(long i = 0; i < node->length; ++i)
    {if (p->down[i] == node) return i;
@@ -431,7 +432,8 @@ static void NWayTreeLongFillFromLeftOrRight                                     
     p->data[i] = ArrayLongShift(r->data, r->length);
 
     if (!NWayTreeLongIsLeaf(n))                                                 // Transfer node if not a leaf
-     {ArrayVoidPush((void *)n->down, n->length, (void *)ArrayVoidShift((void *)r->down, r->length));
+     {ArrayVoidPush((void *)n->down, n->length,
+       (void *)ArrayVoidShift((void *)r->down, r->length));
       n->down[n->length+1]->up = n;
      }
     r->length--; n->length++;
@@ -439,7 +441,7 @@ static void NWayTreeLongFillFromLeftOrRight                                     
   else                                                                          // Fill from left
    {assert(i);                                                                  // Cannot fill from left
     long I = i-1;
-    NWayTreeLongNode *n = p->down[I];                                           // Left sibling
+    NWayTreeLongNode * const n = p->down[I];                                    // Left sibling
     ArrayLongUnShift(n->keys, n->length, p->keys[I]);                           // Shift in keys and data from left
     ArrayLongUnShift(n->data, n->length, p->data[I]);
 
@@ -447,7 +449,8 @@ static void NWayTreeLongFillFromLeftOrRight                                     
     p->data[I] = ArrayLongPop(n->data, n->length);
 
     if (!NWayTreeLongIsLeaf(n))                                                 // Transfer node if not a leaf
-     {ArrayVoidUnShift((void *)n->down, n->length, (void *)ArrayVoidPop((void *)n->down, n->length));
+     {ArrayVoidUnShift((void *)n->down, n->length,
+       (void *)ArrayVoidPop((void *)n->down, n->length));
       n->down[0]->up = n;
      }
    }
@@ -456,16 +459,16 @@ static void NWayTreeLongFillFromLeftOrRight                                     
 static void NWayTreeLongMergeWithLeftOrRight                                    //P Merge two adjacent nodes.
  (NWayTreeLongNode *n, long dir)
  {assert(NWayTreeLongHalfFull(n));                                              // Confirm leaf is half full
-  NWayTreeLongNode *p = n->up;                                                  // Parent of leaf
+  NWayTreeLongNode * const p = n->up;                                           // Parent of leaf
   assert(p);
   assert(NWayTreeLongHalfFull(p) && p->up);                                     // Parent must have more than the minimum number of keys because we need to remove one unless it is the root of the tree
 
-  long i = NWayTreeLongIndexInParent(n);                                        // Index of leaf in parent
+  const long i = NWayTreeLongIndexInParent(n);                                  // Index of leaf in parent
 
   if (dir)                                                                      // Merge with right hand sibling
    {assert(i < p->length);                                                      // Cannot fill from right
-    long I = i+1;
-    NWayTreeLongNode *r = p->down[I];                                           // Leaf on right
+    const long I = i+1;
+    NWayTreeLongNode * const r = p->down[I];                                    // Leaf on right
     assert(NWayTreeLongHalfFull(r));                                            // Confirm right leaf is half full
 
     ArrayLongPush(n->keys, n->length, ArrayLongDelete(p->keys, p->length, I));  // Transfer keys and data from parent
@@ -475,7 +478,7 @@ static void NWayTreeLongMergeWithLeftOrRight                                    
     ArrayLongPushArray(n->data, n->length+1, r->data, r->length);
 
     if (!NWayTreeLongIsLeaf(n))                                                 // Children of merged node
-     {ArrayVoidPushArray((void *)n->down, n->length, (void *)r->down, r->length);
+     {ArrayVoidPushArray((void *)n->down, n->length,(void *)r->down, r->length);
       NWayTreeLongReUp(n);                                                      // Update parent of children of right node
      }
     ArrayVoidDelete((void *)p->down, p->length, I);                             // Remove link from parent to right child
@@ -506,18 +509,18 @@ static void NWayTreeLongMergeWithLeftOrRight                                    
  }
 
 static void NWayTreeLongMerge(NWayTreeLongNode *node)                           //P Merge the current node with its sibling.
- {long i = NWayTreeLongIndexInParent(node);                                     // Index in parent
+ {const long i = NWayTreeLongIndexInParent(node);                               // Index in parent
   if (i)                                                                        // Merge with left node
-   {NWayTreeLongNode *l = node->up->down[i-1];                                  // Left node
-    NWayTreeLongNode *r = node;
+   {NWayTreeLongNode * const l = node->up->down[i-1];                           // Left node
+    NWayTreeLongNode * const r = node;
     if (NWayTreeLongHalfFull(r))
      {NWayTreeLongHalfFull(l) ? NWayTreeLongMergeWithLeftOrRight(r, 0):
                                 NWayTreeLongFillFromLeftOrRight (r, 0);         // Merge as left and right nodes are half full
      }
    }
   else
-   {NWayTreeLongNode *r = node->up->down[1];                                    // Right node
-    NWayTreeLongNode *l = node;
+   {NWayTreeLongNode * const r = node->up->down[1];                             // Right node
+    NWayTreeLongNode * const l = node;
     if (NWayTreeLongHalfFull(l))
      {NWayTreeLongHalfFull(r) ? NWayTreeLongMergeWithLeftOrRight(l, 1):
                                 NWayTreeLongFillFromLeftOrRight (l, 1);         // Merge as left and right nodes are half full
@@ -527,15 +530,15 @@ static void NWayTreeLongMerge(NWayTreeLongNode *node)                           
 
 static void NWayTreeLongMergeOrFill(NWayTreeLongNode *node)                     //P Make a node larger than a half node.
  {if (NWayTreeLongHalfFull(node)) return;                                       // No need to merge of if not a half node
-  NWayTreeLongNode *p = node->up;                                               // Parent exists
+  NWayTreeLongNode * const p = node->up;                                        // Parent exists
 
   if (p->up)                                                                    // Merge or fill parent which is not the root
    {NWayTreeLongMergeOrFill(p);
     NWayTreeLongMerge(node);
    }
   else
-   {NWayTreeLongNode *l = p->down[0];
-    NWayTreeLongNode *r = p->down[1];
+   {NWayTreeLongNode * const l = p->down[0];
+    NWayTreeLongNode * const r = p->down[1];
     if (p->length == 1 && NWayTreeLongHalfFull(l) && NWayTreeLongHalfFull(r))   // Parent is the root and it only has one key - merge into the child if possible
      {const long L = l->length, R = r->length, N = node->length;
       ArrayLongPushArray(node->keys, 0, l->keys, L);
@@ -592,14 +595,15 @@ static long NWayTreeLongDepth                                                   
 static void NWayTreeLongInsert                                                  // Insert a key and its associated data into a tree
  (NWayTreeLongTree *tree, long key, long data)
  {if (!tree->node)                                                              // Empty tree
-   {NWayTreeLongNode *n = NWayTreeLongNewNode();
+   {NWayTreeLongNode * const n = NWayTreeLongNewNode();
     n->keys[0] = key; n->data[0] = data; n->length = 1; tree->size++;
     tree->node = n;
     return;
    }
 
-  NWayTreeLongNode *n = tree->node;
-  if (n->length < NWayTreeLongMaximumNumberOfKeys() && !n->up && NWayTreeLongIsLeaf(n)) // Node is root with no children and room for one more key
+  NWayTreeLongNode * const n = tree->node;
+  if (n->length < NWayTreeLongMaximumNumberOfKeys() &&                          // Node is root with no children and room for one more key
+     !n->up && NWayTreeLongIsLeaf(n))
    {for(long i = 0; i < n->length; ++i)                                         // Each key
      {if (key == n->keys[i])                                                    // Key already present
        {n->data[i]= data;
@@ -870,7 +874,7 @@ static void NWayTreeLong flat($@)                                               
       $s[$j] = substr($s.(' 'x999), 0, $l) if length($s) < $l;
      }
    }
-  for long i(keys @s)                                                            // Clean up trailing blanks so that tests are not affected by spurious white space mismatches
+  for long i(keys @s)                                                           // Clean up trailing blanks so that tests are not affected by spurious white space mismatches
    {$s[$i] =~ s/\s+\n/\n/gs;
     $s[$i] =~ s/\s+\Z//gs;
    }

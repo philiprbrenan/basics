@@ -1455,11 +1455,13 @@ void testFind()
  {const long N = 63;
 
   NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(long i = 0; i < N;     ++i) NWayTreeLongInsert(tree, i*2, i*2);
+  for(long i = 0; i < N;         ++i) NWayTreeLongInsert(tree, i*2, i*2);
   for(long i = 0; i < 2 * N; ++i)
-   {NWayTreeLongFindResult r = NWayTreeLongFind(tree, 94);
-    NWayTreeLongErrFindResult(r);
-    exit(0);
+   {NWayTreeLongFindResult r = NWayTreeLongFind(tree, i);
+    assert(i % 2 == 0 ? r.cmp == NWayTreeLongFindComparison_equal :
+                        r.cmp != NWayTreeLongFindComparison_equal);
+    if (i == 95) assert(r.cmp == NWayTreeLongFindComparison_lower);
+    if (i == 97) assert(r.cmp == NWayTreeLongFindComparison_higher);
    }
  }
 

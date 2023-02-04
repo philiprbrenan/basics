@@ -3,7 +3,7 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// 1,057,170 instructions executed
+// 2,372,982 instructions executed -O0
 
 #define _GNU_SOURCE
 #ifndef NWayTreeLong
@@ -42,7 +42,10 @@ typedef struct NWayTreeLongTree                                                 
  } NWayTreeLongTree;
 
 typedef enum NWayTreeLongFindComparison                                         // The results of a comparison
- {lower, equal, higher, notFound
+ {NWayTreeLongFindComparison_lower,
+  NWayTreeLongFindComparison_equal,
+  NWayTreeLongFindComparison_higher,
+  NWayTreeLongFindComparison_notFound
  } NWayTreeLongFindComparison;
 
 typedef struct NWayTreeLongFindResult                                           // The results of a find operation
@@ -59,7 +62,7 @@ static NWayTreeLongTree *NWayTreeLongNewTree()                                  
  }
 
 static NWayTreeLongNode *NWayTreeLongNewNode()                                  // Create a new node
- {NWayTreeLongNode *node = calloc(sizeof(NWayTreeLongNode), 1);
+ {NWayTreeLongNode * const node = calloc(sizeof(NWayTreeLongNode), 1);
   return node;
  }
 
@@ -144,14 +147,14 @@ static long NWayTreeLongEqText(NWayTreeLongTree *tree, char * text)
 static void NWayTreeLongErrFindResult(NWayTreeLongFindResult r)                 // Print a find result
  {char *c;
   switch(r.cmp)
-   {case equal:     c = "equal";    break;
-    case lower:     c = "lower";    break;
-    case higher:    c = "higher";   break;
-    case notFound:  c = "notFound"; break;
+   {case NWayTreeLongFindComparison_equal:  c = "equal";    break;
+    case NWayTreeLongFindComparison_lower:  c = "lower";    break;
+    case NWayTreeLongFindComparison_higher: c = "higher";   break;
+    default:                                c = "notFound"; break;
    }
 
-  say("Find key=%ld Result key[0]=%ld %s  index=%ld",
-      r.key, r.node->keys[0], c, r.index);
+  say("Find key=%ld Result keys[index]=%ld %s  index=%ld",
+      r.key, r.node->keys[r.index], c, r.index);
  }
 
 static long NWayTreeLongMinimumNumberOfKeys()                                   //P Minimum number of keys per node.
@@ -332,7 +335,8 @@ static long NWayTreeLongSplitFullNode                                           
 static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          //P Find a key in a tree splitting full nodes along the path to the key.
  (NWayTreeLongTree *tree, long key)
  {NWayTreeLongNode *node = tree->node;
-  if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);
+  if (!node) return NWayTreeLongNewFindResult(tree, node, key,
+    NWayTreeLongFindComparison_notFound, -1);
 
   if (NWayTreeLongSplitFullNode(tree, node))                                    // Split the root node if necessary
    {node = tree->node;
@@ -341,7 +345,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Step down through the tree
    {if (key < node->keys[0])                                                    // Less than smallest key in node
      {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-       (tree, node, key, lower, 0);                                             // Smallest key in tree
+       (tree, node, key, NWayTreeLongFindComparison_lower, 0);                                             // Smallest key in tree
       NWayTreeLongNode * const n = node->down[0];
       if (!NWayTreeLongSplitFullNode(tree, n)) node = n;                        // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
       continue;
@@ -350,7 +354,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
     const long last = node->length-1;                                           // Greater than largest key in node
     if (key > node->keys[last])                                                 // Greater than largest key in node
      {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-       (tree, node, key, higher, last);
+       (tree, node, key, NWayTreeLongFindComparison_higher, last);
 
       NWayTreeLongNode * const n = node->down[last+1];
       if (!NWayTreeLongSplitFullNode(tree, n)) node = n;                        // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
@@ -359,11 +363,12 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
 
     for(long i = 1; i < node->length; ++i)                                      // Search the keys in this node as greater than least key and less than largest key
      {if (key == node->keys[i])                                                 // Found key
-       {return NWayTreeLongNewFindResult(tree, node, key, equal, i);
+       {return NWayTreeLongNewFindResult
+         (tree, node, key, NWayTreeLongFindComparison_equal, i);
        }
       if (key < node->keys[i])                                                  // Greater than current key
        {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult          // Leaf
-         (tree, node, key, lower, i);
+         (tree, node, key, NWayTreeLongFindComparison_lower, i);
         node = node->down[i];
         if (NWayTreeLongSplitFullNode(tree, node)) break;                       // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
        }
@@ -375,31 +380,28 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
 static NWayTreeLongFindResult NWayTreeLongFind                                  // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
  {NWayTreeLongNode * node = tree->node;
-  if (!node) return NWayTreeLongNewFindResult(tree, node, key, notFound, -1);   // Empty tree
+  if (!node) return NWayTreeLongNewFindResult(tree, node, key,
+    NWayTreeLongFindComparison_notFound, -1);                                   // Empty tree
 
-  for(long i = 0; i < NWayTreeLongMaxIterations; ++i)                           // Same code as above
-   {if (key < node->keys[0])                                                    // Less than smallest key in node
-     {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-       (tree, node, key, lower, 0);
-      node = node->down[0];
-     }
-
-    const long last = node->length-1;                                           // Index of last key
-    if (key > node->keys[last])                                                 // Greater than largest key in node
-     {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-       (tree, node, key, higher, last);
-      node = node->down[last+1];
-      continue;
-     }
-
-    for(long i = 1; i < last; ++i)                                              // Search the keys in this node as greater than least key and less than largest key
-     {if (key == node->keys[i])                                                 // Found key
-       {return NWayTreeLongNewFindResult(tree, node, key, equal, i);
+  for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
+   {if (key > node->keys[node->length-1])                                       // Bigger than every  key
+     {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult            // Greater than all the keys in the node
+       (tree, node, key, NWayTreeLongFindComparison_higher, node->length-1);
+       {node = node->down[node->length];
        }
-      else if (key > node->keys[i])                                             // Greater than current key
-       {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult          // Leaf
-         (tree, node, key, higher, i);
-        node = node->down[i+1];
+     }
+    else
+     {for(long i = 0; i < node->length; ++i)                                    // Search the keys in this node as greater than least key and less than largest key
+       {if (key == node->keys[i])                                               // Found key
+         {return NWayTreeLongNewFindResult(tree, node, key,
+            NWayTreeLongFindComparison_equal, i);
+         }
+        else if (key < node->keys[i])                                           // Lower than current key
+         {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult        // Leaf
+           (tree, node, key, NWayTreeLongFindComparison_lower, i);
+          node = node->down[i];
+          break;
+         }
        }
      }
    }
@@ -623,12 +625,12 @@ static void NWayTreeLongInsert                                                  
   else                                                                          // Insert node
    {NWayTreeLongFindResult   r = NWayTreeLongFindAndSplit(tree, key);           // Check for existing key
     NWayTreeLongNode * const n = r.node;
-    if (r.cmp == equal)                                                         // Found an equal key whose data we can update
+    if (r.cmp == NWayTreeLongFindComparison_equal)                              // Found an equal key whose data we can update
      {n->data[r.index] = data;
      }
     else                                                                        // We have room for the insert
      {long index = r.index;
-      if (r.cmp == higher) ++index;                                             // Position at which to insert new key
+      if (r.cmp == NWayTreeLongFindComparison_higher) ++index;                  // Position at which to insert new key
       ArrayLongInsert(n->keys, n->length+1, key,  index);
       ArrayLongInsert(n->data, n->length+1, data, index);
 
@@ -1449,6 +1451,18 @@ void testInsert63()
 ));
  }
 
+void testFind()
+ {const long N = 63;
+
+  NWayTreeLongTree * const tree = NWayTreeLongNewTree();
+  for(long i = 0; i < N;     ++i) NWayTreeLongInsert(tree, i*2, i*2);
+  for(long i = 0; i < 2 * N; ++i)
+   {NWayTreeLongFindResult r = NWayTreeLongFind(tree, 94);
+    NWayTreeLongErrFindResult(r);
+    exit(0);
+   }
+ }
+
 void testInsert()                                                               // Tests
  {//testInsert63(); exit(0);
   testInsert1();
@@ -1474,6 +1488,7 @@ void testInsert()                                                               
 
 void tests()                                                                    // Tests
  {testInsert();
+  testFind();
   test1();
   test2();
   test3();

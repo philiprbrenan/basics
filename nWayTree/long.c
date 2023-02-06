@@ -388,7 +388,7 @@ static NWayTreeLongFindResult NWayTreeLongFind22                                
 
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
    {__m512i keys;
-    memcpy(keys, node->keys, sizeof(long) * NWayTreeLongNumberOfKeysPerNode);
+    memcpy(&keys, node->keys, sizeof(long) * NWayTreeLongNumberOfKeysPerNode);
 
     __mmask8 eq = _mm512_cmpeq_epi64_mask(Key, keys);
     eq &= (1<<node->length)-1;                                                  // Equality point
@@ -1557,6 +1557,7 @@ int main()                                                                      
  {signal(SIGSEGV, NWayTreeLongTraceBackHandler);                                // Trace back handler
   signal(SIGABRT, NWayTreeLongTraceBackHandler);                                // Trace back handler
   tests();
+say("%d", sizeof(long));
   return 0;
  }
 #endif

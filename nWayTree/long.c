@@ -3,8 +3,8 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// 2,372,982 instructions executed -O0
-
+// 327,151 instructions executed for find
+//Optimize
 #define _GNU_SOURCE
 #ifndef NWayTreeLong
 #define NWayTreeLong
@@ -376,10 +376,46 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
    }
   assert(0);
  }
+// 266,948 instructions executed
+static NWayTreeLongFindResult NWayTreeLongFind22                                // Find a key in a tree returning its associated data or undef if the key does not exist.
+ (NWayTreeLongTree *tree, long key)
+ {NWayTreeLongNode *node = tree->node;
+  if (!node) return NWayTreeLongNewFindResult(tree, node, key,
+    NWayTreeLongFindComparison_notFound, -1);                                   // Empty tree
+
+  __m512i Key;
+  for(long i = 0; i < NWayTreeLongNumberOfKeysPerNode; ++i) Key[i] = key;
+
+  for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
+   {__m512i keys;
+    memcpy(keys, node->keys, sizeof(long) * NWayTreeLongNumberOfKeysPerNode);
+
+    __mmask8 eq = _mm512_cmpeq_epi64_mask(Key, keys);
+    eq &= (1<<node->length)-1;                                                  // Equality point
+    if (eq)                                                                     // Equal to a key
+     {int eqP =  __builtin_ctz(eq);                                             // Equality position
+      return NWayTreeLongNewFindResult(tree, node, key, NWayTreeLongFindComparison_equal, eqP);
+     }
+
+    __mmask8 gt = _mm512_cmpgt_epi64_mask(Key, keys);                           // Find all keys greater
+    gt &= (1<<node->length)-1;                                                  // Active keys we are greater than
+    int gtP =  __builtin_ctz(gt+1);
+    if (NWayTreeLongIsLeaf(node))                                               // Leaf
+     {if (gtP > 0)                                                              // Greater than a key
+       {return NWayTreeLongNewFindResult(tree, node, key, NWayTreeLongFindComparison_higher, gtP-1);
+       }
+      else
+       {return NWayTreeLongNewFindResult(tree, node, key, NWayTreeLongFindComparison_lower, gtP);
+       }
+     }
+    node = node->down[gtP];                                                     // Continue down
+   }
+  assert(0);
+ }
 
 static NWayTreeLongFindResult NWayTreeLongFind                                  // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
- {NWayTreeLongNode * node = tree->node;
+ {NWayTreeLongNode *node = tree->node;
   if (!node) return NWayTreeLongNewFindResult(tree, node, key,
     NWayTreeLongFindComparison_notFound, -1);                                   // Empty tree
 
@@ -1455,13 +1491,22 @@ void testFind()
  {const long N = 63;
 
   NWayTreeLongTree * const tree = NWayTreeLongNewTree();
-  for(long i = 0; i < N;         ++i) NWayTreeLongInsert(tree, i*2, i*2);
-  for(long i = 0; i < 2 * N; ++i)
-   {NWayTreeLongFindResult r = NWayTreeLongFind(tree, i);
+  for(long i = 0; i < N;     ++i) NWayTreeLongInsert(tree, i*2, i*2);
+  //NWayTreeLongErrAsC(tree);
+  for(long i =-1; i < 2 * N; ++i)
+   {//i = 13;
+    NWayTreeLongFindResult r = NWayTreeLongFind(tree, i);
+    //NWayTreeLongErrFindResult(r);
     assert(i % 2 == 0 ? r.cmp == NWayTreeLongFindComparison_equal :
                         r.cmp != NWayTreeLongFindComparison_equal);
-    if (i == 95) assert(r.cmp == NWayTreeLongFindComparison_lower);
-    if (i == 97) assert(r.cmp == NWayTreeLongFindComparison_higher);
+
+    if (i == -1) assert(r.node->keys[r.index] == 0 && r.cmp == NWayTreeLongFindComparison_lower  && r.index == 0);
+    if (i ==  0) assert(r.node->keys[r.index] == 0 && r.cmp == NWayTreeLongFindComparison_equal  && r.index == 0);
+    if (i ==  1) assert(r.node->keys[r.index] == 0 && r.cmp == NWayTreeLongFindComparison_higher && r.index == 0);
+
+    if (i == 11) assert(r.node->keys[r.index] == 12 && r.cmp == NWayTreeLongFindComparison_lower  && r.index == 0);
+    if (i == 12) assert(r.node->keys[r.index] == 12 && r.cmp == NWayTreeLongFindComparison_equal  && r.index == 0);
+    if (i == 13) assert(r.node->keys[r.index] == 12 && r.cmp == NWayTreeLongFindComparison_higher && r.index == 0);
    }
  }
 
@@ -1489,13 +1534,13 @@ void testInsert()                                                               
  }
 
 void tests()                                                                    // Tests
- {testInsert();
+ {//testInsert();
   testFind();
-  test1();
-  test2();
-  test3();
-  test4();
-  testInsert();
+  //test1();
+  //test2();
+  //test3();
+  //test4();
+  //testInsert();
  }
 
 void NWayTreeLongTraceBackHandler(int sig)

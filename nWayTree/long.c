@@ -375,7 +375,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
    }
   assert(0);
  }
-
+/*
 static NWayTreeLongFindResult NWayTreeLongFind22                                // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
  {NWayTreeLongNode *node = tree->node;
@@ -411,7 +411,7 @@ static NWayTreeLongFindResult NWayTreeLongFind22                                
    }
   assert(0);
  }
-
+*/
 static NWayTreeLongFindResult NWayTreeLongFind                                  // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
  {NWayTreeLongNode *node = tree->node;
@@ -508,8 +508,10 @@ static void NWayTreeLongMergeWithLeftOrRight                                    
     NWayTreeLongNode * const r = p->down[I];                                    // Leaf on right
     assert(NWayTreeLongHalfFull(r));                                            // Confirm right leaf is half full
 
-    ArrayLongPush(n->keys, n->length, ArrayLongDelete(p->keys, p->length, I));  // Transfer keys and data from parent
-    ArrayLongPush(n->data, n->length, ArrayLongDelete(p->data, p->length, I));
+    const long k = ArrayLongDelete(p->keys, p->length, I);                      // Transfer keys and data from parent
+    const long d = ArrayLongDelete(p->data, p->length, I);
+    ArrayLongPush(n->keys, n->length, k);
+    ArrayLongPush(n->data, n->length, d);
 
     ArrayLongPushArray(n->keys, n->length+1, r->keys, r->length);               // Transfer ketys and
     ArrayLongPushArray(n->data, n->length+1, r->data, r->length);
@@ -1513,8 +1515,7 @@ void testFind()
  }
 
 void testInsert()                                                               // Tests
- {//testInsert63(); exit(0);
-  testInsert1();
+ {testInsert1();
   testInsert2();
   testInsert3();
   testInsert4();
@@ -1536,13 +1537,12 @@ void testInsert()                                                               
  }
 
 void tests()                                                                    // Tests
- {//testInsert();
-    testFind();
-  //test1();
-  //test2();
-  //test3();
-  //test4();
-  //testInsert();
+ {test1();
+  test2();
+  test3();
+  test4();
+  testFind();
+  testInsert();
  }
 
 void NWayTreeLongTraceBackHandler(int sig)

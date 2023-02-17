@@ -3,7 +3,6 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-// 327,151 instructions executed for find
 //Optimize
 #define _GNU_SOURCE
 #ifndef NWayTreeLong
@@ -345,7 +344,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Step down through the tree
    {if (key < node->keys[0])                                                    // Less than smallest key in node
      {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult
-       (tree, node, key, NWayTreeLongFindComparison_lower, 0);                                             // Smallest key in tree
+       (tree, node, key, NWayTreeLongFindComparison_lower, 0);                  // Smallest key in tree
       NWayTreeLongNode * const n = node->down[0];
       if (!NWayTreeLongSplitFullNode(tree, n)) node = n;                        // Split the node we have stepped to if necessary - if the node does need to be split we restart the descent to pick up the new tree. No doubt with some ingenuity we could restart at the parent rather than at the root
       continue;
@@ -376,7 +375,7 @@ static NWayTreeLongFindResult NWayTreeLongFindAndSplit                          
    }
   assert(0);
  }
-// 266,948 instructions executed
+
 static NWayTreeLongFindResult NWayTreeLongFind22                                // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTreeLongTree *tree, long key)
  {NWayTreeLongNode *node = tree->node;
@@ -1486,6 +1485,9 @@ void testInsert63()
 "              62                                   1\n"
 ));
  }
+// 100 instructions per find opt no intrinsics
+
+// 247,375 instructions executed
 
 void testFind()
  {const long N = 63;
@@ -1535,7 +1537,7 @@ void testInsert()                                                               
 
 void tests()                                                                    // Tests
  {//testInsert();
-  testFind();
+    testFind();
   //test1();
   //test2();
   //test3();
@@ -1557,7 +1559,6 @@ int main()                                                                      
  {signal(SIGSEGV, NWayTreeLongTraceBackHandler);                                // Trace back handler
   signal(SIGABRT, NWayTreeLongTraceBackHandler);                                // Trace back handler
   tests();
-say("%d", sizeof(long));
   return 0;
  }
 #endif

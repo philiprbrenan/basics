@@ -62,7 +62,7 @@ static void ArrayLongInsert                                                     
 static long ArrayLongDelete                                                     // Delete from an array returning the deleted element
  (long *A, long l, long i)                                                      // Array, length of array, index to delete at
  {const long a = A[i];
-  memmove(A+i, A+i+1, (l-i-1)*sizeof(long));
+  for(long j = 0; j < l-i-1; ++j) *(A+i+j) = *(A+i+1+j);
   return a;
  }
 

@@ -82,6 +82,17 @@ static NWayTreeLongNode *NWayTreeLongNewNode                                    
   return node;
  }
 
+static void NWayTreeLongFreeNode                                                // Free a node, Wipe teh node so it cannot be accidently reused
+ (NWayTreeLongNode *node)                                                       // Node
+ {const long z = node->tree->NumberOfKeysPerNode;
+  const long k = sizeof(long)                      *  z;
+  const long d = sizeof(long)                      *  z;
+  const long n = sizeof(struct NWayTreeLongNode *) * (z + 1);
+  const long s = sizeof(NWayTreeLongNode);
+  memset(node, -1, s+k+d+n);                                                    // Clear node
+  free(node);
+ }
+
 static void NWayTreeLongErrNode  (NWayTreeLongNode *node);
 static long NWayTreeLongCheckNode(NWayTreeLongNode *node, char *name);
 static void NWayTreeLongCheckTree(NWayTreeLongTree *tree, char *name);
@@ -112,13 +123,14 @@ static void NWayTreeLongFree2                                                   
        }
      }
    }
-  free(node);
+  NWayTreeLongFreeNode(node);
  }
 
 static void NWayTreeLongFree                                                    // Free a tree
  (NWayTreeLongTree *tree)
  {if (!tree) return;
   NWayTreeLongFree2(tree->node);
+  memset(tree, -1, sizeof(*tree));
   free(tree);
  }
 
@@ -340,14 +352,14 @@ static long NWayTreeLongSplitFullNode                                           
       p->data[0] = node->data[n];
       p->down[0] = l;
       p->down[1] = r;
-      free(node);
+      NWayTreeLongFreeNode(node);
      }
     else if (p->down[p->length] == node)                                        // Splitting the last child - just add it on the end
      {p->keys[  p->length] = node->keys[n];
       p->data[  p->length] = node->data[n];
       p->down[  p->length] = l;
       p->down[++p->length] = r;
-      free(node);
+      NWayTreeLongFreeNode(node);
      }
     else                                                                        // Splitting a middle child:
      {for(long i = 1; i < p->length; ++i)
@@ -360,7 +372,7 @@ static long NWayTreeLongSplitFullNode                                           
           p->down[i]   = l;
           p->down[i+1] = r;
           ++p->length;
-          free(node);
+          NWayTreeLongFreeNode(node);
           return 1;
          }
        }
@@ -571,7 +583,7 @@ static void NWayTreeLongMergeWithLeftOrRight                                    
      }
     ArrayVoidDelete((void *)p->down, p->length, I);                             // Remove link from parent to right child
     n->length += 1 + r->length; --p->length;
-    free(r);
+    NWayTreeLongFreeNode(r);
    }
   else                                                                          // Merge with left hand sibling
    {assert(i > 0);                                                              // Cannot fill from left
@@ -592,7 +604,7 @@ static void NWayTreeLongMergeWithLeftOrRight                                    
      }
     ArrayVoidDelete((void *)p->down, p->length, I);                             // Remove link from parent to right child
     n->length += 1 + l->length; --p->length;
-    free(l);
+    NWayTreeLongFreeNode(l);
    }
  }
 

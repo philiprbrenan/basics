@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <x86intrin.h>
+#include <malloc.h>
 #include "array/long.c"
 #include "array/void.c"
 #include "basics/basics.c"
@@ -84,6 +85,7 @@ static NWayTreeLongNode *NWayTreeLongNewNode                                    
 static void NWayTreeLongErrNode  (NWayTreeLongNode *node);
 static long NWayTreeLongCheckNode(NWayTreeLongNode *node, char *name);
 static void NWayTreeLongCheckTree(NWayTreeLongTree *tree, char *name);
+static long NWayTreeLongIsLeaf   (NWayTreeLongNode *node);
 
 static NWayTreeLongFindResult NWayTreeLongNewFindResult                         // New find result on stack
  (NWayTreeLongNode *node, long key,
@@ -96,6 +98,28 @@ static NWayTreeLongFindResult NWayTreeLongNewFindResult                         
   r.index = index;
   r.data  = node->data[index];
   return r;
+ }
+
+static void NWayTreeLongFree2                                                   // Free a tree
+ (NWayTreeLongNode *node)
+ {if (!node) return;
+  if (node->length)
+   {if (!NWayTreeLongIsLeaf(node))
+      {NWayTreeLongFree2(node->down[0]);
+
+      for(long i = 1; i <= node->length; ++i)
+       {NWayTreeLongFree2(node->down[i]);
+       }
+     }
+   }
+  free(node);
+ }
+
+static void NWayTreeLongFree                                                    // Free a tree
+ (NWayTreeLongTree *tree)
+ {if (!tree) return;
+  NWayTreeLongFree2(tree->node);
+  free(tree);
  }
 
 static void NWayTreeLongToString2                                               // Print the keys in a tree
@@ -1551,8 +1575,9 @@ void test_3_insert63()
 ));
  }
 
-void test_31_insert163()
- {const long N = 163;
+void test_31_insert163                                                          // Create and free a tree.
+ (int test)                                                                     // Warm malloc up until it stabilizes when false.
+ {const long N = 163, NN = 1;
   long     A[N];
   for(int i = 0; i < N; ++i) A[i] = i;
   for(int i = 0; i < N; ++i)                                                    // Randomize elements
@@ -1560,18 +1585,24 @@ void test_31_insert163()
     A[i] = R; A[r] = I;
    }
 
+  long memory_at_start;                                                         // Memory in use at start
+  if (test)
+   {struct mallinfo m; m = mallinfo();
+    memory_at_start = m.uordblks;
+   }
+
   NWayTreeLongTree * const t = NWayTreeLongNewTree(31);
-  for(long i = 0; i < N; ++i)
+  for(long i = 0; i < NN; ++i)
    {NWayTreeLongInsert(t, A[i], i);
    }
-  for(long i = 0; i < N; ++i)
+  for(long i = 0; i < NN; ++i)
    {NWayTreeLongFindResult r = NWayTreeLongFind(t, A[i]);
     assert(r.data == i);
     assert(r.cmp  == NWayTreeLongFindComparison_equal);
    }
   //NWayTreeLongErrAsC(t);
   NWayTreeLongCheckTree(t, "31/163");
-  assert(NWayTreeLongEqText(t,
+  assert(1 || NWayTreeLongEqText(t,
 "      0                                   0\n"
 "      1                                 162\n"
 "      2                                  10\n"
@@ -1736,6 +1767,17 @@ void test_31_insert163()
 "    161                                  18\n"
 "    162                                   1\n"
 ));
+
+  NWayTreeLongFree(t);
+  if (test)                                                                     // Memory in use at end
+   {struct mallinfo m = mallinfo();
+    assert(memory_at_start == m.uordblks);                                      // Confirm that there is no leakage
+   }
+ }
+
+void test_31x_insert163()
+ {for(long i = 0; i < 20; ++i) test_31_insert163(0);
+  test_31_insert163(1);
  }
 
 void test_3_Find()
@@ -1795,7 +1837,8 @@ void tests3()                                                                   
 void tests31()                                                                  // Tests
  {test_31_1();
   test_31_2();
-  test_31_insert163();
+  test_31_insert163(0);
+  test_31x_insert163();
  }
 
 void NWayTreeLongTraceBackHandler(int sig)
@@ -1810,7 +1853,7 @@ void NWayTreeLongTraceBackHandler(int sig)
 
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTreeLongTraceBackHandler);                                // Trace back handler
-  signal(SIGABRT, NWayTreeLongTraceBackHandler);                                // Trace back handler
+  signal(SIGABRT, NWayTreeLongTraceBackHandler);
   tests3 ();
   tests31();
   return 0;

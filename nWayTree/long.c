@@ -483,14 +483,13 @@ static NWayTreeLongFindResult NWayTreeLongFind                                  
    {if (key > (node->keys[node->length-1]))                                     // Bigger than every  key
      {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult            // Greater than all the keys in the node
        (node, key, NWayTreeLongFindComparison_higher, node->length-1);
-       {node = node->down[node->length];
-       }
+      node = node->down[node->length];
      }
     else
-     {for(long i = 0; i < node->length; ++i)                                    // Search the keys in this node as greater than least key and less than largest key
+     {for(long i = 0; i < node->length; ++i)                                    // Search the keys in this node as less than largest key
        {if (key == (node->keys[i]))                                             // Found key
-         {return NWayTreeLongNewFindResult(node, key,
-            NWayTreeLongFindComparison_equal, i);
+         {return NWayTreeLongNewFindResult
+           (node, key, NWayTreeLongFindComparison_equal, i);
          }
         else if (key < (node->keys[i]))                                         // Lower than current key
          {if (NWayTreeLongIsLeaf(node)) return NWayTreeLongNewFindResult        // Leaf

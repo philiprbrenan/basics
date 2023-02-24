@@ -234,13 +234,6 @@ static long NWayTreeLongHalfFull                                                
   assert(n <= NWayTreeLongMaximumNumberOfKeys(node->tree)+1);
   return n == NWayTreeLongMinimumNumberOfKeys(node->tree);
  }
-//
-//static void NWayTreeLong root(NWayTreeLongTree *tree)                         // Return the root node of a tree.
-// {my ($tree) = @_;                                                            // Tree
-// confess unless $tree;
-// for(; $tree->up; $tree = $tree->up) {}
-// $tree
-// }
 
 static long NWayTreeLongIsLeaf(NWayTreeLongNode *node)                          // Confirm that the tree is a leaf.
  {return node->down[0] == 0;                                                    // No children so it must be a leaf
@@ -321,7 +314,7 @@ static long NWayTreeLongSplitFullNode                                           
     * const r = NWayTreeLongNewNode(node->tree);
 
   const long N = NWayTreeLongMaximumNumberOfKeys(node->tree);                   // Split points
-  const long n = (N - N % 2)>>1;                                                // Index of key that will be placed in parent
+  const long n = N>>1;                                                          // Index of key that will be placed in parent
 
   l->length = n;
   r->length = N - n - 1;

@@ -23,8 +23,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-//#define NWayTreeLongNumberOfKeysPerNode 3
-#define NWayTreeLongMaxIterations       9
+#define NWayTreeLongMaxIterations 99 /* The maximum number of levels in a tree */
 // Get sub routine names in a traceback - without this define many subroutines are inlined
 #define static
 

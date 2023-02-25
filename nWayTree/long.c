@@ -109,7 +109,7 @@ static NWayTreeLongFindResult NWayTreeLongNewFindResult                         
   return r;
  }
 
-static void NWayTreeLongFree2                                                   // Free a tree
+static void NWayTreeLongFree2                                                   // Free a node in a tree
  (NWayTreeLongNode *node)
  {if (!node) return;
   if (node->length)
@@ -134,7 +134,7 @@ static void NWayTreeLongFree                                                    
 
 static void NWayTreeLongToString2                                               // Print the keys in a tree
  (NWayTreeLongNode *node, long in, StackChar *p)
-  {if (!node || !node->length) return;
+ {if (!node || !node->length) return;
   NWayTreeLongToString2(node->down[0], in+1, p);
   for(long i = 0; i < node->length; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');

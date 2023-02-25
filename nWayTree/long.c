@@ -97,8 +97,8 @@ static void NWayTreeLongCheckTree(NWayTreeLongTree *tree, char *name);
 static long NWayTreeLongIsLeaf   (NWayTreeLongNode *node);
 
 static NWayTreeLongFindResult NWayTreeLongNewFindResult                         // New find result on stack
- (NWayTreeLongNode *node, long key,
-  NWayTreeLongFindComparison cmp, long index)
+ (NWayTreeLongNode * const node, long const key,
+  NWayTreeLongFindComparison const cmp, long const index)
  {NWayTreeLongFindResult r;
   r.tree  = node->tree;
   r.node  = node;
@@ -110,7 +110,7 @@ static NWayTreeLongFindResult NWayTreeLongNewFindResult                         
  }
 
 static void NWayTreeLongFree2                                                   // Free a node in a tree
- (NWayTreeLongNode *node)
+ (NWayTreeLongNode * const node)
  {if (!node) return;
   if (node->length)
    {if (!NWayTreeLongIsLeaf(node))
@@ -125,7 +125,7 @@ static void NWayTreeLongFree2                                                   
  }
 
 static void NWayTreeLongFree                                                    // Free a tree
- (NWayTreeLongTree *tree)
+ (NWayTreeLongTree * const tree)
  {if (!tree) return;
   NWayTreeLongFree2(tree->node);
   memset(tree, -1, sizeof(*tree));
@@ -133,7 +133,7 @@ static void NWayTreeLongFree                                                    
  }
 
 static void NWayTreeLongToString2                                               // Print the keys in a tree
- (NWayTreeLongNode *node, long in, StackChar *p)
+ (NWayTreeLongNode * const node, long const in, StackChar * const p)
  {if (!node || !node->length) return;
   NWayTreeLongToString2(node->down[0], in+1, p);
   for(long i = 0; i < node->length; ++i)
@@ -146,20 +146,20 @@ static void NWayTreeLongToString2                                               
    }
  }
 
-static StackChar *NWayTreeLongToString(NWayTreeLongTree *tree)                  // Print a tree as a string
+static StackChar *NWayTreeLongToString(NWayTreeLongTree * const tree)           // Print a tree as a string
  {StackChar *p = StackCharNew();
   if (tree->node) NWayTreeLongToString2(tree->node, 0, p);
   return p;
  }
 
-static void NWayTreeLongPrintErr(NWayTreeLongTree *tree)                        // Print a tree on stderr
+static void NWayTreeLongPrintErr(NWayTreeLongTree * const tree)                 // Print a tree on stderr
  {StackChar *s = NWayTreeLongToString(tree);
   say("%s", s->arena+s->base);
   free(s);
  }
 
-static void NWayTreeLongErrAsC(NWayTreeLongTree *tree)                          // Print a tree as C strings on stderr
- {StackChar *s = NWayTreeLongToString(tree);
+static void NWayTreeLongErrAsC(NWayTreeLongTree * const tree)                   // Print a tree as C strings on stderr
+ {StackChar * const s = NWayTreeLongToString(tree);
   const long N = s->next-s->base;                                               // The number of characters to print
   fputs("assert(NWayTreeLongEqText(t,\n", stderr);
   fputc('\"', stderr);

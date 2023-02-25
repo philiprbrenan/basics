@@ -5,10 +5,9 @@
 // sde -mix -- ./long
 // 153,006 instructions executed
 // The arrays are assumed to be large enough to accommodate these operations.
-
-#define _GNU_SOURCE
 #ifndef ArrayLong
 #define ArrayLong
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>

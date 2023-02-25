@@ -8,6 +8,8 @@
 #define NWayTreeLong
 #define _GNU_SOURCE
 
+
+#define NWayTreeDataType long
 #define NWayTreeLongMaxIterations 99                                            /* The maximum number of levels in a tree */
 #define NWayTree(name) NWayTreeLong##name                                              /* Function name */
 
@@ -29,8 +31,6 @@
 
 //sOptimize
 #define static                                                                  /* Simplify debugging by preventing some inline-ing which invalidates the call stack */
-
-typedef long NWayTreeDataType;                                                  // The key and data type used by this tree
 
 typedef struct NWayTree(Node)                                                          // A node in a tree
  {long length;                                                                  // The current number of keys in the node

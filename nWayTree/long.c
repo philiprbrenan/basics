@@ -4,9 +4,13 @@
 //------------------------------------------------------------------------------
 // Replace Array long
 // sde -mix -- ./long
-#define _GNU_SOURCE
 #ifndef NWayTreeLong
 #define NWayTreeLong
+#define _GNU_SOURCE
+
+#define NWayTreeLongMaxIterations 99                                            /* The maximum number of levels in a tree */
+#define f(name) NWayTreeLong##name                                              /* Function name */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
@@ -25,8 +29,6 @@
 
 //sOptimize
 #define static                                                                  /* Simplify debugging by preventing some inline-ing which invalidates the call stack */
-#define NWayTreeLongMaxIterations 99                                            /* The maximum number of levels in a tree */
-#define f(name) NWayTreeLong##name                                              /* Function name */
 
 typedef long NWayTreeDataType;                                                  // The key and data type used by this tree
 

@@ -3,7 +3,6 @@
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
 // sde -mix -- ./long
-//sOptimize
 #define _GNU_SOURCE
 #ifndef NWayTreeLong
 #define NWayTreeLong
@@ -23,9 +22,9 @@
 #include <signal.h>
 #include <unistd.h>
 
+//sOptimize
+#define static                       /* Simplify debugging by preventing some inlining which invalidates the call stack */
 #define NWayTreeLongMaxIterations 99 /* The maximum number of levels in a tree */
-// Get sub routine names in a traceback - without this define many subroutines are inlined
-#define static
 
 typedef struct NWayTreeLongNode                                                 // A node in a tree
  {long length;                                                                  // The current number of keys in the node
@@ -81,7 +80,7 @@ static NWayTreeLongNode *NWayTreeLongNewNode                                    
   return node;
  }
 
-static void NWayTreeLongFreeNode                                                // Free a node, Wipe teh node so it cannot be accidently reused
+static void NWayTreeLongFreeNode                                                // Free a node, Wipe the node so it cannot be accidently reused
  (NWayTreeLongNode *node)                                                       // Node
  {const long z = node->tree->NumberOfKeysPerNode;
   const long k = sizeof(long)                      *  z;
@@ -316,16 +315,16 @@ static long NWayTreeLongSplitFullNode                                           
   const long N = NWayTreeLongMaximumNumberOfKeys(node->tree);                   // Split points
   const long n = N>>1;                                                          // Index of key that will be placed in parent
 
-  l->length = n;
-  r->length = N - n - 1;
+  const long L = l->length = n;
+  const long R = r->length = N - n - 1;
 
-  memcpy(l->keys, node->keys,        l->length  * sizeof(long));                // Split left keys and data
-  memcpy(l->data, node->data,        l->length  * sizeof(long));
-  memcpy(l->down, node->down,     (1+l->length) * sizeof(NWayTreeLongNode *));
+  memcpy(l->keys, node->keys,        L  * sizeof(long));                        // Split left keys and data
+  memcpy(l->data, node->data,        L  * sizeof(long));
+  memcpy(l->down, node->down,     (1+L) * sizeof(NWayTreeLongNode *));
 
-  memcpy(r->keys, node->keys+n+1,    r->length  * sizeof(long));                // Split right keys and data
-  memcpy(r->data, node->data+n+1,    r->length  * sizeof(long));
-  memcpy(r->down, node->down+n+1, (1+r->length) * sizeof(NWayTreeLongNode *));
+  memcpy(r->keys, node->keys+n+1,    R  * sizeof(long));                        // Split right keys and data
+  memcpy(r->data, node->data+n+1,    R  * sizeof(long));
+  memcpy(r->down, node->down+n+1, (1+R) * sizeof(NWayTreeLongNode *));
 
   if (!NWayTreeLongIsLeaf(node))                                                // Not a leaf node
    {NWayTreeLongReUp(l);

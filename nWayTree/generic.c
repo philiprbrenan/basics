@@ -197,7 +197,7 @@ static void NWayTree(ToString2)                                                 
     char C[100];
     sprintf(C, "%4ld                                %4ld\n",
               (node->keys[i]), (node->data[i]));
-    for(char *c = C; *c; ++c) StackCharPush(p, *c);
+    StackCharPushString(p, C);
     NWayTree(ToString2)(node->down[i+1], in+1, p);
    }
  }
@@ -284,7 +284,9 @@ static void NWayTree(ErrNode)                                                   
 static long NWayTree(EqText)
  (NWayTree(Tree) * const tree, char * const text)
  {StackChar *s = NWayTree(ToString)(tree);
-  return strncmp(s->arena+s->base, text, s->next-s->base) == 0;
+  const long r = strncmp(s->arena+s->base, text, s->next-s->base) == 0;
+  StackCharFree(s);
+  return r;
  }
 
 static void NWayTree(ErrFindResult)                                             // Print a find result
@@ -1472,14 +1474,16 @@ void test_3_insert8r()
 ));
  }
 
-void test_3_insert12()
- {const long N = 12;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
+void testLoadArray(long *A, long const N)
+ {for(int i = 0; i < N; ++i) A[i] = i;
   for(int i = 0; i < N; ++i)
    {long r = i * i % N, R = A[r], I = A[i];
     A[i] = R; A[r] = I;
    }
+ }
+
+void test_3_insert12()
+ {const long N = 12; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, A[i], i);
@@ -1500,13 +1504,7 @@ void test_3_insert12()
  }
 
 void test_3_insert14()
- {const long N = 14;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
-  for(int i = 0; i < N; ++i)
-   {long r = i * i % N, R = A[r], I = A[i];
-    A[i] = R; A[r] = I;
-   }
+ {const long N = 14; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(long i = 0; i < N; ++i)
@@ -1532,13 +1530,7 @@ void test_3_insert14()
  }
 
 void test_3_insert15()
- {const long N = 15;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
-  for(int i = 0; i < N; ++i)
-   {long r = i * i % N, R = A[r], I = A[i];
-    A[i] = R; A[r] = I;
-   }
+ {const long N = 15; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(long i = 0; i < N; ++i)
@@ -1565,19 +1557,13 @@ void test_3_insert15()
  }
 
 void test_3_insert63()
- {const long N = 63, NN = 63;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
-  for(int i = 0; i < N; ++i)
-   {long r = i * i % N, R = A[r], I = A[i];
-    A[i] = R; A[r] = I;
-   }
+ {const long N = 63; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
-  for(long i = 0; i < NN; ++i)
+  for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
-  for(long i = 0; i < NN; ++i)
+  for(long i = 0; i < N; ++i)
    {NWayTree(FindResult) r = NWayTree(Find)(t, A[i]);
     assert(r.data == i);
     assert(r.cmp  == NWayTree(FindComparison_equal));
@@ -1652,13 +1638,7 @@ void test_3_insert63()
  }
 
 void test_3_iterate63()                                                         // Iterate through a tree
- {const long N = 63, NN = 8;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
-  for(int i = 0; i < N; ++i)
-   {long r = i * i % N, R = A[r], I = A[i];
-    A[i] = R; A[r] = I;
-   }
+ {const long N = 63, NN = 8; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);                              // Create the tree
   for(long i = 0; i < NN; ++i)
@@ -1683,13 +1663,7 @@ void test_3_iterate63()                                                         
 
 void test_31_insert163                                                          // Create and free a tree.
  (int test)                                                                     // Warm malloc up until it stabilizes when false.
- {const long N = 163, NN = 1;
-  long     A[N];
-  for(int i = 0; i < N; ++i) A[i] = i;
-  for(int i = 0; i < N; ++i)                                                    // Randomize elements
-   {long r = i * i % N, R = A[r], I = A[i];
-    A[i] = R; A[r] = I;
-   }
+ {long N = 163, NN = N, A[N]; testLoadArray(A, N);
 
   long memory_at_start;                                                         // Memory in use at start
   if (test)
@@ -1706,9 +1680,9 @@ void test_31_insert163                                                          
     assert(r.data == i);
     assert(r.cmp  == NWayTree(FindComparison_equal));
    }
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
   NWayTree(CheckTree)(t, "31/163");
-  assert(1 || NWayTree(EqText)(t,
+  if (1) assert(NWayTree(EqText)(t,
 "      0                                   0\n"
 "      1                                 162\n"
 "      2                                  10\n"
@@ -1875,14 +1849,13 @@ void test_31_insert163                                                          
 ));
 
   NWayTree(Free)(t);
-  if (test)                                                                     // Memory in use at end
-   {struct mallinfo m = mallinfo();
-    assert(memory_at_start == m.uordblks);                                      // Confirm that there is no leakage
-   }
+  struct mallinfo m = mallinfo();
+  //say("AAAA %ld", m.uordblks);
+  if (test) assert(memory_at_start == m.uordblks);                              // Confirm that there is no leakage
  }
 
 void test_31x_insert163()
- {for(long i = 0; i < 20; ++i) test_31_insert163(0);
+ {for(long i = 0; i < 40; ++i) test_31_insert163(0);
   test_31_insert163(1);
  }
 

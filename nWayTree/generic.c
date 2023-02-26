@@ -1148,7 +1148,7 @@ void test_3_4a()                                                                
 
   long r = NWayTree(SplitFullNode)(n);
   assert(r);
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "   2                                   4\n"
@@ -1166,7 +1166,7 @@ void test_3_4b()                                                                
   p->down[1] = n1; n1->up = p;
   p->down[2] = n2; n2->up = p;
   t->node    = p;
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
 
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
@@ -1183,7 +1183,7 @@ void test_3_4b()                                                                
 ));
 
   long r = NWayTree(SplitFullNode)(n0); if (r){}
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "   2                                   4\n"
@@ -1197,7 +1197,7 @@ void test_3_4b()                                                                
 "     22                                  44\n"
 "     23                                  46\n"
 ));
-//f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
  }
 
 void test_3_4c()                                                                // Mid down
@@ -1214,7 +1214,7 @@ void test_3_4c()                                                                
   assert(p->down[1] == n1);
 
   long r = NWayTree(SplitFullNode)(n1); if (r){}
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "      2                                   4\n"
@@ -1244,7 +1244,7 @@ void test_3_4d()                                                                
   assert(p->down[1] == n1);
 
   long r = NWayTree(SplitFullNode)(n2); if (r){}
-                                          //f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "      2                                   4\n"
@@ -1258,7 +1258,7 @@ void test_3_4d()                                                                
 "  22                                  44\n"
 "     23                                  46\n"
 ));
-//f(ErrAsC)(t);
+  //NWayTree(ErrAsC)(t);
  }
 
 void test_3_4()                                                                 // Tests

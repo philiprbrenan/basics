@@ -2,7 +2,7 @@
 // Arrays of longs
 // Philip R Brenan at appaapps dot com, Appa Apps Ltd. Inc. 2023
 //------------------------------------------------------------------------------
-// sde -mix -- ./long
+//sde -mix -- ./long
 #ifndef ArrayLong
 
 #define ArrayLong
@@ -15,7 +15,6 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <x86intrin.h>
 #include "basics/basics.c"
 #include "array/generic.c"
 #endif

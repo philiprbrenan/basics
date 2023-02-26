@@ -38,6 +38,12 @@ inline static long StackCharIsEmpty                                             
  {return StackCharN(s) == 0;
  }
 
+inline static StackChar *StackCharClear                                         // Clear the stack to make it empty
+ (StackChar *s)
+ {s->next = 0;
+  return s;
+ }
+
 inline static char StackCharGet                                                 // Get an element from the stack by its index
  (StackChar *s, long i, long *rc)
  {const long p = s->base + i;
@@ -115,6 +121,26 @@ inline static long StackCharShift                                               
   return s->arena[s->base++];
  }
 
+inline static void StackCharPushString                                          // Push a string on to the stack
+ (StackChar *s, char *t)                                                        // Stack, string
+ {for(char *c = t; *c; ++c) StackCharPush(s, *c);
+ }
+
+inline static void StackCharErr                                                 // Write the contents of a stack of characters (a string) to stderr
+ (StackChar *s)                                                                 // Stack
+ {for(long i = s->base; i < s->next; ++i) fputc(s->arena[i], stderr);
+ }
+
+inline static void StackCharFree                                                //Free a stack
+ (StackChar *s)                                                                 // Stack
+ {free(s);
+ }
+
+static long StackCharEqText                                                     // Check the text on the stack matches the given string returning 1 if it does else 0
+ (StackChar *s, char * const text)
+ {return strncmp(s->arena+s->base, text, s->next-s->base) == 0;
+ }
+
 #if (__INCLUDE_LEVEL__ == 0)
 static void tests()                                                             // Tests
  {const int N = 10;
@@ -153,6 +179,15 @@ static void tests()                                                             
   assert(rc == 0);
 
   assert(StackCharN(s) == 0);
+
+  StackCharClear(s);
+  assert(StackCharIsEmpty(s));
+  StackCharPushString(s, "abc");
+  assert(StackCharEqText(s, "abc"));
+  assert(StackCharPop(s, &rc) == 'c');
+  assert(StackCharPop(s, &rc) == 'b');
+  assert(StackCharPop(s, &rc) == 'a');
+  StackCharFree(s);
  }
 
 int main()                                                                      // Run tests and calculate from command line

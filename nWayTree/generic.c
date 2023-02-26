@@ -1074,7 +1074,7 @@ static void NWayTreeLong size($)                                                
 void test_3_1()                                                                 // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < 1; ++i) NWayTree(Insert)(t, i, 2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 ));
@@ -1083,7 +1083,7 @@ void test_3_1()                                                                 
 void test_31_1()                                                                // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(31);
   for(int i = 0; i < 1; ++i) NWayTree(Insert)(t, i, 2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 ));
@@ -1092,7 +1092,7 @@ void test_31_1()                                                                
 void test_3_2()                                                                 // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < 2; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 "   1                                   3\n"
@@ -1102,7 +1102,7 @@ void test_3_2()                                                                 
 void test_31_2()                                                                // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(31);
   for(int i = 0; i < 2; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 "   1                                   3\n"
@@ -1112,7 +1112,7 @@ void test_31_2()                                                                
 void test_3_3()                                                                 // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < 3; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 "   1                                   3\n"
@@ -1123,7 +1123,7 @@ void test_3_3()                                                                 
 void test_31_3()                                                                // Tests
  {NWayTree(Tree) * const t = NWayTree(NewTree)(31);
   for(int i = 0; i < 3; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 "   1                                   3\n"
@@ -1272,7 +1272,7 @@ void test_3_insert1()                                                           
  {const long N = 1;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   1                                   3\n"
 ));
@@ -1282,7 +1282,7 @@ void test_3_insert2()
  {const long N = 2;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   1                                   3\n"
 "   2                                   4\n"
@@ -1293,7 +1293,7 @@ void test_3_insert3()
  {const long N = 3;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   1                                   3\n"
 "   2                                   4\n"
@@ -1305,7 +1305,7 @@ void test_3_insert4()
  {const long N = 4;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   3\n"
 "   2                                   4\n"
@@ -1318,7 +1318,7 @@ void test_3_insert5()
  {const long N = 5;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   3\n"
 "   2                                   4\n"
@@ -1332,7 +1332,7 @@ void test_3_insert6()
  {const long N = 6;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   3\n"
 "   2                                   4\n"
@@ -1347,7 +1347,7 @@ void test_3_insert7()
  {const long N = 7;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   3\n"
 "   2                                   4\n"
@@ -1363,7 +1363,7 @@ void test_3_insert8()
  {const long N = 8;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "         1                                   3\n"
 "      2                                   4\n"
@@ -1380,7 +1380,7 @@ void test_3_insert2r()
  {const long N = 2;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   1                                   2\n"
 "   2                                   3\n"
@@ -1391,7 +1391,7 @@ void test_3_insert3r()
  {const long N = 3;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "   1                                   2\n"
 "   2                                   3\n"
@@ -1403,7 +1403,7 @@ void test_3_insert4r()
  {const long N = 4;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "      2                                   3\n"
@@ -1416,7 +1416,7 @@ void test_3_insert5r()
  {const long N = 5;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "   2                                   3\n"
@@ -1430,7 +1430,7 @@ void test_3_insert6r()
  {const long N = 6;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "      2                                   3\n"
@@ -1445,7 +1445,7 @@ void test_3_insert7r()
  {const long N = 7;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
 "   2                                   3\n"
@@ -1461,7 +1461,7 @@ void test_3_insert8r()
  {const long N = 8;
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "         1                                   2\n"
 "         2                                   3\n"
@@ -1510,7 +1510,7 @@ void test_3_insert14()
   for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "         0                                   0\n"
 "         1                                  13\n"
@@ -1536,7 +1536,7 @@ void test_3_insert15()
   for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
 "         0                                   0\n"
 "      1                                   7\n"
@@ -1568,7 +1568,7 @@ void test_3_insert63()
     assert(r.data == i);
     assert(r.cmp  == NWayTree(FindComparison_equal));
    }
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   NWayTree(CheckTree)(t, "3/63");
   assert(NWayTree(EqText)(t,
 "               0                                  21\n"
@@ -1850,7 +1850,7 @@ void test_31_insert163                                                          
 
   NWayTree(Free)(t);
   struct mallinfo m = mallinfo();
-  //say("AAAA %ld", m.uordblks);
+  //say("Memory at end: %ld", m.uordblks);
   if (test) assert(memory_at_start == m.uordblks);                              // Confirm that there is no leakage
  }
 
@@ -1864,11 +1864,10 @@ void test_3_Find()
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);
   for(long i = 0; i < N;     ++i) NWayTree(Insert)(t, i*2, i*2);
-                                          //f(ErrAsC)(tree);
+  //NWayTree(ErrAsC)(tree);
   for(long i =-1; i < 2 * N; ++i)
-   {//i = 13;
-    NWayTree(FindResult) r = NWayTree(Find)(t, i);
-                                            //f(ErrFindResult)(r);
+   {NWayTree(FindResult) r = NWayTree(Find)(t, i);
+    //NWayTree(ErrFindResult)(r);
     assert(i % 2 == 0 ? r.cmp == NWayTree(FindComparison_equal) :
                         r.cmp != NWayTree(FindComparison_equal));
 

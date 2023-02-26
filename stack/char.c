@@ -10,6 +10,7 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <malloc.h>
 #include "basics/basics.c"
 
 typedef struct StackChar                                                        // A stack of longs
@@ -28,8 +29,14 @@ inline static StackChar *StackCharNew()                                         
   return s;
  }
 
+inline static void StackCharFree                                                // Free a stack
+ (StackChar *s)                                                                 // Stack
+ {if (s->arena) free(s->arena);
+  free(s);
+ }
+
 inline static long StackCharN                                                   // The number of elements on the stack
- (StackChar *s)
+ (StackChar *s)                                                                 // Stack
  {return s->next - s->base;
  }
 
@@ -74,7 +81,7 @@ inline static void StackCharPush                                                
  }
 
 inline static StackChar *StackCharClone                                         // Clone a stack
- (StackChar *a)
+ (StackChar *a)                                                                 // Stack
  {StackChar *b = StackCharNew();
   const long N = StackCharN(a);
   for(long i = 0; i < N; ++i) StackCharPush(b, a->arena[i]);
@@ -131,11 +138,6 @@ inline static void StackCharErr                                                 
  {for(long i = s->base; i < s->next; ++i) fputc(s->arena[i], stderr);
  }
 
-inline static void StackCharFree                                                //Free a stack
- (StackChar *s)                                                                 // Stack
- {free(s);
- }
-
 static long StackCharEqText                                                     // Check the text on the stack matches the given string returning 1 if it does else 0
  (StackChar *s, char * const text)
  {return strncmp(s->arena+s->base, text, s->next-s->base) == 0;
@@ -190,8 +192,28 @@ static void tests()                                                             
   StackCharFree(s);
  }
 
+static void leaks(long test)                                                    // Test memory leakage
+ {const int N = 1000;
+
+  long memory_at_start;                                                         // Memory in use at start
+  if (test)
+   {struct mallinfo m; m = mallinfo();
+    memory_at_start = m.uordblks;
+   }
+
+  StackChar *s = StackCharNew();
+  for(int i = 0; i < N; ++i) StackCharPush(s, 'a');
+  StackCharFree(s);
+
+  struct mallinfo m = mallinfo();
+  //say("AAAA %ld", m.uordblks);
+  if (test) assert(memory_at_start == m.uordblks);                              // Confirm that there is no leakage
+ }
+
 int main()                                                                      // Run tests and calculate from command line
  {tests();
+  for(long i = 0; i < 20; ++i) leaks(0);
+  leaks(1);
   return 0;
  }
 #endif

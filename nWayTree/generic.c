@@ -19,6 +19,13 @@
 #include <signal.h>
 #include <unistd.h>
 
+#ifndef NWayTreeIterate
+#define NWayTreeIterate(tree, find) \
+  for(NWayTree(FindResult) find = NWayTree(IterStart)(tree); \
+      NWayTree(IterCheck) (find); \
+                           find = NWayTree(IterNext)(find))
+#endif
+
 //Optimize
 //#define static                                                                /* Simplify debugging by preventing some inline-ing which invalidates the call stack */
 
@@ -1683,9 +1690,7 @@ void test_3_iterate63()                                                         
 
   StackChar * const s = StackCharNew();
 
-  for(NWayTree(FindResult) f = NWayTree(IterStart)(t);
-      NWayTree(IterCheck) (f);
-                           f = NWayTree(IterNext)(f))
+  NWayTreeIterate(t, f)
    {char C[100];
     sprintf(C, " %ld", f.key);
     StackCharPushString(s, C);

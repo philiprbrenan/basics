@@ -38,6 +38,7 @@ typedef struct NWayTree(Tree)                                                   
   NWayTree(Node) *node;                                                         // Root node
   long keys;                                                                    // Number of keys in tree
   long nodes;                                                                   // Number of nodes in tree
+  NWayTree(Node) *node_array;                                                   // Array of nodes if tree has been compacted
  } NWayTree(Tree);
 
 typedef enum NWayTree(FindComparison)                                           // The results of a comparison
@@ -55,6 +56,12 @@ typedef struct NWayTree(FindResult)                                             
   long index;                                                                   // Index in the node of equal element
   NWayTreeDataType data;                                                        // Data element at key
  } NWayTree(FindResult);
+
+static void NWayTree(ErrNode)       (NWayTree(Node) *node);
+static long NWayTree(CheckNode)     (NWayTree(Node) *node, char *name);
+static void NWayTree(CheckTree)     (NWayTree(Tree) *tree, char *name);
+static long NWayTree(IsLeaf)        (NWayTree(Node) *node);
+static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
 
 static NWayTree(Tree) *NWayTree(NewTree)                                        // Create a new tree
  (const long n)                                                                 // Number of keys in a node
@@ -76,27 +83,39 @@ static NWayTree(Node) *NWayTree(NewNode)                                        
   node->data = (void *)(((void *)node)+s+k);
   node->down = (void *)(((void *)node)+s+k+d);
   node->tree = tree;
-  node->id   = ++tree->nodes;
+  node->id   = tree->nodes++;
   return node;
  }
 
-static void NWayTree(FreeNode)                                                  //P Free a node, Wipe the node so it cannot be accidently reused
- (NWayTree(Node) * const node)                                                  // Node to free
- {const long z = node->tree->NumberOfKeysPerNode;
+static long NWayTree(SizeOfNode)                                                //P The size of a node in a tree
+ (NWayTree(Tree) *t)                                                            // Tree
+ {const long z = t->NumberOfKeysPerNode;
   const long k = sizeof(long)                      *  z;
   const long d = sizeof(long)                      *  z;
   const long n = sizeof(struct NWayTree(Node) *) * (z + 1);
   const long s = sizeof(NWayTree(Node));
-  memset(node, -1, s+k+d+n);                                                    // Clear node
+  return s+k+d+n;
+ }
+
+static void NWayTree(FreeNode)                                                  //P Free a node, Wipe the node so it cannot be accidently reused
+ (NWayTree(Node) * const node)                                                  // Node to free
+ {memset(node, -1, NWayTree(SizeOfNode)(node->tree));                           // Clear node to hinder accidental use
   free(node);
  }
 
-static void NWayTree(ErrNode)       (NWayTree(Node) *node);
-static long NWayTree(CheckNode)     (NWayTree(Node) *node, char *name);
-static void NWayTree(CheckTree)     (NWayTree(Tree) *tree, char *name);
-static long NWayTree(IsLeaf)        (NWayTree(Node) *node);
-static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
-
+static NWayTree(Tree) *NWayTree(Compact)                                        // Compact a tree into a single block of memory
+ (NWayTree(Tree) * const tree)                                                  // Tree to compact
+ {long size_tree  = sizeof(NWayTree(Tree)),
+       size_node  = NWayTree(SizeOfNode)(tree),
+       size       = size_tree + tree->nodes * size_node;
+  NWayTree(Tree) * const t = calloc(size, 1);
+  memcpy(t, tree, size_tree);
+  t->node_array = ((void *)t)+size_tree;                                        // Start of nodes
+  for(long i = 0; i < tree->nodes; ++i)
+   {
+   }
+  return tree;
+ }
 
 static NWayTree(FindResult) NWayTree(NewFindResult)                             //P New find result on stack
  (NWayTree(Node) * const node, NWayTreeDataType const key,
@@ -804,6 +823,21 @@ static void NWayTree(Insert)                                                    
       NWayTree(SplitFullNode)(n);                                               // Split if the leaf is full to force keys up the tree
      }
    }
+ }
+
+static NWayTree(FindResult) NWayTree(IterStart)                                 // Start an iterator
+ (NWayTree(Tree) * const tree)                                                  // Tree to iterate
+ {return NWayTree(GoAllTheWayLeft)(tree->node);
+ }
+
+static long NWayTree(IterCheck)                                                 // True if we can continue to iterate
+ (NWayTree(FindResult) find)                                                    // Find result of last iteration
+ {return find.cmp != NWayTree(FindComparison_notFound);
+ }
+
+static NWayTree(FindResult) NWayTree(IterNext)                                  // Next element of an iteration
+ (NWayTree(FindResult) find)                                                    // Find result of last iteration
+ {return NWayTree(GoUpAndAround)(find);
  }
 
 /*
@@ -1649,9 +1683,9 @@ void test_3_iterate63()                                                         
 
   StackChar * const s = StackCharNew();
 
-  for(NWayTree(FindResult) f = NWayTree(GoAllTheWayLeft)(t->node);
-      f.cmp != NWayTree(FindComparison_notFound);
-      f      = NWayTree(GoUpAndAround)(f))
+  for(NWayTree(FindResult) f = NWayTree(IterStart)(t);
+      NWayTree(IterCheck) (f);
+                           f = NWayTree(IterNext)(f))
    {char C[100];
     sprintf(C, " %ld", f.key);
     StackCharPushString(s, C);

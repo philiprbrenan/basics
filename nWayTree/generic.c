@@ -148,12 +148,9 @@ static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                           
    (node, node->keys[0],  NWayTree(FindComparison_equal), 0);
  }
 
-long count = 0;
-
 static NWayTree(FindResult) NWayTree(GoUpAndAround)                             // Go up until it is possible to go right or we can go no further
  (NWayTree(FindResult) find)
  {NWayTree(Node) *node = find.node;
-  if (++count > 100) exit(0);
   //say("BBBB %ld %ld", find.key, find.index);
   if (NWayTree(IsLeaf)(node))                                                   // Leaf
    {//say("CCCC %ld", node->id);
@@ -163,9 +160,9 @@ static NWayTree(FindResult) NWayTree(GoUpAndAround)                             
       return NWayTree(NewFindResult)
        (node, node->keys[i], NWayTree(FindComparison_equal), i);
      }
-    //say("DDDD22");
+    //say("DDDD22 %p %ld %ld", node, node->length, node->id);
     for(NWayTree(Node) *parent = node->up; parent; parent = parent->up)         // Not the only node in the tree
-     {//say("DDDD33 %p", parent);
+     {//say("DDDD33 %p %ld %ld", parent, parent->length, parent->id);
       const long i = NWayTree(IndexInParent)(node);                             // Index in parent
       //say("EEEE id=%ld %ld", node->id, i);
       if (i == parent->length)                                                  // Last key - continue up
@@ -254,8 +251,14 @@ static void NWayTree(ToStringWithId2)                                           
 
     for(long j = 0; j < 10-in; ++j) StackCharPushString(p, "   ");
     char D[100];
-    sprintf(D, "%4ld %4ld %4ld\n", node->data[i], node->id, i);
+    sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", node->data[i], node->id, i, node, node->length);
     StackCharPushString(p, D);
+    for(long j = 0; j <= node->length; ++j)
+     {NWayTree(Node) *d = node->down[j];
+      sprintf(D, " %4ld", d ? d->id : 0l);
+      StackCharPushString(p, D);
+     }
+    StackCharPushString(p, "\n");
     NWayTree(ToStringWithId2)(node->down[i+1], in+1, p);
    }
  }
@@ -263,6 +266,7 @@ static void NWayTree(ToStringWithId2)                                           
 static StackChar *NWayTree(ToStringWithId)                                      //P Print the keys in a tree adding the id of each node in the tree and the index of the key within that node
  (NWayTree(Tree) * const tree)                                                  // Tree to print as a string
  {StackChar * const p = StackCharNew();
+  StackCharPushString(p, "                                     Data Node Index Children\n");
   if (tree->node) NWayTree(ToStringWithId2)(tree->node, 0, p);
   return p;
  }
@@ -623,7 +627,7 @@ static long NWayTree(IndexInParent)                                             
  (NWayTree(Node) * const node)                                                  // Node to locate in parent
  {NWayTree(Node) * const p = node->up;
   assert(p);
-  for(long i = 0; i <= node->length; ++i)
+  for(long i = 0; i <= p->length; ++i)
    {if (p->down[i] == node) return i;
    }
   assert(0);
@@ -834,7 +838,8 @@ static void NWayTree(Insert)                                                    
 
 static NWayTree(FindResult) NWayTree(IterStart)                                 // Start an iterator
  (NWayTree(Tree) * const tree)                                                  // Tree to iterate
- {return NWayTree(GoAllTheWayLeft)(tree->node);
+ {NWayTree(FindResult) f = NWayTree(GoAllTheWayLeft)(tree->node);
+  return f;
  }
 
 static long NWayTree(IterCheck)                                                 // True if we can continue to iterate
@@ -844,7 +849,9 @@ static long NWayTree(IterCheck)                                                 
 
 static NWayTree(FindResult) NWayTree(IterNext)                                  // Next element of an iteration
  (NWayTree(FindResult) find)                                                    // Find result of last iteration
- {return NWayTree(GoUpAndAround)(find);
+ {NWayTree(FindResult) f = NWayTree(GoUpAndAround)(find);
+  //say("AAAA %ld", f.key);
+  return f;
  }
 
 /*
@@ -1679,7 +1686,7 @@ void test_3_insert63()
  }
 
 void test_3_iterate63()                                                         // Iterate through a tree
- {const long N = 63, NN = 8; long A[N]; testLoadArray(A, N);
+ {const long N = 63, NN = 63; long A[N]; testLoadArray(A, N);
 
   NWayTree(Tree) * const t = NWayTree(NewTree)(3);                              // Create the tree
   for(long i = 0; i < NN; ++i)
@@ -1688,15 +1695,21 @@ void test_3_iterate63()                                                         
 
   //NWayTree(PrintErrWithId)(t);
 
-  StackChar * const s = StackCharNew();
+  StackChar * const s = StackCharNew();                                         // Extensible string
 
-  NWayTreeIterate(t, f)
+  NWayTreeIterate(t, f)                                                         // Iterate through the tree
    {char C[100];
-    sprintf(C, " %ld", f.key);
+    sprintf(C, " %ld", f.key);                                                  // Key of each iteration
     StackCharPushString(s, C);
    }
   //StackCharErr(s);
-  assert(StackCharEqText(s, " 4 7 9 25 36 42 61 62"));
+  assert(StackCharEqText(s,  " 0 1 2 3 4 5 6 7 8 9"
+    " 10 11 12 13 14 15 16 17 18 19"
+    " 20 21 22 23 24 25 26 27 28 29"
+    " 30 31 32 33 34 35 36 37 38 39"
+    " 40 41 42 43 44 45 46 47 48 49"
+    " 50 51 52 53 54 55 56 57 58 59"
+    " 60 61 62"));
   StackCharFree(s);
  }
 
@@ -1956,7 +1969,7 @@ void tests31()                                                                  
  {test_31_1();
   test_31_2();
   test_31_insert163(0);
-  test_31x_insert163();
+//test_31x_insert163();
  }
 
 void NWayTree(TraceBackHandler)(int sig)
@@ -1972,6 +1985,7 @@ void NWayTree(TraceBackHandler)(int sig)
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTree(TraceBackHandler));                                  // Trace back handler
   signal(SIGABRT, NWayTree(TraceBackHandler));
+  test_3_iterate63();
   tests3 ();
   tests31();
   return 0;

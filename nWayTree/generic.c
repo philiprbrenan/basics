@@ -97,6 +97,11 @@ typedef struct NWayTree(Tree)                                                   
   NWayTree(Node) *node_array;                                                   // Array of nodes if tree has been compacted
  } NWayTree(Tree);
 
+inline static long NWayTree(Tree_NumberOfKeysPerNode)                           // Number of keys per node in this tree
+ (NWayTree(Tree) * const tree)                                                  // Tree
+ {return tree->NumberOfKeysPerNode;
+ }
+
 typedef enum NWayTree(FindComparison)                                           // The results of a comparison
  {NWayTree(FindComparison_lower),
   NWayTree(FindComparison_equal),
@@ -152,7 +157,7 @@ static NWayTree(Tree) *NWayTree(NewTree)                                        
 
 static NWayTree(Node) *NWayTree(NewNode)                                        //P Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
- {const long z = tree->NumberOfKeysPerNode;
+ {const long z = NWayTree(Tree_NumberOfKeysPerNode)(tree);
   const long k = size_of_element                    *  z;
   const long d = size_of_element                    *  z;
   const long n = sizeof(struct NWayTree(Node) *) * (z + 1);
@@ -399,17 +404,17 @@ static void NWayTree(ErrFindResult)                                             
 
 static long NWayTree(MinimumNumberOfKeys)                                       //P Minimum number of keys per node.
  (NWayTree(Tree) * const tree)                                                  // Tree
- {return (tree->NumberOfKeysPerNode - 1) << 1;
+ {return (NWayTree(Tree_NumberOfKeysPerNode)(tree) - 1) << 1;
  }
 
 static long NWayTree(MaximumNumberOfKeys)                                       //P Maximum number of keys per node.
  (NWayTree(Tree) * const tree)                                                  // Tree
- {return tree->NumberOfKeysPerNode;
+ {return NWayTree(Tree_NumberOfKeysPerNode)(tree);
  }
 
 static long NWayTreeLong NWayTree(MaximumNumberDownPerNode)                     //P Maximum number of children per parent.
  (NWayTree(Tree) * const tree)                                                  // Tree
- {return tree->NumberOfKeysPerNode + 1;
+ {return NWayTree(Tree_NumberOfKeysPerNode)(tree) + 1;
  }
 
 static long NWayTree(Full)                                                      //P Confirm that a node is full.

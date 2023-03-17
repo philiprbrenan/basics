@@ -84,6 +84,11 @@ inline static NWayTree(Node) * NWayTree(Node_setDown)                           
  {return node->down[index] = child;
  }
 
+inline static struct NWayTree(Tree) * NWayTree(Node_tree)                       // Get the tree associated with a node
+ (NWayTree(Node) *node)                                                         // Node
+ {return node->tree;
+ }
+
 typedef struct NWayTree(Tree)                                                   // The root of a tree
  {long NumberOfKeysPerNode;                                                     // Size of a node
   NWayTree(Node) *node;                                                         // Root node
@@ -174,7 +179,7 @@ static long NWayTree(SizeOfNode)                                                
 
 static void NWayTree(FreeNode)                                                  //P Free a node, Wipe the node so it cannot be accidently reused
  (NWayTree(Node) * const node)                                                  // Node to free
- {memset(node, -1, NWayTree(SizeOfNode)(node->tree));                           // Clear node to hinder accidental use
+ {memset(node, -1, NWayTree(SizeOfNode)(NWayTree(Node_tree)(node)));            // Clear node to hinder accidental use
   free(node);
  }
 
@@ -409,14 +414,14 @@ static long NWayTreeLong NWayTree(MaximumNumberDownPerNode)                     
 
 static long NWayTree(Full)                                                      //P Confirm that a node is full.
  (NWayTree(Node) * const node)
- {return NWayTree(Node_length)(node) == NWayTree(MaximumNumberOfKeys)(node->tree);
+ {return NWayTree(Node_length)(node) == NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node));
  }
 
 static long NWayTree(HalfFull)                                                  //P Confirm that a node is half full.
  (NWayTree(Node) * const node)                                                  // Node
  {const long n = NWayTree(Node_length)(node);
-  assert(n <= NWayTree(MaximumNumberOfKeys)(node->tree)+1);
-  return n == NWayTree(MinimumNumberOfKeys)(node->tree);
+  assert(n <= NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node))+1);
+  return n == NWayTree(MinimumNumberOfKeys)(NWayTree(Node_tree)(node));
  }
 
 static long NWayTree(IsLeaf)                                                    //P Confirm that the tree is a leaf.
@@ -435,7 +440,7 @@ static void NWayTree(ReUp)                                                      
 static long NWayTree(CheckNode)                                                 //P Check the connections to and from a node
  (NWayTree(Node) * const node, char * const name)
  {const long nl = NWayTree(Node_length)(node);
-  if (nl > NWayTree(MaximumNumberOfKeys)(node->tree))
+  if (nl > NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node)))
    {say("%s: Node %ld is too long at %ld", name, NWayTree(Node_keys)(node, 0), nl);
     return 1;
    }
@@ -443,7 +448,7 @@ static long NWayTree(CheckNode)                                                 
    {NWayTree(Node) * const d = node->down[i];                                   // Step down
     if (d)
      {const long dl = NWayTree(Node_length)(d);
-      if (dl > NWayTree(MaximumNumberOfKeys)(node->tree))
+      if (dl > NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node)))
        {say("%s: Node %ld under %ld is too long at %ld",
             name, NWayTree(Node_keys)(node, 0), d->keys[0], dl);
         return 2;
@@ -460,7 +465,7 @@ static long NWayTree(CheckNode)                                                 
   NWayTree(Node) * const p = node->up;                                          // Check that parent connects to the current node
   if (p)
    {const long pl = NWayTree(Node_length)(p);
-    assert(pl <= NWayTree(MaximumNumberOfKeys)(node->tree));
+    assert(pl <= NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node)));
     int c = 0;                                                                  // Check that the parent has a down pointer to the current node
     for(long i = 0; i <= pl; ++i)
      {if (p->down[i] == node) ++c;                                              // Find the node that points from the parent to the current node
@@ -479,7 +484,7 @@ static void NWayTree(CheckTree2)                                                
  {if (!node) return;
 
   if (NWayTree(CheckNode)(node, name))
-   {NWayTree(PrintErr)(node->tree);
+   {NWayTree(PrintErr)(NWayTree(Node_tree)(node));
     assert(0);
    }
 
@@ -499,12 +504,12 @@ static long NWayTree(SplitFullNode)                                             
  (NWayTree(Node) * const node)
  {const long nl = NWayTree(Node_length)(node);
 
-  if (nl < NWayTree(MaximumNumberOfKeys)(node->tree)) return 0;                 // Must be a full node
+  if (nl < NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node))) return 0;                 // Must be a full node
 
-  NWayTree(Node) * const l = NWayTree(NewNode)(node->tree);                     // New child nodes
-  NWayTree(Node) * const r = NWayTree(NewNode)(node->tree);
+  NWayTree(Node) * const l = NWayTree(NewNode)(NWayTree(Node_tree)(node));                     // New child nodes
+  NWayTree(Node) * const r = NWayTree(NewNode)(NWayTree(Node_tree)(node));
 
-  const long N = NWayTree(MaximumNumberOfKeys)(node->tree);                     // Split points
+  const long N = NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node));                     // Split points
   const long n = N>>1;                                                          // Index of key that will be placed in parent
 
   const long L = NWayTree(Node_setLength)(l, n);

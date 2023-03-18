@@ -57,6 +57,11 @@ inline static long NWayTree(Node_setLength)                                     
  {return node->length = length;
  }
 
+inline static long NWayTree(Node_id)                                            // Get id field from node
+ (NWayTree(Node) *node)                                                         // Node
+ {return node->id;
+ }
+
 inline static struct NWayTree(Node) * NWayTree(Node_up)                         // Get up field from node
  (NWayTree(Node) *node)                                                         // Node
  {return node->up;
@@ -296,7 +301,9 @@ static NWayTree(Tree) *NWayTree(Compact)                                        
 
 static void NWayTree(FreeNode)                                                  //P Free a node, Wipe the node so it cannot be accidently reused
  (NWayTree(Node) * const node)                                                  // Node to free
- {memset(node, -1, NWayTree(SizeOfNode)(NWayTree(Node_tree)(node)));            // Clear node to hinder accidental use
+ {NWayTree(Tree) * const t = NWayTree(Node_tree)(node);
+  const long w = NWayTree(SizeOfNode)(t);
+  memset(node, -1, w);                                                          // Clear node to hinder accidental use
   free(node);
  }
 
@@ -339,9 +346,9 @@ static void NWayTree(ToString2)                                                 
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
     char C[100];
-    sprintf(C, "%4ld                                %4ld\n",
-              NWayTree(Node_keys)(node, i),
-              NWayTree(Node_data)(node, i));
+    const long k = (long)NWayTree(Node_keys)(node, i);
+    const long d = (long)NWayTree(Node_data)(node, i);
+    sprintf(C, "%4ld                                %4ld\n", k, d);
     StackCharPushString(p, C);
     NWayTree(Node) * const n = NWayTree(Node_down)(node, i+1);
     NWayTree(ToString2)(n, in+1, p);
@@ -372,16 +379,27 @@ static void NWayTree(ToStringWithId2)                                           
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in; ++j) StackCharPushString(p, "   ");
     char C[100];
-    sprintf(C, "%4ld", NWayTree(Node_keys)(node, i));
+    const long k = (long)NWayTree(Node_keys)(node, i);
+    sprintf(C, "%4ld", k);
     StackCharPushString(p, C);
 
     for(long j = 0; j < 10-in; ++j) StackCharPushString(p, "   ");
     char D[100];
-    sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", NWayTree(Node_data)(node, i), node->id, i, node, nl);
+    const long di = (long)NWayTree(Node_data)(node, i);
+    const long id = (long)NWayTree(Node_id)  (node);
+    sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
+    sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
+    sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
     StackCharPushString(p, D);
     for(long j = 0; j <= nl; ++j)
      {NWayTree(Node) * const d = NWayTree(Node_down)(node, j);
-      sprintf(D, " %4ld", d ? d->id : 0l);
+      if (d)
+       {const long id = NWayTree(Node_id)(d);
+        sprintf(D, " %4ld", id);
+       }
+      else
+       {sprintf(D, " %4ld", 0l);
+       }
       StackCharPushString(p, D);
      }
     StackCharPushString(p, "\n");
@@ -394,7 +412,8 @@ static StackChar *NWayTree(ToStringWithId)                                      
  (NWayTree(Tree) * const tree)                                                  // Tree to print as a string
  {StackChar * const p = StackCharNew();
   StackCharPushString(p, "                                     Data Node Index Children\n");
-  if (tree->node) NWayTree(ToStringWithId2)(tree->node, 0, p);
+  NWayTree(Node) * const n = NWayTree(Tree_node)(tree);
+  if (n) NWayTree(ToStringWithId2)(n, 0, p);
   return p;
  }
 
@@ -431,11 +450,20 @@ static void NWayTree(ErrNode)                                                   
   const long nl = NWayTree(Node_length)(node);
   say("  Length = %ld", nl);
   fprintf(stderr, "  Keys   : ");
-  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", NWayTree(Node_keys)(node, i));
+  for(long i = 0; i <  nl; ++i)
+   {const long k = (long)NWayTree(Node_keys)(node, i);
+    fprintf(stderr," %ld", k);
+   }
   fprintf(stderr, "\n  Data   : ");
-  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", NWayTree(Node_data)(node, i));
+  for(long i = 0; i <  nl; ++i)
+   {const long d = (long)NWayTree(Node_data)(node, i);
+    fprintf(stderr," %ld", d);
+   }
   fprintf(stderr, "\n  Down   : ");
-  for(long i = 0; i <= nl; ++i) fprintf(stderr," %p",  NWayTree(Node_down)(node, i));
+  for(long i = 0; i <= nl; ++i)
+   {NWayTree(Node) * const n = NWayTree(Node_down)(node, i);
+    fprintf(stderr," %p",  n);
+   }
   say("\n");
  }
 
@@ -459,8 +487,8 @@ static void NWayTree(ErrFindResult)                                             
 
   const long ri = NWayTree(FindResult_index)(r);
   NWayTree(Node) * const n = NWayTree(FindResult_node)(r);
-  const long NWayTreeDataType k = NWayTree(Node_keys)(n, ri);
-  const long NWayTreeDataType K = NWayTree(FindResult_key)(r);
+  const NWayTreeDataType k = NWayTree(Node_keys)(n, ri);
+  const NWayTreeDataType K = NWayTree(FindResult_key)(r);
 
   say("Find key=%ld Result keys[index]=%ld %s  index=%ld", K, k, c, ri);
  }
@@ -469,7 +497,8 @@ static void NWayTree(ErrFindResult)                                             
 
 static long NWayTree(Full)                                                      //P Confirm that a node is full.
  (NWayTree(Node) * const node)
- {return NWayTree(Node_length)(node) == NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node));
+ {NWayTree(Tree) * const t = NWayTree(Node_tree)(node);
+  return NWayTree(Node_length)(node) == NWayTree(MaximumNumberOfKeys)(t);
  }
 
 static long NWayTree(HalfFull)                                                  //P Confirm that a node is half full.
@@ -545,8 +574,8 @@ static long NWayTree(CheckNode)                                                 
       if (d == node) ++c;                                                       // Find the node that points from the parent to the current node
      }
     if (c != 1)                                                                 // We must be able to find the child
-     {const long nk = NWayTree(Node_keys)(node, 0);
-      const long pk = NWayTree(Node_keys)(p,    0);
+     {const long nk = (long)NWayTree(Node_keys)(node, 0);
+      const long pk = (long)NWayTree(Node_keys)(p,    0);
       say("%s: Node %ld has parent %ld that fails to refer back to it",
            name, nk, pk);
       return 4;
@@ -619,8 +648,8 @@ static long NWayTree(SplitFullNode)                                             
     NWayTree(Node) * const d = NWayTree(Node_down)(p, 0);
 
     if (d == node)                                                              // Splitting the first child - move everything up
-     {memmove(p->keys+1, p->keys,     pl * size_of_element);
-      memmove(p->data+1, p->data,     pl * size_of_element);
+     {memmove(p->keys+1, p->keys,  pl * size_of_element);
+      memmove(p->data+1, p->data,  pl * size_of_element);
       memmove(p->down+1, p->down, NWayTree(Node_setLength)(p, pl+1) * size_of_element);
       const long nk = NWayTree(Node_keys)(node, n);
       const long nd = NWayTree(Node_data)(node, n);
@@ -692,34 +721,43 @@ static NWayTree(FindResult) NWayTree(FindAndSplit)                              
 
   for(long j = 0; j < NWayTree(MaxIterations); ++j)                             // Step down through the tree
    {if (key < (NWayTree(Node_keys)(node, 0)))                                   // Less than smallest key in node
-     {if (NWayTree(IsLeaf)(node)) return NWayTree(NewFindResult)
-       (node, key, NWayTree(FindComparison_lower), 0);                          // Smallest key in tree
+     {if (NWayTree(IsLeaf)(node))
+       {const NWayTree(FindComparison) l = NWayTree(FindComparison_lower);
+        return NWayTree(NewFindResult)(node, key, l, 0);                        // Smallest key in tree
+       }
       NWayTree(Node) * const n = NWayTree(Node_down)(node, 0);
-      if (!NWayTree(SplitFullNode)(n)) node = n;                                // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      const long s = NWayTree(SplitFullNode)(n);                                // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      if (!s) node = n;                                                         // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
       continue;
      }
 
     const long nl = NWayTree(Node_length)(node);                                // Length of node
     const long last = nl-1;                                                     // Greater than largest key in node
-    if (key > (NWayTree(Node_keys)(node, last)))                                // Greater than largest key in node
-     {if (NWayTree(IsLeaf)(node)) return NWayTree(NewFindResult)
-       (node, key, NWayTree(FindComparison_higher), last);
-
+    if (key > (NWayTree(Node_keys)(node, last)))                                // Leaf
+     {if (NWayTree(IsLeaf)(node))
+       {const NWayTree(FindComparison) h = NWayTree(FindComparison_higher);
+        return NWayTree(NewFindResult)(node, key, h, last);
+       }
       NWayTree(Node) * const n = NWayTree(Node_down)(node, last+1);
-      if (!NWayTree(SplitFullNode)(n)) node = n;                                // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      const long s = NWayTree(SplitFullNode)(n);                                // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      if (!s) node = n;
       continue;
      }
 
     for(long i = 1; i < nl; ++i)                                                // Search the keys in this node as greater than least key and less than largest key
      {if (key == (NWayTree(Node_keys)(node, i)))                                // Found key
-       {return NWayTree(NewFindResult)
-         (node, key, NWayTree(FindComparison_equal), i);
+       {const NWayTree(FindComparison) e = NWayTree(FindComparison_equal);
+        return NWayTree(NewFindResult)(node, key, e, i);
        }
-      if (key < (NWayTree(Node_keys)(node, i)))                                 // Greater than current key
-       {if (NWayTree(IsLeaf)(node)) return NWayTree(NewFindResult)              // Leaf
-         (node, key, NWayTree(FindComparison_lower), i);
+      const NWayTreeDataType k = NWayTree(Node_keys)(node, i);                  // Current key
+      if (key < k)                                                              // Greater than current key
+       {if (NWayTree(IsLeaf)(node))
+         {const NWayTree(FindComparison) l = NWayTree(FindComparison_lower);
+          return NWayTree(NewFindResult)(node, key, l, i);
+         }
         NWayTree(Node) * const n = NWayTree(Node_down)(node, i);
-        if (NWayTree(SplitFullNode)(node))                                      // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+        const long s = NWayTree(SplitFullNode)(node);                           // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+        if (s)
          {node = NWayTree(Node_up)(n);
          }
         else
@@ -831,7 +869,10 @@ static void NWayTree(MergeWithLeftOrRight)                                      
  {assert(NWayTree(HalfFull)(n));                                                // Confirm leaf is half full
   NWayTree(Node) * const p = NWayTree(Node_up)(n);                              // Parent of leaf
   assert(p);
-  assert(NWayTree(HalfFull)(p) && NWayTree(Node_up)(p));                        // Parent must have more than the minimum number of keys because we need to remove one unless it is the root of the tree
+  const long hf = NWayTree(HalfFull)(p);                                        // Parent must have more than the minimum number of keys because we need to remove one unless it is the root of the tree
+  assert(hf);
+  NWayTree(Node) * const P = NWayTree(Node_up)(p);                              // Check that we are not on the root node
+  assert(P);
 
   const long i  = NWayTree(IndexInParent)(n);                                   // Index of leaf in parent
   const long pl = NWayTree(Node_length)  (p);
@@ -893,17 +934,25 @@ static void NWayTree(Merge)                                                     
   if (i)                                                                        // Merge with left node
    {NWayTree(Node) * const l = NWayTree(Node_down)(p, i-1);                     // Left node
     NWayTree(Node) * const r = node;
-    if (NWayTree(HalfFull)(r))
-     {NWayTree(HalfFull)(l) ? NWayTree(MergeWithLeftOrRight)(r, 0):
-                              NWayTree(FillFromLeftOrRight) (r, 0);             // Merge as left and right nodes are half full
+    if (NWayTree(HalfFull)(r))                                                  // Merge as left and right nodes are half full
+     {if (NWayTree(HalfFull)(l))
+       {NWayTree(MergeWithLeftOrRight)(r, 0);
+       }
+      else
+       {NWayTree(FillFromLeftOrRight) (r, 0);
+       }
      }
    }
   else
    {NWayTree(Node) * const r = NWayTree(Node_down)(p, 1);                       // Right node
     NWayTree(Node) * const l = node;
     if (NWayTree(HalfFull)(l))
-     {NWayTree(HalfFull)(r) ? NWayTree(MergeWithLeftOrRight)(l, 1):
-                              NWayTree(FillFromLeftOrRight) (l, 1);             // Merge as left and right nodes are half full
+     {if (NWayTree(HalfFull)(r))                                                // Merge as left and right nodes are half full
+       {NWayTree(MergeWithLeftOrRight)(l, 1);
+       }
+      else
+       {NWayTree(FillFromLeftOrRight) (l, 1);
+       }
      }
    }
  }
@@ -917,38 +966,45 @@ static void NWayTree(MergeOrFill)                                               
   if (P)                                                                        // Merge or fill parent which is not the root
    {NWayTree(MergeOrFill)(p);
     NWayTree(Merge)(node);
+    return;
    }
-  else
+
+  const long pl = NWayTree(Node_length)(p);
+
+  if (pl == 1)                                                                  // Parent is the root and it only has one key - merge into the child if possible
    {NWayTree(Node) * const l = NWayTree(Node_down)(p, 0);
-    NWayTree(Node) * const r = NWayTree(Node_down)(p, 1);
-    const long pl = NWayTree(Node_length)(p);
-    if (pl == 1 && NWayTree(HalfFull)(l) && NWayTree(HalfFull)(r))              // Parent is the root and it only has one key - merge into the child if possible
-     {const long L = NWayTree(Node_length)(l);
-      const long R = NWayTree(Node_length)(r);
-      const long N = NWayTree(Node_length)(node);
-      ArrayLongPushArray(node->keys, 0, l->keys, L);
-      ArrayLongPushArray(node->data, 0, l->data, L);
+    const long lh = NWayTree(HalfFull)(l);
+    if (lh)
+     {NWayTree(Node) * const r = NWayTree(Node_down)(p, 1);
+      const long rh = NWayTree(HalfFull)(r);
+      if (rh)
+       {const long L = NWayTree(Node_length)(l);
+        const long R = NWayTree(Node_length)(r);
+        const long N = NWayTree(Node_length)(node);
+        ArrayLongPushArray(node->keys, 0, l->keys, L);
+        ArrayLongPushArray(node->data, 0, l->data, L);
 
-      ArrayLongPushArray(node->keys, L, p->keys, 1);
-      ArrayLongPushArray(node->data, L, p->data, 1);
+        ArrayLongPushArray(node->keys, L, p->keys, 1);
+        ArrayLongPushArray(node->data, L, p->data, 1);
 
-      ArrayLongPushArray(node->keys, L+1, r->keys, R);
-      ArrayLongPushArray(node->data, L+1, r->data, R);
+        ArrayLongPushArray(node->keys, L+1, r->keys, R);
+        ArrayLongPushArray(node->data, L+1, r->data, R);
 
-      ArrayVoidPushArray((void *)node->down, 0,   (void *)l->down, L+1);
-      ArrayVoidPushArray((void *)node->down, L+1, (void *)r->down, R);
-      NWayTree(Node_setLength)(node, L+R+1);
+        ArrayVoidPushArray((void *)node->down, 0,   (void *)l->down, L+1);
+        ArrayVoidPushArray((void *)node->down, L+1, (void *)r->down, R);
+        NWayTree(Node_setLength)(node, L+R+1);
 
-      ArrayLongPushArray(p->keys, 0, node->keys, N);
-      ArrayLongPushArray(p->data, 0, node->data, N);
-      ArrayVoidPushArray((void *)p->down, 0, (void *)node->down, N+1);
+        ArrayLongPushArray(p->keys, 0, node->keys, N);
+        ArrayLongPushArray(p->data, 0, node->data, N);
+        ArrayVoidPushArray((void *)p->down, 0, (void *)node->down, N+1);
 
-      NWayTree(ReUp)(p);                                                        // Reconnect children to parent
-     }
-    else                                                                        // Parent is the root but it has too may keys to merge into both sibling so merge with a sibling if possible
-     {NWayTree(Merge)(node);
+        NWayTree(ReUp)(p);                                                      // Reconnect children to parent
+        return;
+       }
      }
    }
+
+  NWayTree(Merge)(node);                                                        // Parent is the root but it has more than one key
  }
 
 //D1 Find
@@ -956,31 +1012,38 @@ static void NWayTree(MergeOrFill)                                               
 static NWayTree(FindResult) NWayTree(Find)                                      // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTree(Tree) * const tree, NWayTreeDataType const key)                      // Tree to search, key to search
  {NWayTree(Node) * node = NWayTree(Tree_node)(tree);                            // Current node we are searching
-  if (!node) return NWayTree(NewFindResult)(node, key,
-    NWayTree(FindComparison_notFound), -1);                                     // Empty tree
+  if (!node)                                                                    // Empty tree
+   {const NWayTree(FindComparison) n = NWayTree(FindComparison_notFound);
+    return NWayTree(NewFindResult)(node, key, n, -1);
+   }
 
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
    {const long nl = NWayTree(Node_length)(node);
     const long nk = NWayTree(Node_keys)(node, nl-1);
 
-    if (key > nk)                                                               // Bigger than every  key
-     {if (NWayTree(IsLeaf)(node)) return NWayTree(NewFindResult)                // Greater than all the keys in the node
-       (node, key, NWayTree(FindComparison_higher), nl-1);
+    if (key > nk)                                                               // Bigger than every key
+     {const long l = NWayTree(IsLeaf)(node);                                    // Leaf
+      if (l)
+       {const NWayTree(FindComparison) h = NWayTree(FindComparison_higher);
+        return NWayTree(NewFindResult)(node, key, h, nl-1);
+       }
       node = NWayTree(Node_down)(node, nl);
+      continue;
      }
-    else
-     {for(long i = 0; i < nl; ++i)                                              // Search the keys in this node as less than largest key
-       {const NWayTreeDataType k = NWayTree(Node_keys)(node, i);                // Key from tree
-        if (key == k)                                                           // Found key
-         {return NWayTree(NewFindResult)
-           (node, key, NWayTree(FindComparison_equal), i);
+
+    for(long i = 0; i < nl; ++i)                                                // Search the keys in this node as less than largest key
+     {const NWayTreeDataType k = NWayTree(Node_keys)(node, i);                  // Key from tree
+      if (key == k)                                                             // Found key
+       {const NWayTree(FindComparison) e = NWayTree(FindComparison_equal);
+        return NWayTree(NewFindResult)(node, key, e, i);
+       }
+      if (key < k)                                                              // Lower than current key
+       {if (NWayTree(IsLeaf)(node))                                             // Leaf
+         {const NWayTree(FindComparison) l = NWayTree(FindComparison_lower);
+          return NWayTree(NewFindResult)(node, key, l, i);
          }
-        else if (key < k)                                                       // Lower than current key
-         {if (NWayTree(IsLeaf)(node)) return NWayTree(NewFindResult)            // Leaf
-           (node, key, NWayTree(FindComparison_lower), i);
-          node = NWayTree(Node_down)(node, i);
-          break;
-         }
+        node = NWayTree(Node_down)(node, i);
+        break;
        }
      }
    }
@@ -992,7 +1055,9 @@ static NWayTree(FindResult) NWayTree(Find)                                      
 static void NWayTree(Insert)                                                    // Insert a key and its associated data into a tree
  (NWayTree(Tree) * const tree,                                                  // Tree to insert into
   NWayTreeDataType const key, NWayTreeDataType const data)                      // Key to insert, data associated with key
- {if (!tree->node)                                                              // Empty tree
+ {NWayTree(Node) * const n = NWayTree(Tree_node)(tree);                         // Root node of tree
+
+  if (!n)                                                                       // Empty tree
    {NWayTree(Node) * const n = NWayTree(NewNode)(tree);
     NWayTree(Node_setKeys)(n, 0, key);
     NWayTree(Node_setData)(n, 0, data);
@@ -1003,66 +1068,77 @@ static void NWayTree(Insert)                                                    
     return;
    }
 
-  NWayTree(Node) * const n = tree->node;
-  const long nl = NWayTree(Node_length)(n);
-  NWayTree(Node) * const p = NWayTree(Node_up)(n);
+  const long nl = NWayTree(Node_length)(n);                                     // Current length of node
+  const long m  = NWayTree(MaximumNumberOfKeys)(tree);                          // Maximum number of keys allowed in a node
 
-  if (nl < NWayTree(MaximumNumberOfKeys)(tree) &&                               // Node is root with no children and room for one more key
-     !p && NWayTree(IsLeaf)(n))
-   {for(long i = 0; i < nl; ++i)                                                // Each key
-     {const long nk = NWayTree(Node_keys)(n, i);
-      if (key == nk)                                                            // Key already present
-       {NWayTree(Node_setData)(n, i, data);
-        return;
-       }
-      const NWayTreeDataType k = NWayTree(Node_keys)(n, i);
-      if (key < k)                                                              // We have reached the insertion point
-       {ArrayLongInsert(n->keys, nl+1, key,  i);
-        ArrayLongInsert(n->data, nl+1, data, i);
+  if (nl < m)                                                                   // Node is root with no children and room for one more key
+   {NWayTree(Node) * const p = NWayTree(Node_up)(n);
+    if (!p)
+     {const long leaf = NWayTree(IsLeaf)(n);
+      if (leaf)
+       {for(long i = 0; i < nl; ++i)                                            // Each key
+         {const long nk = NWayTree(Node_keys)(n, i);
+          if (key == nk)                                                        // Key already present
+           {NWayTree(Node_setData)(n, i, data);
+            return;
+           }
+          const NWayTreeDataType k = NWayTree(Node_keys)(n, i);
+          if (key < k)                                                          // We have reached the insertion point
+           {ArrayLongInsert(n->keys, nl+1, key,  i);
+            ArrayLongInsert(n->data, nl+1, data, i);
+            NWayTree(Node_setLength)(n, nl+1);
+            NWayTree(Tree_incKeys)(tree);
+            return;
+           }
+         }
+        ArrayLongPush(n->keys, nl, key);                                        // Insert the key at the end of the block because it is greater than all the other keys in the block
+        ArrayLongPush(n->data, nl, data);
         NWayTree(Node_setLength)(n, nl+1);
         NWayTree(Tree_incKeys)(tree);
         return;
        }
      }
-    ArrayLongPush(n->keys, nl, key);                                            // Insert the key at the end of the block because it is greater than all the other keys in the block
-    ArrayLongPush(n->data, nl, data);
-    NWayTree(Node_setLength)(n, nl+1);
-    NWayTree(Tree_incKeys)(tree);
    }
-  else                                                                          // Insert node
-   {NWayTree(FindResult) const r = NWayTree(FindAndSplit)(tree, key);           // Check for existing key
-    NWayTree(Node) * const n = NWayTree(FindResult_node)(r);
-    if (NWayTree(FindResult_cmp)(r) == NWayTree(FindComparison_equal))          // Found an equal key whose data we can update
-     {const long ri = NWayTree(FindResult_index)(r);
-      NWayTree(Node_setData)(n, ri, data);
-     }
-    else                                                                        // We have room for the insert
-     {long index = NWayTree(FindResult_index)(r);
-      if (NWayTree(FindResult_cmp)(r) == NWayTree(FindComparison_higher)) ++index;                    // Position at which to insert new key
-      const long nl = NWayTree(Node_length)(n);
-      ArrayLongInsert(n->keys, nl+1, key,  index);
-      ArrayLongInsert(n->data, nl+1, data, index);
+                                                                                // Insert node
+  NWayTree(FindResult) const r = NWayTree(FindAndSplit)(tree, key);             // Check for existing key
+  NWayTree(Node) * const N = NWayTree(FindResult_node)(r);
+  const long e = NWayTree(FindComparison_equal);
+  const long c = NWayTree(FindResult_cmp)(r);
 
-      NWayTree(Node_setLength)(n, nl+1);
-      NWayTree(SplitFullNode)(n);                                               // Split if the leaf is full to force keys up the tree
-     }
+  if (c == e)                                                                   // Found an equal key whose data we can update
+   {const long ri = NWayTree(FindResult_index)(r);
+    NWayTree(Node_setData)(N, ri, data);
+    return;
    }
+
+  long index = NWayTree(FindResult_index)(r);                                   // We have room for the insert
+  const long h = NWayTree(FindComparison_higher);
+  if (c == h) ++index;                                                          // Position at which to insert new key
+  const long Nl = NWayTree(Node_length)(N);
+  ArrayLongInsert(N->keys, Nl+1, key,  index);
+  ArrayLongInsert(N->data, Nl+1, data, index);
+
+  NWayTree(Node_setLength)(N, Nl+1);
+  NWayTree(SplitFullNode) (N);                                                  // Split if the leaf is full to force keys up the tree
  }
 
 //D1 Iteration
 
 static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                           // Go as left as possible from the current node
  (NWayTree(Node) * const node)
- {if (!node) return NWayTree(NewFindResult)                                     // Empty tree
-   (node, 0, NWayTree(FindComparison_notFound), 0);
-
-  if (!NWayTree(IsLeaf)(node))                                                  // Still some way to go
+ {if (!node)                                                                    // Empty tree
+   {const NWayTree(FindComparison) n = NWayTree(FindComparison_notFound);
+    return NWayTree(NewFindResult)(node, 0, n, 0);
+   }
+  const long leaf = NWayTree(IsLeaf)(node);
+  if (!leaf)                                                                    // Still some way to go
    {NWayTree(Node) * const d = NWayTree(Node_down)(node, 0);
     return NWayTree(GoAllTheWayLeft)(d);
    }
 
   const NWayTreeDataType k = NWayTree(Node_keys)(node, 0);
-  return NWayTree(NewFindResult)(node, k,  NWayTree(FindComparison_equal), 0);  // Leaf - place us on the first key
+  const NWayTree(FindComparison) e = NWayTree(FindComparison_equal);
+  return NWayTree(NewFindResult)(node, k, e, 0);                                // Leaf - place us on the first key
  }
 
 static NWayTree(FindResult) NWayTree(GoUpAndAround)                             // Go up until it is possible to go right or we can go no further

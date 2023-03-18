@@ -303,9 +303,11 @@ static void NWayTree(Free2)                                                     
   const long nl = NWayTree(Node_length)(node);
   if (nl)
    {if (!NWayTree(IsLeaf)(node))
-     {NWayTree(Free2)(node->down[0]);
+     {NWayTree(Node) * const n = NWayTree(Node_down)(node, 0);
+      NWayTree(Free2)(n);
       for(long i = 1; i <= nl; ++i)
-       {NWayTree(Free2)(node->down[i]);
+       {NWayTree(Node) * const n = NWayTree(Node_down)(node, i);
+        NWayTree(Free2)(n);
        }
      }
    }
@@ -327,21 +329,25 @@ static void NWayTree(ToString2)                                                 
  {if (!node) return;
   const long nl = NWayTree(Node_length)(node);
   if (!nl) return;
-  NWayTree(ToString2)(node->down[0], in+1, p);
+  NWayTree(Node) * const n = NWayTree(Node_down)(node, 0);
+  NWayTree(ToString2)(n, in+1, p);
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
     char C[100];
     sprintf(C, "%4ld                                %4ld\n",
-              (NWayTree(Node_keys)(node, i)), (NWayTree(Node_data)(node, i)));
+              NWayTree(Node_keys)(node, i),
+              NWayTree(Node_data)(node, i));
     StackCharPushString(p, C);
-    NWayTree(ToString2)(node->down[i+1], in+1, p);
+    NWayTree(Node) * const n = NWayTree(Node_down)(node, i+1);
+    NWayTree(ToString2)(n, in+1, p);
    }
  }
 
 static StackChar *NWayTree(ToString)                                            // Print a tree as a string
  (NWayTree(Tree) * const tree)                                                  // Tree to print as a string
  {StackChar * const p = StackCharNew();
-  if (tree->node) NWayTree(ToString2)(tree->node, 0, p);
+  NWayTree(Node) * const n = NWayTree(Tree_node)(tree);
+  if (n) NWayTree(ToString2)(n, 0, p);
   return p;
  }
 
@@ -356,7 +362,8 @@ static void NWayTree(ToStringWithId2)                                           
  (NWayTree(Node) * const node, long const in, StackChar * const p)
  {const long nl = NWayTree(Node_length)(node);
   if (!node || !nl) return;
-  NWayTree(ToStringWithId2)(node->down[0], in+1, p);
+  NWayTree(Node) * const n = NWayTree(Node_down)(node, 0);
+  NWayTree(ToStringWithId2)(n, in+1, p);
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in; ++j) StackCharPushString(p, "   ");
     char C[100];
@@ -368,12 +375,13 @@ static void NWayTree(ToStringWithId2)                                           
     sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", NWayTree(Node_data)(node, i), node->id, i, node, nl);
     StackCharPushString(p, D);
     for(long j = 0; j <= nl; ++j)
-     {NWayTree(Node) *d = node->down[j];
+     {NWayTree(Node) * const d = NWayTree(Node_down)(node, j);
       sprintf(D, " %4ld", d ? d->id : 0l);
       StackCharPushString(p, D);
      }
     StackCharPushString(p, "\n");
-    NWayTree(ToStringWithId2)(node->down[i+1], in+1, p);
+    NWayTree(Node) * const d = NWayTree(Node_down)(node, i+1);
+    NWayTree(ToStringWithId2)(d, in+1, p);
    }
  }
 
@@ -418,15 +426,15 @@ static void NWayTree(ErrNode)                                                   
   const long nl = NWayTree(Node_length)(node);
   say("  Length = %ld", nl);
   fprintf(stderr, "  Keys   : ");
-  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", (NWayTree(Node_keys)(node, i)));
+  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", NWayTree(Node_keys)(node, i));
   fprintf(stderr, "\n  Data   : ");
-  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", (NWayTree(Node_data)(node, i)));
+  for(long i = 0; i <  nl; ++i) fprintf(stderr," %ld", NWayTree(Node_data)(node, i));
   fprintf(stderr, "\n  Down   : ");
-  for(long i = 0; i <= nl; ++i) fprintf(stderr," %p",   node->down[i]);
+  for(long i = 0; i <= nl; ++i) fprintf(stderr," %p",  NWayTree(Node_down)(node, i));
   say("\n");
  }
 
-static long NWayTree(EqText)                                                    // Check whether the text repres3enting a tree is the same as the specified text
+static long NWayTree(EqText)                                                    // Check whether the text representing a tree is the same as the specified text
  (NWayTree(Tree) * const tree, char * const text)
  {StackChar * const s = NWayTree(ToString)(tree);
   const long r = strncmp(s->arena+s->base, text, s->next-s->base) == 0;
@@ -490,7 +498,7 @@ static long NWayTree(CheckNode)                                                 
     return 1;
    }
   for(long i = 0; i <= nl; ++i)                                                 // Check that each child has a correct up reference
-   {NWayTree(Node) * const d = node->down[i];                                   // Step down
+   {NWayTree(Node) * const d = NWayTree(Node_down)(node, i);                    // Step down
     if (d)
      {const long dl = NWayTree(Node_length)(d);
       if (dl > NWayTree(MaximumNumberOfKeys)(NWayTree(Node_tree)(node)))

@@ -234,6 +234,8 @@ static NWayTree(Tree) *NWayTree(NewTree)                                        
   return tree;
  }
 
+//D2 Node
+
 static NWayTree(Node) *NWayTree(NewNode)                                        //P Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
  {const long z = NWayTree(Tree_NumberOfKeysPerNode)(tree);
@@ -250,8 +252,6 @@ static NWayTree(Node) *NWayTree(NewNode)                                        
   node->id   = tree->nodes++;
   return node;
  }
-
-//D2 Node
 
 static long NWayTree(SizeOfNode)                                                //P The size of a node in a tree
  (NWayTree(Tree) *t)                                                            // Tree
@@ -318,59 +318,6 @@ static void NWayTree(Free)                                                      
   NWayTree(Free2)(tree->node);
   memset(tree, -1, sizeof(*tree));
   free(tree);
- }
-
-//D1 Traverse
-
-static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                           // Go as left as possible from the current node
- (NWayTree(Node) * const node)
- {if (!node) return NWayTree(NewFindResult)                                     // Empty tree
-   (node, 0, NWayTree(FindComparison_notFound), 0);
-
-  if (!NWayTree(IsLeaf)(node)) return NWayTree(GoAllTheWayLeft)(node->down[0]); // Still some way to go
-
-  return NWayTree(NewFindResult)                                                // Leaf - place us on the first key
-   (node, NWayTree(Node_keys)(node, 0),  NWayTree(FindComparison_equal), 0);
- }
-
-static NWayTree(FindResult) NWayTree(GoUpAndAround)                             // Go up until it is possible to go right or we can go no further
- (NWayTree(FindResult) const find)
- {NWayTree(Node) *node = find.node;
-  //say("BBBB %ld %ld", find.key, find.index);
-  if (NWayTree(IsLeaf)(node))                                                   // Leaf
-   {//say("CCCC %ld", node->id);
-    if (NWayTree(FindResult_index)(find) < NWayTree(Node_length)(node)-1)       // More keys in leaf
-     {const long i = NWayTree(FindResult_index)(find) + 1;
-      //say("DDDD key=%ld %ld", node->keys[i], i);
-      return NWayTree(NewFindResult)
-       (node, NWayTree(Node_keys)(node, i), NWayTree(FindComparison_equal), i);
-     }
-    //say("DDDD22 %p %ld %ld", node, node->length, node->id);
-    for(NWayTree(Node) *parent = node->up; parent; parent = parent->up)         // Not the only node in the tree
-     {//say("DDDD33 %p %ld %ld", parent, parent->length, parent->id);
-      const long i = NWayTree(IndexInParent)(node);                             // Index in parent
-      //say("EEEE id=%ld %ld", node->id, i);
-      if (i == NWayTree(Node_length)(parent))                                   // Last key - continue up
-       {node = parent;
-        //say("EEEE22 id=%id", node->id);
-        continue;
-       }
-      //say("FFFF id=%ld %ld parent=%p node=%p", parent->id, i+1, parent, node);
-      return NWayTree(NewFindResult)                                            // Not the last key
-       (parent, parent->keys[i], NWayTree(FindComparison_equal), i);
-     }
-    //say("GGGG id=%ld", node->id);
-    return NWayTree(NewFindResult)                                              // Last key of root
-     (node, 0, NWayTree(FindComparison_notFound), 0);
-   }
-
-  //say("HHHH id=%ld", node->id);
-  return NWayTree(GoAllTheWayLeft)(node->down[NWayTree(FindResult_index)(find)+1]);                   // Not a leaf so on an interior key so we can go right then all the way left
- }
-
-static NWayTree(FindResult) NWayTree(FindNext)                                  // Find the next key after the one referenced by a find result
- (const NWayTree(FindResult) f)
- {return f;
  }
 
 //D1 Print
@@ -1064,6 +1011,57 @@ static void NWayTree(Insert)                                                    
  }
 
 //D1 Iteration
+
+static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                           // Go as left as possible from the current node
+ (NWayTree(Node) * const node)
+ {if (!node) return NWayTree(NewFindResult)                                     // Empty tree
+   (node, 0, NWayTree(FindComparison_notFound), 0);
+
+  if (!NWayTree(IsLeaf)(node)) return NWayTree(GoAllTheWayLeft)(node->down[0]); // Still some way to go
+
+  return NWayTree(NewFindResult)                                                // Leaf - place us on the first key
+   (node, NWayTree(Node_keys)(node, 0),  NWayTree(FindComparison_equal), 0);
+ }
+
+static NWayTree(FindResult) NWayTree(GoUpAndAround)                             // Go up until it is possible to go right or we can go no further
+ (NWayTree(FindResult) const find)
+ {NWayTree(Node) *node = find.node;
+  //say("BBBB %ld %ld", find.key, find.index);
+  if (NWayTree(IsLeaf)(node))                                                   // Leaf
+   {//say("CCCC %ld", node->id);
+    if (NWayTree(FindResult_index)(find) < NWayTree(Node_length)(node)-1)       // More keys in leaf
+     {const long i = NWayTree(FindResult_index)(find) + 1;
+      //say("DDDD key=%ld %ld", node->keys[i], i);
+      return NWayTree(NewFindResult)
+       (node, NWayTree(Node_keys)(node, i), NWayTree(FindComparison_equal), i);
+     }
+    //say("DDDD22 %p %ld %ld", node, node->length, node->id);
+    for(NWayTree(Node) *parent = node->up; parent; parent = parent->up)         // Not the only node in the tree
+     {//say("DDDD33 %p %ld %ld", parent, parent->length, parent->id);
+      const long i = NWayTree(IndexInParent)(node);                             // Index in parent
+      //say("EEEE id=%ld %ld", node->id, i);
+      if (i == NWayTree(Node_length)(parent))                                   // Last key - continue up
+       {node = parent;
+        //say("EEEE22 id=%id", node->id);
+        continue;
+       }
+      //say("FFFF id=%ld %ld parent=%p node=%p", parent->id, i+1, parent, node);
+      return NWayTree(NewFindResult)                                            // Not the last key
+       (parent, parent->keys[i], NWayTree(FindComparison_equal), i);
+     }
+    //say("GGGG id=%ld", node->id);
+    return NWayTree(NewFindResult)                                              // Last key of root
+     (node, 0, NWayTree(FindComparison_notFound), 0);
+   }
+
+  //say("HHHH id=%ld", node->id);
+  return NWayTree(GoAllTheWayLeft)(node->down[NWayTree(FindResult_index)(find)+1]);                   // Not a leaf so on an interior key so we can go right then all the way left
+ }
+
+static NWayTree(FindResult) NWayTree(FindNext)                                  // Find the next key after the one referenced by a find result
+ (const NWayTree(FindResult) f)
+ {return f;
+ }
 
 static NWayTree(FindResult) NWayTree(IterStart)                                 // Start an iterator
  (NWayTree(Tree) * const tree)                                                  // Tree to iterate

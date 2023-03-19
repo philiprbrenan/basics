@@ -416,14 +416,14 @@ static void NWayTree(ToStringWithId2)                                           
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in; ++j) StackCharPushString(p, "   ");
     char C[100];
-    NWayTree_GetLong(k, (long)NWayTree(Node_keys)(node, i));
+    NWayTree_GetLong(k, NWayTree(Node_keys)(node, i));
     sprintf(C, "%4ld", k);
     StackCharPushString(p, C);
 
     for(long j = 0; j < 10-in; ++j) StackCharPushString(p, "   ");
     char D[100];
-    NWayTree_GetLong(di, (long)NWayTree(Node_data)(node, i));
-    NWayTree_GetLong(id, (long)NWayTree(Node_id)  (node));
+    NWayTree_GetLong(di, NWayTree(Node_data)(node, i));
+    NWayTree_GetLong(id, NWayTree(Node_id)  (node));
     sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
     sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
     sprintf(D, "%4ld %4ld %4ld  %p/%4ld=", di, id, i, node, nl);
@@ -489,12 +489,12 @@ static void NWayTree(ErrNode)                                                   
   say("  Length = %ld", nl);
   fprintf(stderr, "  Keys   : ");
   for(long i = 0; i <  nl; ++i)
-   {NWayTree_GetLong(k, (long)NWayTree(Node_keys)(node, i));
+   {NWayTree_GetLong(k, NWayTree(Node_keys)(node, i));
     fprintf(stderr," %ld", k);
    }
   fprintf(stderr, "\n  Data   : ");
   for(long i = 0; i <  nl; ++i)
-   {NWayTree_GetLong(d, (long)NWayTree(Node_data)(node, i));
+   {NWayTree_GetLong(d, NWayTree(Node_data)(node, i));
     fprintf(stderr," %ld", d);
    }
   fprintf(stderr, "\n  Down   : ");
@@ -616,8 +616,8 @@ static long NWayTree(CheckNode)                                                 
       if (d == node) ++c;                                                       // Find the node that points from the parent to the current node
      }
     if (c != 1)                                                                 // We must be able to find the child
-     {NWayTree_GetLong(nk, (long)NWayTree(Node_keys)(node, 0));
-      NWayTree_GetLong(pk, (long)NWayTree(Node_keys)(p,    0));
+     {NWayTree_GetLong(nk, NWayTree(Node_keys)(node, 0));
+      NWayTree_GetLong(pk, NWayTree(Node_keys)(p,    0));
       say("%s: Node %ld has parent %ld that fails to refer back to it",
            name, nk, pk);
       return 4;

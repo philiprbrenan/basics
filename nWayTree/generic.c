@@ -26,19 +26,19 @@
                            find = NWayTree(IterNext)(find))
 #endif
 
-#ifndef NWayTree_GetLong
+#ifndef NWayTree_GetLong                                                        /* Create a long constant */
 #define NWayTree_GetLong(l, code) const long l = code;
 #endif
 
-#ifndef NWayTree_GetNode
+#ifndef NWayTree_GetNode                                                        /* Create a constant reference to a node */
 #define NWayTree_GetNode(node, code) NWayTree(Node) * const node = code;
 #endif
 
-#ifndef NWayTree_GetFindResult
+#ifndef NWayTree_GetFindResult                                                  /* Create a constant find result */
 #define NWayTree_GetFindResult(f, code) const NWayTree(FindResult) f = code;
 #endif
 
-#ifndef NWayTree_GetFindComparison
+#ifndef NWayTree_GetFindComparison                                              /* Create a constant find comparison result */
 #define NWayTree_GetFindComparison(f, value) const NWayTree(FindComparison) f = NWayTree(FindComparison_##value)
 #endif
 
@@ -689,7 +689,8 @@ static long NWayTree(SplitFullNode)                                             
   NWayTree_GetNode(p, NWayTree(Node_up)(node));                                 // Existing parent node
   if (p)                                                                        // Not a root node
    {NWayTree_GetLong(pl, NWayTree(Node_length)(p));
-    l->up = r->up = p;                                                          // Connect children to parent
+    NWayTree(Node_setUp)(l, p);                                                 // Connect children to parent
+    NWayTree(Node_setUp)(r, p);
     NWayTree_GetNode(d, NWayTree(Node_down)(p, 0));
 
     if (d == node)                                                              // Splitting the first child - move everything up

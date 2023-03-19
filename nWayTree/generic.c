@@ -27,7 +27,7 @@
 #endif
 
 #ifndef NWayTree_GetLong                                                        /* Create a long constant */
-#define NWayTree_GetLong(l, code) const long l = code;
+#define NWayTree_GetLong(l, code) const long l = (long)code;
 #endif
 
 #ifndef NWayTree_GetNode                                                        /* Create a constant reference to a node */
@@ -381,8 +381,8 @@ static void NWayTree(ToString2)                                                 
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
     char C[100];
-    NWayTree_GetLong(k, (long)NWayTree(Node_keys)(node, i));
-    NWayTree_GetLong(d, (long)NWayTree(Node_data)(node, i));
+    NWayTree_GetLong(k, NWayTree(Node_keys)(node, i));
+    NWayTree_GetLong(d, NWayTree(Node_data)(node, i));
     sprintf(C, "%4ld                                %4ld\n", k, d);
     StackCharPushString(p, C);
     NWayTree_GetNode(n, NWayTree(Node_down)(node, i+1));

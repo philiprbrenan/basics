@@ -337,9 +337,7 @@ static void NWayTree(Free2)                                                     
   NWayTree_GetLong(nl, NWayTree(Node_length)(node));
   if (nl)
    {if (!NWayTree(IsLeaf)(node))
-     {NWayTree_GetNode(n, NWayTree(Node_down)(node, 0));
-      NWayTree(Free2)(n);
-      for(long i = 1; i <= nl; ++i)
+     {for(long i = 0; i <= nl; ++i)
        {NWayTree_GetNode(n, NWayTree(Node_down)(node, i));
         NWayTree(Free2)(n);
        }

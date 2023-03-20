@@ -1186,8 +1186,10 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
   NWayTree_GetLong(leaf, NWayTree(IsLeaf)(node));
   if (leaf)                                                                     // Leaf
    {//say("CCCC %ld", node->id);
-    if (NWayTree(FindResult_index)(find) < NWayTree(Node_length)(node)-1)       // More keys in leaf
-     {NWayTree_GetLong(i, NWayTree(FindResult_index)(find) + 1);
+    NWayTree_GetFindResultIndex(I, find);
+    NWayTree_GetLong(L, NWayTree(Node_length)(node)-1);
+    if (I < L)                                                                  // More keys in leaf
+     {const long i = I + 1;
       //say("DDDD key=%ld %ld", node->keys[i], i);
       NWayTree_GetFindComparison(e, equal);
       NWayTree_GetKeys(k, node, i);

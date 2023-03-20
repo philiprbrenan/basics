@@ -4,12 +4,6 @@
 //------------------------------------------------------------------------------
 // Inline  everything possible
 #define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <stdarg.h>
-#include <x86intrin.h>
-#include <malloc.h>
 #include "array/void.c"
 #include "basics/basics.c"
 #include "stack/char.c"
@@ -44,7 +38,7 @@
 #define NWayTree_GetData(d, node, index) const NWayTreeDataType d = NWayTree(Node_data)(node, index);
 #endif
 
-#ifndef NWayTree_GetDown                                                        /* Create a constant datum */
+#ifndef NWayTree_GetDown                                                        /* Create a constant node reference */
 #define NWayTree_GetDown(n, node, index) NWayTree(Node) * const n = NWayTree(Node_down)(node, index);
 #endif
 
@@ -178,6 +172,11 @@ inline static void NWayTree(Node_copy)                                          
   NWayTree(Node_setDown)(t, to+length, n);
  }
 
+inline static void NWayTree(FreeNode)                                           // Free a node, Wipe the node so it cannot be accidently reused
+ (NWayTree(Node) * const node)                                                  // Node to free
+ {free(node);
+ }
+
 //D2 Tree
 
 typedef struct NWayTree(Tree)                                                   // The root of a tree
@@ -251,6 +250,34 @@ inline static long NWayTreeLong NWayTree(MaximumNumberDownPerNode)              
  {return NWayTree(Tree_NumberOfKeysPerNode)(tree) + 1;
  }
 
+static NWayTree(Tree) *NWayTree(New)                                            // Create a new tree
+ (const long n)                                                                 // Number of keys in a node
+ {NWayTree_GetTree(tree, calloc(sizeof(NWayTree(Tree)), 1));
+  tree->NumberOfKeysPerNode = n;
+  return tree;
+ }
+
+inline static void NWayTree(Free2)                                              // Free a node in a tree
+ (NWayTree(Node) * const node)
+ {if (!node) return;
+  NWayTree_GetLong(nl, NWayTree(Node_length)(node));
+  if (nl)
+   {for(long i = 0; i <= nl; ++i)                                             // Free each sub node
+     {NWayTree_GetNode(n, NWayTree(Node_down)(node, i));
+      NWayTree(Free2)(n);
+     }
+   }
+  NWayTree(FreeNode)(node);                                                     // Free node now sub nodes have been freed
+ }
+
+inline static void NWayTree(Free)                                               // Free a tree
+ (NWayTree(Tree) * const tree)
+ {if (!tree) return;
+  NWayTree(Free2)(NWayTree(Tree_node)(tree));
+  memset(tree, -1, sizeof(*tree));
+  free(tree);
+ }
+
 //D2 Find Result
 
 typedef enum NWayTree(FindComparison)                                           // The results of a comparison
@@ -307,25 +334,15 @@ inline static NWayTreeDataType NWayTree(FindResult_data)                        
   return NWayTree(Node_data)(n, i);
  }
 
-//Forward declarations
+//D0 Forward declarations
 
-static void NWayTree(ErrNode)       (NWayTree(Node) *node);
-static long NWayTree(CheckNode)     (NWayTree(Node) *node, char *name);
-static void NWayTree(CheckTree)     (NWayTree(Tree) *tree, char *name);
-static long NWayTree(IsLeaf)        (NWayTree(Node) *node);
+static void NWayTree(ErrNode)       (NWayTree(Node) * const node);
+static long NWayTree(CheckNode)     (NWayTree(Node) * const node, char * const name);
+static void NWayTree(CheckTree)     (NWayTree(Tree) * const tree, char * const name);
+static long NWayTree(IsLeaf)        (NWayTree(Node) * const node);
 static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
 
-//D1 Construction
-//D2 Tree
-
-inline static NWayTree(Tree) *NWayTree(NewTree)                                 // Create a new tree
- (const long n)                                                                 // Number of keys in a node
- {NWayTree_GetTree(tree, calloc(sizeof(NWayTree(Tree)), 1));
-  tree->NumberOfKeysPerNode = n;
-  return tree;
- }
-
-//D2 Node
+//D1 Node Construction
 
 inline static NWayTree(Node) *NWayTree(NewNode)                                 // Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
@@ -361,36 +378,6 @@ inline static void NWayTree(ReUp)                                               
    {NWayTree_GetNode(d, NWayTree(Node_down)(node, i));                          // No children so it must be a leaf
     NWayTree(Node_setUp)(d, node);
    }
- }
-
-//D1 Destruction
-//D2 Node
-
-inline static void NWayTree(FreeNode)                                           // Free a node, Wipe the node so it cannot be accidently reused
- (NWayTree(Node) * const node)                                                  // Node to free
- {free(node);
- }
-
-//D2 Tree
-
-inline static void NWayTree(Free2)                                              // Free a node in a tree
- (NWayTree(Node) * const node)
- {if (!node) return;
-  NWayTree_GetLong(nl, NWayTree(Node_length)(node));
-  if (nl)
-   {if (!NWayTree(IsLeaf)(node))
-     {for(long i = 0; i <= nl; ++i)                                             // Free each sub node
-       {NWayTree_GetNode(n, NWayTree(Node_down)(node, i));
-        NWayTree(Free2)(n);
-       }
-     }
-   }
-  NWayTree(FreeNode)(node);                                                     // Free node now sub nodes have been freed
- }
-
-inline static void NWayTree(Free)                                               // Free a tree
- (NWayTree(Tree) * const tree)
- {free(tree);
  }
 
 //D1 Print
@@ -1033,7 +1020,7 @@ inline static void NWayTree(MergeOrFill)                                        
 
 //D1 Find
 
-inline static NWayTree(FindResult) NWayTree(Find)                               // Find a key in a tree returning its associated data or undef if the key does not exist.
+static NWayTree(FindResult) NWayTree(Find)                                      // Find a key in a tree returning its associated data or undef if the key does not exist.
  (NWayTree(Tree) * const tree,                                                  // Tree to search
   NWayTreeDataType const key)                                                   // Key to search
  {NWayTree(Node) * node = NWayTree(Tree_node)(tree);                            // Current node we are searching
@@ -1077,7 +1064,7 @@ inline static NWayTree(FindResult) NWayTree(Find)                               
 
 //D1 Insert
 
-inline static void NWayTree(Insert)                                             // Insert a key and its associated data into a tree
+static void NWayTree(Insert)                                                    // Insert a key and its associated data into a tree
  (NWayTree(Tree) * const tree,                                                  // Tree to insert into
   NWayTreeDataType const key,                                                   // Key to insert
   NWayTreeDataType const data)                                                  // Data associated with key
@@ -1499,7 +1486,7 @@ inline static void NWayTreeLong size($)                                         
 
 #if (__INCLUDE_LEVEL__ == 1)
 void test_3_0()                                                                 // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(3));
+ {NWayTree_GetTree(t, NWayTree(New)(3));
   assert(NWayTree(EqText)(t, ""));
   NWayTree_GetFindResult(f, NWayTree(Find)(t, 1));
   NWayTree_GetLong(c, NWayTree(FindResult_cmp)(f));
@@ -1507,7 +1494,7 @@ void test_3_0()                                                                 
  }
 
 void test_3_1()                                                                 // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(3));
+ {NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < 1; ++i) NWayTree(Insert)(t, i, 2);
   //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
@@ -1521,7 +1508,7 @@ void test_3_1()                                                                 
  }
 
 void test_31_1()                                                                // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(31));
+ {NWayTree_GetTree(t, NWayTree(New)(31));
   for(int i = 0; i < 1; ++i) NWayTree(Insert)(t, i, 2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1530,7 +1517,7 @@ void test_31_1()                                                                
  }
 
 void test_3_2()                                                                 // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(3));
+ {NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < 2; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1540,7 +1527,7 @@ void test_3_2()                                                                 
  }
 
 void test_31_2()                                                                // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(31));
+ {NWayTree_GetTree(t, NWayTree(New)(31));
   for(int i = 0; i < 2; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1550,7 +1537,7 @@ void test_31_2()                                                                
  }
 
 void test_3_3()                                                                 // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(3));
+ {NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < 3; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1561,7 +1548,7 @@ void test_3_3()                                                                 
  }
 
 void test_31_3()                                                                // Tests
- {NWayTree_GetTree(t, NWayTree(NewTree)(31));
+ {NWayTree_GetTree(t, NWayTree(New)(31));
   for(int i = 0; i < 3; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1582,7 +1569,7 @@ NWayTree(Node) *createNode3(NWayTree(Tree) * t, long a, long b, long c)         
  }
 
 void test_3_4a()                                                                // Tree has one node
- {NWayTree(Tree) *t = NWayTree(NewTree)(3);
+ {NWayTree(Tree) *t = NWayTree(New)(3);
   NWayTree(Node) *n = createNode3(t, 1, 2, 3);
   t->keys = NWayTree(Node_setLength)(n, 3);
   t->node = n;
@@ -1598,7 +1585,7 @@ void test_3_4a()                                                                
  }
 
 void test_3_4b()                                                                // First down
- {NWayTree(Tree) *t  = NWayTree(NewTree)(3);
+ {NWayTree(Tree) *t  = NWayTree(New)(3);
   NWayTree(Node) *p  = createNode3(t, 10, 20, 30);
   NWayTree(Node_setLength)(p, 2);
   NWayTree(Node) *n0 = createNode3(t, 01, 02, 03);
@@ -1643,7 +1630,7 @@ void test_3_4b()                                                                
  }
 
 void test_3_4c()                                                                // Mid down
- {NWayTree(Tree) *t  = NWayTree(NewTree)(3);
+ {NWayTree(Tree) *t  = NWayTree(New)(3);
   NWayTree(Node) *p  = createNode3(t, 10, 20, 30);
   NWayTree(Node_setLength)(p, 2);
   NWayTree(Node) *n0 = createNode3(t, 01, 02, 03);
@@ -1674,7 +1661,7 @@ void test_3_4c()                                                                
  }
 
 void test_3_4d()                                                                // Final node
- {NWayTree(Tree) *t  = NWayTree(NewTree)(3);
+ {NWayTree(Tree) *t  = NWayTree(New)(3);
   NWayTree(Node) *p  = createNode3(t, 10, 20, 30);
   NWayTree(Node_setLength)(p, 2);
   NWayTree(Node) *n0 = createNode3(t, 01, 02, 03);
@@ -1729,7 +1716,7 @@ void test_3_4()                                                                 
 
 void test_3_insert1()                                                           // Insert tests
  {const long N = 1;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1739,7 +1726,7 @@ void test_3_insert1()                                                           
 
 void test_3_insert2()
  {const long N = 2;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1750,7 +1737,7 @@ void test_3_insert2()
 
 void test_3_insert3()
  {const long N = 3;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1762,7 +1749,7 @@ void test_3_insert3()
 
 void test_3_insert4()
  {const long N = 4;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1775,7 +1762,7 @@ void test_3_insert4()
 
 void test_3_insert5()
  {const long N = 5;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1789,7 +1776,7 @@ void test_3_insert5()
 
 void test_3_insert6()
  {const long N = 6;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1804,7 +1791,7 @@ void test_3_insert6()
 
 void test_3_insert7()
  {const long N = 7;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1820,7 +1807,7 @@ void test_3_insert7()
 
 void test_3_insert8()
  {const long N = 8;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 1; i <= N; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1837,7 +1824,7 @@ void test_3_insert8()
 
 void test_3_insert2r()
  {const long N = 2;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1848,7 +1835,7 @@ void test_3_insert2r()
 
 void test_3_insert3r()
  {const long N = 3;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1860,7 +1847,7 @@ void test_3_insert3r()
 
 void test_3_insert4r()
  {const long N = 4;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1873,7 +1860,7 @@ void test_3_insert4r()
 
 void test_3_insert5r()
  {const long N = 5;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1887,7 +1874,7 @@ void test_3_insert5r()
 
 void test_3_insert6r()
  {const long N = 6;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1902,7 +1889,7 @@ void test_3_insert6r()
 
 void test_3_insert7r()
  {const long N = 7;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1918,7 +1905,7 @@ void test_3_insert7r()
 
 void test_3_insert8r()
  {const long N = 8;
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, N-i, N-i+1);
   //NWayTree(ErrAsC)(tree);
   assert(NWayTree(EqText)(t,
@@ -1944,7 +1931,7 @@ void testLoadArray(long *A, long const N)
 void test_3_insert12()
  {const long N = 12; long A[N]; testLoadArray(A, N);
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(int i = 0; i < N; ++i) NWayTree(Insert)(t, A[i], i);
   assert(NWayTree(EqText)(t,
 "         0                                   6\n"
@@ -1965,7 +1952,7 @@ void test_3_insert12()
 void test_3_insert14()
  {const long N = 14; long A[N]; testLoadArray(A, N);
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
@@ -1991,7 +1978,7 @@ void test_3_insert14()
 void test_3_insert15()
  {const long N = 15; long A[N]; testLoadArray(A, N);
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
@@ -2018,7 +2005,7 @@ void test_3_insert15()
 void test_3_insert63()
  {const long N = 63; long A[N]; testLoadArray(A, N);
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(long i = 0; i < N; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
@@ -2112,7 +2099,7 @@ long iterateAndTestTree                                                         
 void test_3_iterate63()                                                         // Iterate through a tree
  {const long N = 63, NN = 63; long A[N]; testLoadArray(A, N);
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));                                    // Create the tree
+  NWayTree_GetTree(t, NWayTree(New)(3));                                        // Create the tree
   for(long i = 0; i < NN; ++i)
    {for(long j = 0; j < 2; ++j)
      {NWayTree(Insert)(t, A[i], i);
@@ -2134,7 +2121,7 @@ void test_31_insert163                                                          
     memory_at_start = m.uordblks;
    }
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(31));
+  NWayTree_GetTree(t, NWayTree(New)(31));
   for(long i = 0; i < NN; ++i)
    {NWayTree(Insert)(t, A[i], i);
    }
@@ -2330,7 +2317,7 @@ void test_31x_insert163()
 void test_3_Find()
  {const long N = 63;
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(3));
+  NWayTree_GetTree(t, NWayTree(New)(3));
   for(long i = 0; i < N;     ++i) NWayTree(Insert)(t, i*2, i*2);
   //NWayTree(ErrAsC)(t);
   for(long i =-1; i < 2 * N; ++i)
@@ -2358,7 +2345,7 @@ void test_3_Find()
 void test_reverse()                                                             // Create a tree in reverse order
  {long N = 121;
 
-  NWayTree_GetTree(t, NWayTree(NewTree)(5));
+  NWayTree_GetTree(t, NWayTree(New)(5));
   for(long i = N; i >= 0; --i)
    {NWayTree(Insert)(t, i, i);
    }

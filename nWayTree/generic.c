@@ -161,6 +161,24 @@ inline static void NWayTree(Node_open)                                          
    }
  }
 
+inline static void NWayTree(Node_copy)                                          // Copy part of one node into another
+ (NWayTree(Node) * const t,                                                     // Target node
+  NWayTree(Node) * const s,                                                     // Source node
+  const long to,                                                                // Target offset
+  const long so,                                                                // Source offset
+  const long length)                                                            // Number of items to copy
+ {for(long i = 0; i < length; ++i)
+   {NWayTree_GetKeys(k, s, so+i);
+    NWayTree_GetData(d, s, so+i);
+    NWayTree_GetDown(n, s, so+i);
+    NWayTree(Node_setKeys)(t, to+i, k);
+    NWayTree(Node_setData)(t, to+i, d);
+    NWayTree(Node_setDown)(t, to+i, n);
+   }
+  NWayTree_GetDown(n,    s, so+length);
+  NWayTree(Node_setDown)(t, to+length, n);
+ }
+
 //D2 Tree
 
 typedef struct NWayTree(Tree)                                                   // The root of a tree
@@ -691,16 +709,8 @@ inline static long NWayTree(SplitFullNode)                                      
   NWayTree_GetLong(L, NWayTree(Node_setLength)(l, n));
   NWayTree_GetLong(R, NWayTree(Node_setLength)(r, N - n - 1));
 
-  NWayTree_GetLong(LL, L * size_of_element);
-  NWayTree_GetLong(RR, R * size_of_element);
-
-  memcpy(l->keys, node->keys,        LL);                                       // Split left keys and data
-  memcpy(l->data, node->data,        LL);
-  memcpy(l->down, node->down,     (1+L) * sizeof(NWayTree(Node) *));
-
-  memcpy(r->keys, node->keys+n+1,    RR);                                       // Split right keys and data
-  memcpy(r->data, node->data+n+1,    RR);
-  memcpy(r->down, node->down+n+1, (1+R) * sizeof(NWayTree(Node) *));
+  NWayTree(Node_copy)(l, node, 0, 0,   L);                                      // Split left node
+  NWayTree(Node_copy)(r, node, 0, n+1, R);                                      // Split right node
 
   if (!NWayTree(IsLeaf)(node))                                                  // Not a leaf node
    {NWayTree(ReUp)(l);

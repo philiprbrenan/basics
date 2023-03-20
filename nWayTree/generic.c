@@ -6,7 +6,6 @@
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
-#include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <x86intrin.h>
@@ -369,10 +368,7 @@ inline static void NWayTree(ReUp)                                               
 
 inline static void NWayTree(FreeNode)                                           // Free a node, Wipe the node so it cannot be accidently reused
  (NWayTree(Node) * const node)                                                  // Node to free
- {NWayTree_GetTree(t, NWayTree(Node_tree)(node));
-  NWayTree_GetLong(w, NWayTree(SizeOfNode)(t));
-  memset(node, -1, w);                                                          // Clear node to hinder accidental use
-  free(node);
+ {free(node);
  }
 
 //D2 Tree
@@ -394,10 +390,7 @@ inline static void NWayTree(Free2)                                              
 
 inline static void NWayTree(Free)                                               // Free a tree
  (NWayTree(Tree) * const tree)
- {if (!tree) return;
-  NWayTree(Free2)(NWayTree(Tree_node)(tree));
-  memset(tree, -1, sizeof(*tree));
-  free(tree);
+ {free(tree);
  }
 
 //D1 Print

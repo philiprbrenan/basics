@@ -206,7 +206,7 @@ inline static void NWayTree(Free2)                                              
   NWayTree_Node_length(nl, node);
   if (nl)
    {for(long i = 0; i <= nl; ++i)                                             // Free each sub node
-     {NWayTree_GetNode(n, NWayTree(Node_down)(node, i));
+     {NWayTree_Node_Down(n, node, i);
       NWayTree(Free2)(n);
      }
    }
@@ -319,7 +319,7 @@ inline static void NWayTree(ReUp)                                               
  (NWayTree(Node) * const node)                                                  // Node to reconnect
  {NWayTree_Node_length(nl, node);
   for(long i = 0; i <= nl; ++i)
-   {NWayTree_GetNode(d, NWayTree(Node_down)(node, i));                          // No children so it must be a leaf
+   {NWayTree_Node_Down(d, node, i);                                             // No children so it must be a leaf
     NWayTree_Node_setUp(d, node);
    }
  }
@@ -333,7 +333,7 @@ inline static void NWayTree(ToString2)                                          
  {if (!node) return;
   NWayTree_Node_length(nl, node);
   if (!nl) return;
-  NWayTree_GetNode(n, NWayTree(Node_down)(node, 0));
+  NWayTree_Node_Down(n, node, 0);
   NWayTree(ToString2)(n, in+1, p);
   for(long i = 0; i < nl; ++i)
    {for(long j = 0; j < in * 3; ++j) StackCharPush(p, ' ');
@@ -342,7 +342,7 @@ inline static void NWayTree(ToString2)                                          
     NWayTree_Node_Data(d, node, i);
     sprintf(C, "%4ld                                %4ld\n", k, d);
     StackCharPushString(p, C);
-    NWayTree_GetNode(n, NWayTree(Node_down)(node, i+1));
+    NWayTree_Node_Down(n, node, i+1);
     NWayTree(ToString2)(n, in+1, p);
    }
  }

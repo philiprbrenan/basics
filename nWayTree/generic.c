@@ -28,6 +28,7 @@
 #define NWayTree_Node_id(i, node)              const long i = node->id;
 #define NWayTree_Node_up(u, node)              NWayTree(Node) * const u = node->up;
 #define NWayTree_Node_setUp(node, n)           node->up = n;
+#define NWayTree_Node_tree(t, node)            NWayTree(Tree) * const t = node->tree;
 
 #define NWayTree_Node_keys(k, node, index)     const NWayTreeDataType k = node->keys[index];
 #define NWayTree_Node_data(d, node, index)     const NWayTreeDataType d = node->data[index];
@@ -62,11 +63,6 @@ typedef struct NWayTree(Node)                                                   
   struct NWayTree(Node) **down;                                                 // Next layer of nodes down from this node
   struct NWayTree(Tree) *tree;                                                  // The definition of the containing tree
  } NWayTree(Node);
-
-inline static struct NWayTree(Tree) * NWayTree(Node_tree)                       // Get the tree associated with a node
- (NWayTree(Node) *node)                                                         // Node
- {return node->tree;
- }
 
 inline static void NWayTree(Node_open)                                          // Open a gap in a node
  (NWayTree(Node) * const node,                                                  // Node
@@ -483,7 +479,7 @@ inline static void NWayTree(ErrFindResult)                                      
 
 inline static long NWayTree(Full)                                               // Confirm that a node is full.
  (NWayTree(Node) * const node)
- {NWayTree_GetTree(t, NWayTree(Node_tree)(node));
+ {NWayTree_Node_tree(t, node);
   NWayTree_Node_length(nl, node);
   return nl == NWayTree(MaximumNumberOfKeys)(t);
  }
@@ -491,7 +487,7 @@ inline static long NWayTree(Full)                                               
 inline static long NWayTree(HalfFull)                                           // Confirm that a node is half full.
  (NWayTree(Node) * const node)                                                  // Node
  {NWayTree_Node_length(n, node);
-  NWayTree(Tree)* const t = NWayTree(Node_tree)(node);
+  NWayTree_Node_tree(t, node);
   assert(n <= NWayTree(MaximumNumberOfKeys)(t)+1);
   return n == NWayTree(MinimumNumberOfKeys)(t);
  }
@@ -520,7 +516,7 @@ inline static long NWayTree(CheckNode)                                          
  (NWayTree(Node) * const node,                                                  // Node
   char           * const name)                                                  // Name of check
  {NWayTree_Node_length(nl, node);
-  NWayTree_GetTree(t, NWayTree(Node_tree)(node));
+  NWayTree_Node_tree(t, node);
 
   if (nl > NWayTree(MaximumNumberOfKeys)(t))
    {NWayTree_Node_keys(k, node, 0);
@@ -556,7 +552,7 @@ inline static long NWayTree(CheckNode)                                          
   NWayTree_Node_up(p, node);                                                    // Check that parent connects to the current node
   if (p)
    {NWayTree_Node_length(pl, p);
-    NWayTree_GetTree(t, NWayTree(Node_tree)(node));                             // Check that parent connects to the current node
+    NWayTree_Node_tree(t, node);                                                // Check that parent connects to the current node
     NWayTree_GetLong(m, NWayTree(MaximumNumberOfKeys)(t));
     assert(pl <= m);
     int c = 0;                                                                  // Check that the parent has a down pointer to the current node
@@ -581,7 +577,8 @@ inline static void NWayTree(CheckTree2)                                         
  {if (!node) return;
 
   if (NWayTree(CheckNode)(node, name))
-   {NWayTree(PrintErr)(NWayTree(Node_tree)(node));
+   {NWayTree_Node_tree(t, node);
+    NWayTree(PrintErr)(t);
     assert(0);
    }
 
@@ -607,7 +604,7 @@ inline static long NWayTree(SplitFullNode)                                      
  (NWayTree(Node) * const node)
  {NWayTree_Node_length(nl, node);
 
-  NWayTree_GetTree(t, NWayTree(Node_tree)(node));                               // Associated tree
+  NWayTree_Node_tree(t, node);                                                  // Associated tree
   NWayTree_GetLong(m, NWayTree(MaximumNumberOfKeys)(t));
   if (nl < m)                                                                   // Must be a full node
    {return 0;

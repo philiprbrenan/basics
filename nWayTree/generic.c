@@ -21,8 +21,15 @@
 #define NWayTree_GetTree(tree, code)           NWayTree(Tree) * const tree = code;
 #define NWayTree_GetNode(node, code)           NWayTree(Node) *       node = code;
 #define NWayTree_numberOfKeysPerNode(n, tree)  const long n = tree->NumberOfKeysPerNode;
+#define NWayTree_maximumNumberOfKeys(n, tree)  NWayTree_numberOfKeysPerNode(n, tree)
+#define NWayTree_minimumNumberOfKeys(n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) << 1;
+
 #define NWayTree_node(n, tree)                 NWayTree(Node) *       n = tree->node;
 #define NWayTree_setNode(tree, n)              tree->node = n;
+#define NWayTree_keys(n, tree)                 const long n = tree->keys;
+#define NWayTree_setKeys(tree, n)              tree->keys = n;
+#define NWayTree_incKeys(tree)               ++tree->keys;
+#define NWayTree_incNodes(tree)              ++tree->nodes;
 
 #define NWayTree_Node_length(l, node)          const long l = node->length;
 #define NWayTree_Node_setLength(l, node, n)    const long l = node->length = n;
@@ -34,6 +41,7 @@
 #define NWayTree_Node_keys(k, node, index)     const NWayTreeDataType k = node->keys[index];
 #define NWayTree_Node_data(d, node, index)     const NWayTreeDataType d = node->data[index];
 #define NWayTree_Node_down(n, node, index)     NWayTree(Node) * const n = node->down[index];
+#define NWayTree_Node_isLeaf(l, node)          const long l = node->down[0] == 0;
 
 #define NWayTree_Node_setKeys(node, index, k)  node->keys[index] = k;
 #define NWayTree_Node_setData(node, index, d)  node->data[index] = d;
@@ -44,7 +52,7 @@
 #define NWayTree_FindResult_Data(d, f)         const NWayTreeDataType d = NWayTree(FindResult_data)(f);
 #define NWayTree_FindResult_Cmp(c, f)          const long c = f.cmp;
 #define NWayTree_FindResult_Index(i, f)        const long i = f.index;
-#define NWayTree_FindResult_Node(n, f)         NWayTree(Node) * const n = f.node;
+#define NWayTree_FindResult_node(n, f)         NWayTree(Node) * const n = f.node;
 #define NWayTree_FindComparison(f, value)      const NWayTree(FindComparison) f = NWayTree(FindComparison_##value)
 #endif
 
@@ -114,56 +122,6 @@ typedef struct NWayTree(Tree)                                                   
   NWayTree(Node) *node_array;                                                   // Array of nodes if tree has been compacted
  } NWayTree(Tree);
 
-inline static long NWayTree(Tree_keys)                                          // Number of keys in a tree
- (NWayTree(Tree) * const tree)                                                  // Tree
- {return tree->keys;
- }
-
-inline static long NWayTree(Tree_setKeys)                                       // Set the number of keys in a tree
- (NWayTree(Tree) * const tree,                                                  // Tree
-  const long             keys)                                                  // Number of keys
- {return tree->keys = keys;
- }
-
-inline static long NWayTree(Tree_incKeys)                                       // Increment the number of keys in a tree
- (NWayTree(Tree) * const tree)                                                  // Tree
- {return ++tree->keys;
- }
-
-inline static long NWayTree(Tree_nodes)                                         // Number of nodes in a tree
- (NWayTree(Tree) * const tree)                                                  // Tree
- {return tree->nodes;
- }
-
-inline static long NWayTree(Tree_setNodes)                                      // Set number of nodes in a tree
- (NWayTree(Tree) * const tree,                                                  // Tree
-  const long             nodes)                                                 // Number of nodes
- {return tree->nodes = nodes;
- }
-
-inline static long NWayTree(Tree_incNodes)                                      // Increment the number of nodes in a tree
- (NWayTree(Tree) * const tree)                                                  // Tree
- {return ++tree->nodes;
- }
-
-inline static long NWayTree(MinimumNumberOfKeys)                                // Minimum number of keys per node.
- (NWayTree(Tree) * const tree)                                                  // Tree
- {NWayTree_numberOfKeysPerNode(n, tree);
-  return (n - 1) << 1;
- }
-
-inline static long NWayTree(MaximumNumberOfKeys)                                // Maximum number of keys per node.
- (NWayTree(Tree) * const tree)                                                  // Tree
- {NWayTree_numberOfKeysPerNode(n, tree);
-  return n;
- }
-
-inline static long NWayTreeLong NWayTree(MaximumNumberDownPerNode)              // Maximum number of children per parent.
- (NWayTree(Tree) * const tree)                                                  // Tree
- {NWayTree_numberOfKeysPerNode(n, tree);
-  return n + 1;
- }
-
 static NWayTree(Tree) *NWayTree(New)                                            // Create a new tree
  (const long n)                                                                 // Number of keys in a node
  {NWayTree_GetTree(tree, calloc(sizeof(NWayTree(Tree)), 1));
@@ -221,11 +179,6 @@ inline static NWayTree(FindResult) NWayTree(NewFindResult)                      
   return r;
  }
 
-inline static struct NWayTree(Node) * NWayTree(FindResult_node)                 // Get node field from find results
- (NWayTree(FindResult) f)                                                       // The results of a find operation
- {return f.node;
- }
-
 inline static NWayTreeDataType NWayTree(FindResult_key)                         // Get key field from find results
  (NWayTree(FindResult) f)                                                       // The results of a find operation
  {return f.key;
@@ -243,7 +196,7 @@ inline static NWayTreeDataType NWayTree(FindResult_index)                       
 
 inline static NWayTreeDataType NWayTree(FindResult_data)                        // Get data field from find results
  (NWayTree(FindResult) f)                                                       // The results of a find operation
- {NWayTree_FindResult_Node (n, f);
+ {NWayTree_FindResult_node (n, f);
   NWayTree_FindResult_Index(i, f);
   NWayTree_Node_data(d, n, i);
   return d;
@@ -254,7 +207,6 @@ inline static NWayTreeDataType NWayTree(FindResult_data)                        
 static void NWayTree(ErrNode)       (NWayTree(Node) * const node);
 static long NWayTree(CheckNode)     (NWayTree(Node) * const node, char * const name);
 static void NWayTree(CheckTree)     (NWayTree(Tree) * const tree, char * const name);
-static long NWayTree(IsLeaf)        (NWayTree(Node) * const node);
 static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
 
 //D1 Node Construction
@@ -272,7 +224,7 @@ inline static NWayTree(Node) *NWayTree(NewNode)                                 
   node->data = (void *)node+s+k;
   node->down = (void *)node+s+k+d;
   node->tree = tree;
-  node->id   = NWayTree(Tree_incNodes)(tree);
+  node->id   = NWayTree_incNodes(tree);
   return node;
  }
 
@@ -456,7 +408,7 @@ inline static void NWayTree(ErrFindResult)                                      
    }
 
   NWayTree_FindResult_Index(ri, r);
-  NWayTree_FindResult_Node(n, r);
+  NWayTree_FindResult_node(n, r);
   NWayTree_Node_keys(k,  n, ri);
   NWayTree_FindResult_Key(K, r);
 
@@ -469,21 +421,18 @@ inline static long NWayTree(Full)                                               
  (NWayTree(Node) * const node)
  {NWayTree_Node_tree(t, node);
   NWayTree_Node_length(nl, node);
-  return nl == NWayTree(MaximumNumberOfKeys)(t);
+  NWayTree_maximumNumberOfKeys(m, t);
+  return nl == m;
  }
 
 inline static long NWayTree(HalfFull)                                           // Confirm that a node is half full.
  (NWayTree(Node) * const node)                                                  // Node
  {NWayTree_Node_length(n, node);
   NWayTree_Node_tree(t, node);
-  assert(n <= NWayTree(MaximumNumberOfKeys)(t)+1);
-  return n == NWayTree(MinimumNumberOfKeys)(t);
- }
-
-inline static long NWayTree(IsLeaf)                                             // Confirm that the tree is a leaf.
- (NWayTree(Node) * const node)                                                  // Node to test
- {NWayTree_Node_down(d, node, 0);
-  return d == 0;                                                                // No children so it must be a leaf
+  NWayTree_maximumNumberOfKeys(M, t);
+  assert(n <= M+1);
+  NWayTree_minimumNumberOfKeys(m, t);
+  return n == m;
  }
 
 inline static long NWayTree(IndexInParent)                                      // Get the index of a node in its parent.
@@ -506,7 +455,8 @@ inline static long NWayTree(CheckNode)                                          
  {NWayTree_Node_length(nl, node);
   NWayTree_Node_tree(t, node);
 
-  if (nl > NWayTree(MaximumNumberOfKeys)(t))
+  NWayTree_maximumNumberOfKeys(m, t);
+  if (nl > m)
    {NWayTree_Node_keys(k, node, 0);
     say("%s: Node %ld is too long at %ld", name, k, nl);
     return 1;
@@ -516,7 +466,7 @@ inline static long NWayTree(CheckNode)                                          
    {NWayTree_Node_down(d, node, i);                                             // Step down
     if (d)
      {NWayTree_Node_length(dl, d);
-      if (dl > NWayTree(MaximumNumberOfKeys)(t))
+      if (dl > m)
        {NWayTree_Node_keys(nk, node, 0);
         NWayTree_Node_keys(dk, d,    0);
         say("%s: Node %ld under %ld is too long at %ld", name, nk, dk, dl);
@@ -541,7 +491,7 @@ inline static long NWayTree(CheckNode)                                          
   if (p)
    {NWayTree_Node_length(pl, p);
     NWayTree_Node_tree(t, node);                                                // Check that parent connects to the current node
-    NWayTree_GetLong(m, NWayTree(MaximumNumberOfKeys)(t));
+    NWayTree_maximumNumberOfKeys(m, t);
     assert(pl <= m);
     int c = 0;                                                                  // Check that the parent has a down pointer to the current node
     for(long i = 0; i <= pl; ++i)
@@ -593,7 +543,7 @@ inline static long NWayTree(SplitFullNode)                                      
  {NWayTree_Node_length(nl, node);
 
   NWayTree_Node_tree(t, node);                                                  // Associated tree
-  NWayTree_GetLong(m, NWayTree(MaximumNumberOfKeys)(t));
+  NWayTree_maximumNumberOfKeys(m, t);
   if (nl < m)                                                                   // Must be a full node
    {return 0;
    }
@@ -601,7 +551,7 @@ inline static long NWayTree(SplitFullNode)                                      
   NWayTree_GetNode(l, NWayTree(NewNode)(t));                                    // New child nodes
   NWayTree_GetNode(r, NWayTree(NewNode)(t));
 
-  NWayTree_GetLong(N, NWayTree(MaximumNumberOfKeys)(t));                        // Split points
+  NWayTree_maximumNumberOfKeys(N, t);                                           // Split points
   NWayTree_GetLong(n, N>>1);                                                    // Index of key that will be placed in parent
 
   NWayTree_Node_setLength(L, l, n);
@@ -610,7 +560,8 @@ inline static long NWayTree(SplitFullNode)                                      
   NWayTree(Node_copy)(l, node, 0, 0,   L);                                      // Split left node
   NWayTree(Node_copy)(r, node, 0, n+1, R);                                      // Split right node
 
-  if (!NWayTree(IsLeaf)(node))                                                  // Not a leaf node
+  NWayTree_Node_isLeaf(leaf, node);                                                // Leaf node
+  if (!leaf)                                                                       // Not a leaf node
    {NWayTree(ReUp)(l);
     NWayTree(ReUp)(r);
    }
@@ -618,7 +569,7 @@ inline static long NWayTree(SplitFullNode)                                      
   NWayTree_Node_up(p, node);                                                    // Existing parent node
   if (p)                                                                        // Not a root node
    {NWayTree_Node_length(pl, p);
-    NWayTree_Node_setUp(l, p);                                                 // Connect children to parent
+    NWayTree_Node_setUp(l, p);                                                  // Connect children to parent
     NWayTree_Node_setUp(r, p);
     NWayTree_Node_down(d, p, 0);
 
@@ -698,7 +649,8 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     NWayTree_GetLong(last, nl-1);                                               // Greater than largest key in node. Data often gets inserted in ascending order so we do this check first rather than last.
     NWayTree_Node_keys(K, node, last);
     if (key > K)                                                                // Key greater than current key
-     {if (NWayTree(IsLeaf)(node))                                               // Leaf
+     {NWayTree_Node_isLeaf(leaf, node);                                         // Leaf
+      if (leaf)                                                                 // Leaf
        {NWayTree_FindComparison(h, higher);
         return NWayTree(NewFindResult)(node, key, h, last);
        }
@@ -717,7 +669,8 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
         return NWayTree(NewFindResult)(node, key, e, i);
        }
       if (key < k)                                                              // Greater than current key
-       {if (NWayTree(IsLeaf)(node))
+       {NWayTree_Node_isLeaf(leaf, node);
+        if (leaf)
          {NWayTree_FindComparison(l, lower);
           return NWayTree(NewFindResult)(node, key, l, i);
          }
@@ -760,7 +713,8 @@ inline static void NWayTree(FillFromLeftOrRight)                                
     NWayTree_Node_setKeys(p, i, rk);
     NWayTree_Node_setData(p, i, rd);
 
-    if (!NWayTree(IsLeaf)(n))                                                   // Transfer node if not a leaf
+    NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
+    if (!leaf)                                                                  // Transfer node if not a leaf
      {void * const rd = ArrayVoidShift((void *)r->down, rl);
       ArrayVoidPush((void *)n->down, nl, rd);
       NWayTree_Node_down(d, n, nl+1);
@@ -783,9 +737,10 @@ inline static void NWayTree(FillFromLeftOrRight)                                
 
     NWayTree_GetLong(lk, ArrayLongPop(l->keys, ll));                            // Transfer key and data to parent
     NWayTree_GetLong(ld, ArrayLongPop(l->data, ll));
-    NWayTree_Node_setKeys(p, I, lk);                                           // Transfer key and data to parent
+    NWayTree_Node_setKeys(p, I, lk);                                            // Transfer key and data to parent
     NWayTree_Node_setData(p, I, ld);
-    if (!NWayTree(IsLeaf)(l))                                                   // Transfer node if not a leaf
+    NWayTree_Node_isLeaf(leaf, l);                                              // Leaf
+    if (!leaf)                                                                  // Transfer node if not a leaf
      {void * ld = ArrayVoidPop((void *)l->down, ll);
       ArrayVoidUnShift(        (void *)l->down, ll, ld);
 
@@ -825,7 +780,8 @@ inline static void NWayTree(MergeWithLeftOrRight)                               
     ArrayLongPushArray(n->keys, nl+1, r->keys, rl);                             // Transfer keys
     ArrayLongPushArray(n->data, nl+1, r->data, rl);                             // Transfer data
 
-    if (!NWayTree(IsLeaf)(n))                                                   // Children of merged node
+    NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
+    if (!leaf)                                                                  // Children of merged node
      {ArrayVoidPushArray((void *)n->down, nl,(void *)r->down, rl);
       NWayTree(ReUp)(n);                                                        // Update parent of children of right node
      }
@@ -847,7 +803,8 @@ inline static void NWayTree(MergeWithLeftOrRight)                               
     ArrayLongUnShiftArray(n->keys, nl+1, l->keys, ll);                          // Transfer left keys and data
     ArrayLongUnShiftArray(n->data, nl+1, l->data, ll);
 
-    if (!NWayTree(IsLeaf)(n))                                                   // Children of merged node
+    NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
+    if (!leaf)                                                                  // Children of merged node
      {ArrayLongUnShiftArray((void *)n->down, nl,
                             (void *)l->down, ll);
       NWayTree(ReUp)(n);                                                        // Update parent of children of left node
@@ -957,7 +914,7 @@ static NWayTree(FindResult) NWayTree(Find)                                      
     NWayTree_Node_keys(nk, node, nl-1);
 
     if (key > nk)                                                               // Bigger than every key
-     {NWayTree_GetLong(l, NWayTree(IsLeaf)(node));                              // Leaf
+     {NWayTree_Node_isLeaf(l, node);                                            // Leaf
       if (l)
        {NWayTree_FindComparison(h, higher);
         return NWayTree(NewFindResult)(node, key, h, nl-1);
@@ -974,7 +931,8 @@ static NWayTree(FindResult) NWayTree(Find)                                      
         return NWayTree(NewFindResult)(node, key, e, i);
        }
       if (key < k)                                                              // Lower than current key
-       {if (NWayTree(IsLeaf)(node))                                             // Leaf
+       {NWayTree_Node_isLeaf(leaf, node);                                       // Leaf
+        if (leaf)                                                               // Leaf
          {NWayTree_FindComparison(l, lower);
           return NWayTree(NewFindResult)(node, key, l, i);
          }
@@ -1000,19 +958,19 @@ static void NWayTree(Insert)                                                    
     NWayTree_Node_setKeys(n, 0, key);
     NWayTree_Node_setData(n, 0, data);
     NWayTree_Node_setLength(n1, n, 1); if(n1) {}
-    NWayTree_GetLong(nk, NWayTree(Tree_keys)(tree));
-    NWayTree(Tree_setKeys)(tree, nk+1);
+    NWayTree_keys(nk, tree);
+    NWayTree_setKeys(tree, nk+1);
     NWayTree_setNode(tree, n);
     return;
    }
 
   NWayTree_Node_length(nl, n);                                                  // Current length of node
-  NWayTree_GetLong(m, NWayTree(MaximumNumberOfKeys)(tree));                     // Maximum number of keys allowed in a node
+  NWayTree_maximumNumberOfKeys(m, tree);                                        // Maximum number of keys allowed in a node
 
   if (nl < m)                                                                   // Node is root with no children and room for one more key
    {NWayTree_Node_up(p, n);
     if (!p)
-     {NWayTree_GetLong(leaf, NWayTree(IsLeaf)(n));
+     {NWayTree_Node_isLeaf(leaf, n);
       if (leaf)
        {for(long i = 0; i < nl; ++i)                                            // Each key
          {NWayTree_Node_keys(nk, n, i);
@@ -1025,21 +983,21 @@ static void NWayTree(Insert)                                                    
            {ArrayLongInsert(n->keys, nl+1, key,  i);
             ArrayLongInsert(n->data, nl+1, data, i);
             NWayTree_Node_setLength(n1, n, nl+1); if (n1) {}
-            NWayTree(Tree_incKeys)(tree);
+            NWayTree_incKeys(tree);
             return;
            }
          }
         ArrayLongPush(n->keys, nl, key);                                        // Insert the key at the end of the block because it is greater than all the other keys in the block
         ArrayLongPush(n->data, nl, data);
         NWayTree_Node_setLength(n1, n, nl+1); if (n1) {}
-        NWayTree(Tree_incKeys)(tree);
+        NWayTree_incKeys(tree);
         return;
        }
      }
    }
                                                                                 // Insert node
   NWayTree(FindResult) const r = NWayTree(FindAndSplit)(tree, key);             // Check for existing key
-  NWayTree_FindResult_Node(N, r);
+  NWayTree_FindResult_node(N, r);
   NWayTree_FindComparison(e, equal);
   NWayTree_FindResult_Cmp(c, r);
 
@@ -1073,7 +1031,7 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
    {NWayTree_FindComparison(n, notFound);
     return NWayTree(NewFindResult)(node, 0, n, 0);
    }
-  NWayTree_GetLong(leaf, NWayTree(IsLeaf)(node));
+  NWayTree_Node_isLeaf(leaf, node);
   if (!leaf)                                                                    // Still some way to go
    {NWayTree_Node_down(d, node, 0);
     return NWayTree(GoAllTheWayLeft)(d);
@@ -1088,7 +1046,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
  (NWayTree(FindResult) const find)
  {NWayTree(Node) *node = find.node;
   //say("BBBB %ld %ld", find.key, find.index);
-  NWayTree_GetLong(leaf, NWayTree(IsLeaf)(node));
+  NWayTree_Node_isLeaf(leaf, node);
   if (leaf)                                                                     // Leaf
    {//say("CCCC %ld", node->id);
     NWayTree_FindResult_Index(I, find);
@@ -2264,7 +2222,7 @@ void test_3_Find()
     assert(i % 2 == 0 ? cmp == NWayTree(FindComparison_equal) :
                         cmp != NWayTree(FindComparison_equal));
     const long      ri = NWayTree(FindResult_index)(r);
-    NWayTree(Node) *rn = NWayTree(FindResult_node) (r);
+    NWayTree_FindResult_node(rn, r);
     NWayTree_Node_keys(rk, rn, ri);
     NWayTree_FindComparison(l, lower);
     NWayTree_FindComparison(e, equal);

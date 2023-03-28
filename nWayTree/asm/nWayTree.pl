@@ -4,6 +4,7 @@
 # Philip R Brenan at appaapps dot com, Appa Apps Ltd Inc., 2023
 #-------------------------------------------------------------------------------
 use v5.30;
+package NWayTree::Assembler;
 use warnings FATAL => qw(all);
 use strict;
 use Data::Dump qw(dump);
@@ -12,7 +13,7 @@ use Zero::Emulator qw(:all);
 use utf8;
 use Test::More qw(no_plan);
 
-my $𝗧𝗿𝗲𝗲 = sub                                                                  # The structure of an n-way tree
+my $Tree = sub                                                                  # The structure of an n-way tree
  {my $t = Zero::Emulator::areaStructure("NWayTree_Structure");
      $t->name(q(NumberOfKeysPerNode));                                          # The maximum number of keys in a node of this tree
      $t->name(q(keys));                                                         # Number of keys in tree
@@ -20,7 +21,7 @@ my $𝗧𝗿𝗲𝗲 = sub                                                      
      $t
  }->();
 
-my $𝗡𝗼𝗱𝗲 = sub                                                                  # The structure of an n-way tree node
+my $Node = sub                                                                  # The structure of an n-way tree node
  {my $n = Zero::Emulator::areaStructure("NWayTree_Node_Structure");
      $n->name(q(length));                                                       # The current number of keys in the node
      $n->name(q(id));                                                           # A number identifying this node within this tree
@@ -32,36 +33,55 @@ my $𝗡𝗼𝗱𝗲 = sub                                                      
      $n
  }->();
 
-ok $𝗧𝗿𝗲𝗲->offset(q(nodes)) == 2;
-ok $𝗡𝗼𝗱𝗲->offset(q(tree)) == 6;
+our $main;                                                                      # Assembly we are creating code in
 
-if (1)
- {Start 1;
-  Out "hello World";
-  ok Execute(out=>["hello World"]);
+sub NWayTree_new($$)                                                            # Create a variable refering to a new tree descriptor
+ {my ($tree, $n) = @_;                                                          # Name of variable to refer to tree, maximum number of keys per node in this tree
+
+  my $new = Procedure 'NWayTree_new', sub
+   {my ($p) = @_;                                                               # Procedure description
+    my ($t, $n) = $p->variables->names(qw(t n));                                # Tree, maximum number of keys per node in this tree
+    Alloc $t;                                                                   # Allocate tree descriptor
+    ParamsGet $n, \0;                                                           # Maximum number of keys per node
+    Put $t, $Tree->address(q(keys)),  0;                                        # Clear keys
+    Put $t, $Tree->address(q(nodes)), 0;                                        # Clear nodes
+    Put $t, $Tree->address(q(NumberOfKeysPerNode)), $n;                         # Save maximum number of keys per node
+    ReturnPut 0, $t;                                                            # Return id of area containing tree descriptor
+    Return;
+   };
+
+  ParamsPut \0, $n;
+  Call $new;                                                                    # Create a new tree descriptor
+  my ($t) = $main->variables->names($n);                                        # Create a variable to hold the results of this call
+  ReturnGet $t, \0;                                                             # Id of area containing tree descriptor
+  $t
  }
 
-my $main = Start 1;                                                             # Start assembly
-
-my $tree_new = Procedure 'NWayTree_new', sub
- {my ($p) = @_;                                                                 # Procedure description
-  my ($t, $n) = $p->variables->names(qw(t n));                                  # Tree, maximum number of keys per node in this tree
-  Alloc $t;                                                                     # Allocate tree descriptor
-  ParamsGet $n, \0;                                                             # Maximum number of keys per node
-  Put $t, $𝗧𝗿𝗲𝗲->address(q(keys)),  0;                                          # Clear keys
-  Put $t, $𝗧𝗿𝗲𝗲->address(q(nodes)), 0;                                          # Clear nodes
-  Put $t, $𝗧𝗿𝗲𝗲->address(q(NumberOfKeysPerNode)), $n;                           # Save maximum number of keys per node
-  ReturnPut 0, $t;                                                              # Return id of area containing tree descriptor
-  Return;
+sub NWayTree_numberOfKeysPerNode($$)                                            # Get the maximum number of keys per node for a tree
+ {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
+  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
+  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+  $n
  };
 
-ParamsPut \0, 3;
-Call $tree_new;
-my ($t) = $main->variables->names(qw(t));
-ReturnGet $t, 0;                                                                # Id of area containing tree descriptor
-AssertEq $t, 1000009;
+#my $NWayTree_maximumNumberOfKeys = Procedure 'NWayTree_maximumNumberOfKeys', sub {my ($p) = @_; (n, tree)  NWayTree_numberOfKeysPerNode(n, tree)
+#my $NWayTree_minimumNumberOfKeys = Procedure 'NWayTree_minimumNumberOfKeys', sub {my ($p) = @_; (n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) << 1;
 
-my $r = Execute;
-is_deeply $r->memory->{1000006} => [3, 0, 0];
+
+ok $Tree->offset(q(nodes)) == 2;
+ok $Node->offset(q(tree)) == 6;
+
+if (1)                                                                          #T
+ {$main = Start 1;                                                            # Start assembly
+
+  my $t = NWayTree_new(q(t), 3);
+  AssertEq $t, 1000006;
+
+  my $n = NWayTree_numberOfKeysPerNode(q(n), $t);
+  AssertEq $n, 3;
+
+  my $r = Execute;
+  is_deeply $r->memory->{1000006} => [3, 0, 0];
+ }
 
 done_testing;

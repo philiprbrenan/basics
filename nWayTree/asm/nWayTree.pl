@@ -16,6 +16,7 @@ use Test::More qw(no_plan);
 my $Tree = sub                                                                  # The structure of an n-way tree
  {my $t = Zero::Emulator::areaStructure("NWayTree_Structure");
      $t->name(q(NumberOfKeysPerNode));                                          # The maximum number of keys in a node of this tree
+     $t->name(q(root));                                                         # Root node
      $t->name(q(keys));                                                         # Number of keys in tree
      $t->name(q(nodes));                                                        # Number of nodes in tree
      $t
@@ -43,9 +44,10 @@ sub NWayTree_new($$)                                                            
     my ($t, $n) = $p->variables->names(qw(t n));                                # Tree, maximum number of keys per node in this tree
     Alloc $t;                                                                   # Allocate tree descriptor
     ParamsGet $n, \0;                                                           # Maximum number of keys per node
+    Put $t, $Tree->address(q(NumberOfKeysPerNode)), $n;                         # Save maximum number of keys per node
+    Put $t, $Tree->address(q(root)), 0;                                         # Clear root
     Put $t, $Tree->address(q(keys)),  0;                                        # Clear keys
     Put $t, $Tree->address(q(nodes)), 0;                                        # Clear nodes
-    Put $t, $Tree->address(q(NumberOfKeysPerNode)), $n;                         # Save maximum number of keys per node
     ReturnPut 0, $t;                                                            # Return id of area containing tree descriptor
     Return;
    };
@@ -72,9 +74,17 @@ sub NWayTree_maximumNumberOfKeys($$)                                            
   $n
  };
 
+sub NWayTree_node($$)                                                           # Get the root node of a tree
+ {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
+  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
+  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+  $n
+ };
 
-ok $Tree->offset(q(nodes)) == 2;
-ok $Node->offset(q(tree)) == 6;
+#define NWayTree_node(n, tree)                 NWayTree(Node) *       n = tree->node;
+
+ok $Tree->offset(q(nodes)) == 3;
+ok $Node->offset(q(tree))  == 6;
 
 if (1)                                                                          #T
  {$main = Start 1;                                                              # Start assembly
@@ -86,6 +96,7 @@ if (1)                                                                          
   AssertEq $n, 3;
 
   my $r = Execute;
+  say STDERR "AAAA", dump($r->memory->{1000006});
   is_deeply $r->memory->{1000006} => [3, 0, 0];
  }
 

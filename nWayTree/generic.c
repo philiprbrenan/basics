@@ -115,10 +115,10 @@ inline static void NWayTree(FreeNode)                                           
 //D2 Tree
 
 typedef struct NWayTree(Tree)                                                   // The root of a tree
- {long NumberOfKeysPerNode;                                                     // Size of a node
-  NWayTree(Node) *root;                                                         // Root node
-  long keys;                                                                    // Number of keys in tree
+ {long keys;                                                                    // Number of keys in tree
   long nodes;                                                                   // Number of nodes in tree
+  long NumberOfKeysPerNode;                                                     // Size of a node
+  NWayTree(Node) *root;                                                         // Root node
  } NWayTree(Tree);
 
 static NWayTree(Tree) *NWayTree(New)                                            // Create a new tree

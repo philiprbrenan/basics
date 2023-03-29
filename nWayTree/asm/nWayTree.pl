@@ -41,13 +41,13 @@ sub NWayTree_new($$)                                                            
 
   my $new = Procedure 'NWayTree_new', sub
    {my ($p) = @_;                                                               # Procedure description
-    my ($t, $n) = $p->variables->names(qw(t n));                                # Tree, maximum number of keys per node in this tree
+    my ($t, $n) = $p->variables->temporary(2);                                  # Tree, maximum number of keys per node in this tree
     Alloc $t;                                                                   # Allocate tree descriptor
     ParamsGet $n, \0;                                                           # Maximum number of keys per node
-    Put $t, $Tree->address(q(NumberOfKeysPerNode)), $n;                         # Save maximum number of keys per node
-    Put $t, $Tree->address(q(root)), 0;                                         # Clear root
-    Put $t, $Tree->address(q(keys)),  0;                                        # Clear keys
-    Put $t, $Tree->address(q(nodes)), 0;                                        # Clear nodes
+    Mov $Tree->address(q(NumberOfKeysPerNode)), $t, $n, undef;                  # Save maximum number of keys per node
+    Mov $Tree->address(q(root)),                $t,  0, undef;                  # Clear root
+    Mov $Tree->address(q(keys)),                $t,  0, undef;                  # Clear keys
+    Mov $Tree->address(q(nodes)),               $t,  0, undef;                  # Clear nodes
     ReturnPut 0, $t;                                                            # Return id of area containing tree descriptor
     Return;
    };
@@ -59,32 +59,42 @@ sub NWayTree_new($$)                                                            
   $t
  }
 
-sub NWayTree_numberOfKeysPerNode($$)                                            # Get the maximum number of keys per node for a tree
- {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
-  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
-  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+sub NWayTree_numberOfKeysPerNode($)                                             # Get the maximum number of keys per node for a tree
+ {my ($tree) = @_;                                                              # Tree to examine
+  my $n = $main->variables->temporary;                                          # Create a variable to hold the results of this call
+  Mov $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
   $n
  };
 
 
-sub NWayTree_maximumNumberOfKeys($$)                                            # Get the maximum number of keys per node for a tree
- {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
-  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
-  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+sub NWayTree_maximumNumberOfKeys($)                                             # Get the maximum number of keys per node for a tree
+ {my ($tree) = @_;                                                              # Tree to examine
+  my $n = $main->variables->temporary;                                          # Create a variable to hold the results of this call
+  Mov $n, $Tree->address(q(NumberOfKeysPerNode)), $tree;                        # Get attribute from tree descriptor
   $n
  };
 
-sub NWayTree_root($$)                                                           # Get the root node of a tree
- {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
-  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
-  Get $n, $tree, $Tree->address(q(root));                                       # Get attribute from tree descriptor
+sub NWayTree_root($)                                                            # Get the root node of a tree
+ {my ($tree) = @_;                                                              # Tree to examine
+  my $n = $main->variables->temporary;                                          # Create a variable to hold the results of this call
+  Mov $n, $Tree->address(q(root)), $tree;                                       # Get attribute from tree descriptor
   $n
  };
 
 sub NWayTree_setRoot($$)                                                        # Set the root node of a tree
  {my ($tree, $name) = @_;                                                       # Tree, name of variable referencing root
-  Put $tree, $Tree->address(q(root)), $name;                                    # Set root attribute
+  Mov $Tree->address(q(root)), $tree, $name, undef;                             # Set root attribute
  };
+
+sub NWayTree_incKeys($)                                                         # Increment the number of keys
+ {my ($tree) = @_;                                                              # Tree
+  Inc $Tree->address(q(keys)), $tree;                                           # Number of keys
+ };
+
+#define NWayTree_incKeys(tree)               ++tree->keys;
+#define NWayTree_incNodes(tree)              ++tree->nodes;
+
+
 
 ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;
@@ -93,21 +103,20 @@ if (1)                                                                          
  {$main = Start 1;                                                              # Start assembly
 
   my $t = NWayTree_new(q(t), 3);
-  AssertEq $t, 1000006;
+  AssertEq $t, 6;
 
-  my $r = NWayTree_root(q(r), $t);
+  my $r = NWayTree_root($t);
   AssertEq $r, 0;
 
   NWayTree_setRoot($t, 1);
-  my $R = NWayTree_root(q(R), $t);
+  my $R = NWayTree_root($t);
   AssertEq $R, 1;
 
-  my $n = NWayTree_maximumNumberOfKeys(q(n), $t);
+  my $n = NWayTree_maximumNumberOfKeys($t);
   AssertEq $n, 3;
 
   my $e = Execute;
-  say STDERR "AAAA", dump($e->memory);
-  is_deeply $e->memory->{1000006} => [0, 0, 3, 1];
+  is_deeply $e->memory->{6} => [0, 0, 3, 1];
  }
 
 done_testing;

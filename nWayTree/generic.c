@@ -193,7 +193,7 @@ static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
 
 //D1 Node Construction
 
-inline static NWayTree(Node) *NWayTree(NewNode)                                 // Create a new node
+inline static NWayTree(Node) *NWayTree(Node_new)                                 // Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
  {NWayTree_maximumNumberOfKeys(z, tree);
   NWayTree_constLong(k, size_of_element                 *  z);
@@ -531,8 +531,8 @@ inline static long NWayTree(SplitFullNode)                                      
    {return 0;
    }
 
-  NWayTree_constNode(l, NWayTree(NewNode)(t));                                  // New child nodes
-  NWayTree_constNode(r, NWayTree(NewNode)(t));
+  NWayTree_constNode(l, NWayTree(Node_new)(t));                                  // New child nodes
+  NWayTree_constNode(r, NWayTree(Node_new)(t));
 
   NWayTree_maximumNumberOfKeys(N, t);                                           // Split points
   NWayTree_constLong(n, N>>1);                                                  // Index of key that will be placed in parent
@@ -940,7 +940,7 @@ static void NWayTree(Insert)                                                    
  {NWayTree_root(n, tree);                                                       // Root node of tree
 
   if (!n)                                                                       // Empty tree
-   {NWayTree_constNode(n, NWayTree(NewNode)(tree));
+   {NWayTree_constNode(n, NWayTree(Node_new)(tree));
     NWayTree_Node_setKeys(n, 0, key);
     NWayTree_Node_setData(n, 0, data);
     NWayTree_Node_setLength(n, 1);
@@ -1425,7 +1425,7 @@ void test_31_3()                                                                
  }
 
 NWayTree(Node) *createNode3(NWayTree(Tree) * t, long a, long b, long c)         // Create a test node
- {NWayTree(Node) *n = NWayTree(NewNode)(t);
+ {NWayTree(Node) *n = NWayTree(Node_new)(t);
   NWayTree_Node_setKeys(n, 0, a); NWayTree_Node_setData(n, 0, 2*a);
   NWayTree_Node_setKeys(n, 1, b); NWayTree_Node_setData(n, 1, 2*b);
   NWayTree_Node_setKeys(n, 2, c); NWayTree_Node_setData(n, 2, 2*c);

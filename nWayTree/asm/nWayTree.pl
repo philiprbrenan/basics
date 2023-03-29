@@ -64,20 +64,25 @@ sub NWayTree_numberOfKeysPerNode($$)                                            
   $n
  };
 
-*NWayTree_maximumNumberOfKeys = *NWayTree_numberOfKeysPerNode;
-#my $NWayTree_minimumNumberOfKeys = Procedure 'NWayTree_minimumNumberOfKeys', sub {my ($p) = @_; (n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) << 1;
+
+sub NWayTree_maximumNumberOfKeys($$)                                            # Get the maximum number of keys per node for a tree
+ {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
+  my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
+  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+  $n
+ };
 
 
 ok $Tree->offset(q(nodes)) == 2;
 ok $Node->offset(q(tree)) == 6;
 
 if (1)                                                                          #T
- {$main = Start 1;                                                            # Start assembly
+ {$main = Start 1;                                                              # Start assembly
 
   my $t = NWayTree_new(q(t), 3);
   AssertEq $t, 1000006;
 
-  my $n = NWayTree_numberOfKeysPerNode(q(n), $t);
+  my $n = NWayTree_maximumNumberOfKeys(q(n), $t);
   AssertEq $n, 3;
 
   my $r = Execute;

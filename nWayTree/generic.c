@@ -21,9 +21,8 @@
 
 #define NWayTree_new(tree, n)                  NWayTree(Tree) * const tree = NWayTree(New)(n);
 #define NWayTree_constNode(node, code)         NWayTree(Node) *       node = code;
-#define NWayTree_numberOfKeysPerNode(n, tree)  const long n = tree->NumberOfKeysPerNode;
-#define NWayTree_maximumNumberOfKeys(n, tree)  NWayTree_numberOfKeysPerNode(n, tree)
-#define NWayTree_minimumNumberOfKeys(n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) << 1;
+#define NWayTree_maximumNumberOfKeys(n, tree)  const long n = tree->NumberOfKeysPerNode;
+//#define NWayTree_minimumNumberOfKeys(n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) >> 1;
 
 #define NWayTree_node(n, tree)                 NWayTree(Node) *       n = tree->node;
 #define NWayTree_setNode(tree, n)              tree->node = n;
@@ -198,7 +197,7 @@ static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
 
 inline static NWayTree(Node) *NWayTree(NewNode)                                 // Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
- {NWayTree_numberOfKeysPerNode(z, tree);
+ {NWayTree_maximumNumberOfKeys(z, tree);
   NWayTree_constLong(k, size_of_element                 *  z);
   NWayTree_constLong(d, size_of_element                 *  z);
   NWayTree_constLong(n, sizeof(struct NWayTree(Node) *) * (z + 1));
@@ -215,7 +214,7 @@ inline static NWayTree(Node) *NWayTree(NewNode)                                 
 
 inline static long NWayTree(SizeOfNode)                                         // The size of a node in a tree
  (NWayTree(Tree) *tree)                                                         // Tree
- {NWayTree_numberOfKeysPerNode(z, tree);
+ {NWayTree_maximumNumberOfKeys(z, tree);
   NWayTree_constLong(k, size_of_element                 *  z);
   NWayTree_constLong(d, size_of_element                 *  z);
   NWayTree_constLong(n, sizeof(struct NWayTree(Node) *) * (z + 1));
@@ -411,15 +410,15 @@ inline static long NWayTree(Full)                                               
   return nl == m;
  }
 
-inline static long NWayTree(HalfFull)                                           // Confirm that a node is half full.
- (NWayTree(Node) * const node)                                                  // Node
- {NWayTree_Node_length(n, node);
-  NWayTree_Node_tree(t, node);
-  NWayTree_maximumNumberOfKeys(M, t);
-  assert(n <= M+1);
-  NWayTree_minimumNumberOfKeys(m, t);
-  return n == m;
- }
+//inline static long NWayTree(HalfFull)                                           // Confirm that a node is half full.
+// (NWayTree(Node) * const node)                                                  // Node
+// {NWayTree_Node_length(n, node);
+//  NWayTree_Node_tree(t, node);
+//  NWayTree_maximumNumberOfKeys(M, t);
+//  assert(n <= M+1);
+//  NWayTree_minimumNumberOfKeys(m, t);
+//  return n == m;
+// }
 
 inline static long NWayTree(IndexInParent)                                      // Get the index of a node in its parent.
  (NWayTree(Node) * const node)                                                  // Node to locate in parent

@@ -15,10 +15,10 @@ use Test::More qw(no_plan);
 
 my $Tree = sub                                                                  # The structure of an n-way tree
  {my $t = Zero::Emulator::areaStructure("NWayTree_Structure");
-     $t->name(q(NumberOfKeysPerNode));                                          # The maximum number of keys in a node of this tree
-     $t->name(q(root));                                                         # Root node
      $t->name(q(keys));                                                         # Number of keys in tree
      $t->name(q(nodes));                                                        # Number of nodes in tree
+     $t->name(q(NumberOfKeysPerNode));                                          # The maximum number of keys in a node of this tree
+     $t->name(q(root));                                                         # Root node
      $t
  }->();
 
@@ -74,16 +74,14 @@ sub NWayTree_maximumNumberOfKeys($$)                                            
   $n
  };
 
-sub NWayTree_node($$)                                                           # Get the root node of a tree
+sub NWayTree_root($$)                                                           # Get the root node of a tree
  {my ($name, $tree) = @_;                                                       # Name of variable to hold the result, tree to examine
   my ($n) = $main->variables->names($name);                                     # Create a variable to hold the results of this call
-  Get $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
+  Get $n, $tree, $Tree->address(q(root));                                       # Get attribute from tree descriptor
   $n
  };
 
-#define NWayTree_node(n, tree)                 NWayTree(Node) *       n = tree->node;
-
-ok $Tree->offset(q(nodes)) == 3;
+ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;
 
 if (1)                                                                          #T
@@ -92,12 +90,14 @@ if (1)                                                                          
   my $t = NWayTree_new(q(t), 3);
   AssertEq $t, 1000006;
 
+  my $r = NWayTree_root(q(r), $t);
+  AssertEq $r, 0;
+
   my $n = NWayTree_maximumNumberOfKeys(q(n), $t);
   AssertEq $n, 3;
 
-  my $r = Execute;
-  say STDERR "AAAA", dump($r->memory->{1000006});
-  is_deeply $r->memory->{1000006} => [3, 0, 0];
+  my $e = Execute;
+  is_deeply $e->memory->{1000006} => [0, 0, 3, 0];
  }
 
 done_testing;

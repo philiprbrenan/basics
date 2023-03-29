@@ -64,7 +64,7 @@ sub NWayTree_numberOfKeysPerNode($$)                                            
   $n
  };
 
-#my $NWayTree_maximumNumberOfKeys = Procedure 'NWayTree_maximumNumberOfKeys', sub {my ($p) = @_; (n, tree)  NWayTree_numberOfKeysPerNode(n, tree)
+*NWayTree_maximumNumberOfKeys = *NWayTree_numberOfKeysPerNode;
 #my $NWayTree_minimumNumberOfKeys = Procedure 'NWayTree_minimumNumberOfKeys', sub {my ($p) = @_; (n, tree)  const long n = (tree->NumberOfKeysPerNode - 1) << 1;
 
 

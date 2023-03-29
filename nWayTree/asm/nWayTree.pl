@@ -36,8 +36,8 @@ my $Node = sub                                                                  
 
 our $main;                                                                      # Assembly we are creating code in
 
-sub NWayTree_new($$)                                                            # Create a variable refering to a new tree descriptor
- {my ($tree, $n) = @_;                                                          # Name of variable to refer to tree, maximum number of keys per node in this tree
+sub NWayTree_new($)                                                             # Create a variable refering to a new tree descriptor
+ {my ($n) = @_;                                                                 # Maximum number of keys per node in this tree
 
   my $new = Procedure 'NWayTree_new', sub
    {my ($p) = @_;                                                               # Procedure description
@@ -54,7 +54,7 @@ sub NWayTree_new($$)                                                            
 
   ParamsPut \0, $n;
   Call $new;                                                                    # Create a new tree descriptor
-  my ($t) = $main->variables->names($n);                                        # Create a variable to hold the results of this call
+  my $t = $main->variables->temporary;                                          # Create a variable to hold the results of this call
   ReturnGet $t, \0;                                                             # Id of area containing tree descriptor
   $t
  }
@@ -102,21 +102,21 @@ ok $Node->offset(q(tree))  == 6;
 if (1)                                                                          #T
  {$main = Start 1;                                                              # Start assembly
 
-  my $t = NWayTree_new(q(t), 3);
-  AssertEq $t, 6;
+  my $t = NWayTree_new(3);
 
   my $r = NWayTree_root($t);
-  AssertEq $r, 0;
 
   NWayTree_setRoot($t, 1);
   my $R = NWayTree_root($t);
-  AssertEq $R, 1;
 
   my $n = NWayTree_maximumNumberOfKeys($t);
-  AssertEq $n, 3;
+
+  NWayTree_incKeys($t) for 1..2;
+  Out $Tree->address(q(keys)), $t;
 
   my $e = Execute;
-  is_deeply $e->memory->{6} => [0, 0, 3, 1];
+  is_deeply $e->out         => [2];
+  is_deeply $e->memory->{6} => [2, 0, 3, 1];
  }
 
 done_testing;

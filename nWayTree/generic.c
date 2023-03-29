@@ -26,8 +26,6 @@
 
 #define NWayTree_root(n, tree)                 NWayTree(Node) *       n = tree->root;
 #define NWayTree_setRoot(tree, n)              tree->root = n;
-#define NWayTree_keys(n, tree)                 const long n = tree->keys;
-#define NWayTree_setKeys(tree, n)              tree->keys = n;
 #define NWayTree_incKeys(tree)               ++tree->keys;
 #define NWayTree_incNodes(tree)              ++tree->nodes;
 
@@ -946,8 +944,7 @@ static void NWayTree(Insert)                                                    
     NWayTree_Node_setKeys(n, 0, key);
     NWayTree_Node_setData(n, 0, data);
     NWayTree_Node_setLength(n, 1);
-    NWayTree_keys(nk, tree);
-    NWayTree_setKeys(tree, nk+1);
+    NWayTree_incKeys(tree);
     NWayTree_setRoot(tree, n);
     return;
    }
@@ -1441,7 +1438,6 @@ void test_3_4a()                                                                
  {NWayTree(Tree) *t = NWayTree(New)(3);
   NWayTree(Node) *n = createNode3(t, 1, 2, 3);
   NWayTree_Node_setLength(n, 3);
-  NWayTree_setKeys(t, 3);
   NWayTree_setRoot(t, n);
 
   long r = NWayTree(SplitFullNode)(n);

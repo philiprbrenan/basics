@@ -81,6 +81,11 @@ sub NWayTree_root($$)                                                           
   $n
  };
 
+sub NWayTree_setRoot($$)                                                        # Set the root node of a tree
+ {my ($tree, $name) = @_;                                                       # Tree, name of variable referencing root
+  Put $tree, $Tree->address(q(root)), $name;                                    # Set root attribute
+ };
+
 ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;
 
@@ -93,11 +98,16 @@ if (1)                                                                          
   my $r = NWayTree_root(q(r), $t);
   AssertEq $r, 0;
 
+  NWayTree_setRoot($t, 1);
+  my $R = NWayTree_root(q(R), $t);
+  AssertEq $R, 1;
+
   my $n = NWayTree_maximumNumberOfKeys(q(n), $t);
   AssertEq $n, 3;
 
   my $e = Execute;
-  is_deeply $e->memory->{1000006} => [0, 0, 3, 0];
+  say STDERR "AAAA", dump($e->memory);
+  is_deeply $e->memory->{1000006} => [0, 0, 3, 1];
  }
 
 done_testing;

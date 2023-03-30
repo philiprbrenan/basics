@@ -46,10 +46,10 @@
 #define NWayTree_Node_setDown(node, index, n)  node->down[index] = n;
 
 #define NWayTree_FindResult(f, code)           const NWayTree(FindResult) f = code;
-#define NWayTree_FindResult_Key(k, f)          const NWayTreeDataType k = f.key;
-#define NWayTree_FindResult_Data(d, f)         const NWayTreeDataType d = NWayTree(FindResult_data)(f);
+#define NWayTree_FindResult_key(k, f)          const NWayTreeDataType k = f.key;
+#define NWayTree_FindResult_data(d, f)         const NWayTreeDataType d = NWayTree(FindResult_data)(f);
 #define NWayTree_FindResult_cmp(c, f)          const long c = f.cmp;
-#define NWayTree_FindResult_Index(i, f)        const long i = f.index;
+#define NWayTree_FindResult_index(i, f)        const long i = f.index;
 #define NWayTree_FindResult_node(n, f)         NWayTree(Node) * const n = f.node;
 #define NWayTree_FindComparison(f, value)      const NWayTree(FindComparison) f = NWayTree(FindComparison_##value)
 #endif
@@ -179,7 +179,7 @@ inline static NWayTree(FindResult) NWayTree(NewFindResult)                      
 inline static NWayTreeDataType NWayTree(FindResult_data)                        // Get data field from find results
  (NWayTree(FindResult) f)                                                       // The results of a find operation
  {NWayTree_FindResult_node (n, f);
-  NWayTree_FindResult_Index(i, f);
+  NWayTree_FindResult_index(i, f);
   NWayTree_Node_data(d, n, i);
   return d;
  }
@@ -390,10 +390,10 @@ inline static void NWayTree(ErrFindResult)                                      
     default:                              c = "notFound"; break;
    }
 
-  NWayTree_FindResult_Index(ri, r);
+  NWayTree_FindResult_index(ri, r);
   NWayTree_FindResult_node(n, r);
   NWayTree_Node_keys(k,  n, ri);
-  NWayTree_FindResult_Key(K, r);
+  NWayTree_FindResult_key(K, r);
 
   say("Find key=%ld Result keys[index]=%ld %s  index=%ld", K, k, c, ri);
  }
@@ -987,12 +987,12 @@ static void NWayTree(Insert)                                                    
   NWayTree_FindResult_cmp(c, r);
 
   if (c == e)                                                                   // Found an equal key whose data we can update
-   {NWayTree_FindResult_Index(ri, r);
+   {NWayTree_FindResult_index(ri, r);
     NWayTree_Node_setData(N, ri, data);
     return;
    }
 
-  NWayTree_FindResult_Index(index, r);                                          // We have room for the insert
+  NWayTree_FindResult_index(index, r);                                          // We have room for the insert
   NWayTree_FindComparison(h, higher);
   NWayTree_Node_length(Nl, N);
   if (c == h)
@@ -1032,7 +1032,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
  {NWayTree(Node) *node = find.node;
   NWayTree_Node_isLeaf(leaf, node);
   if (leaf)                                                                     // Leaf
-   {NWayTree_FindResult_Index(I, find);
+   {NWayTree_FindResult_index(I, find);
     NWayTree_Node_length(L, node);
     if (I < L - 1)                                                              // More keys in leaf
      {NWayTree_constLong(i, I + 1);
@@ -1059,7 +1059,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
     return NWayTree(NewFindResult)(node, 0, n, 0);                              // Last key of root
    }
 
-  NWayTree_FindResult_Index(i, find);                                           // Not a leaf so on an interior key so we can go right then all the way left
+  NWayTree_FindResult_index(i, find);                                           // Not a leaf so on an interior key so we can go right then all the way left
   NWayTree_Node_down(d, node, i+1);
   return NWayTree(GoAllTheWayLeft)(d);
  }
@@ -1878,7 +1878,7 @@ void test_3_insert63()
    {NWayTree(Insert)(t, A[i], i);
    }
   for(long i = 0; i < N; ++i)
-   {NWayTree(FindResult) r = NWayTree(Find)(t, A[i]);
+   {NWayTree_FindResult(r, NWayTree(Find)(t, A[i]));
     assert(NWayTree(FindResult_data(r)) == i);
     NWayTree_FindComparison(e, equal);
     NWayTree_FindResult_cmp(c, r);
@@ -1957,7 +1957,7 @@ long iterateAndTestTree                                                         
  (NWayTree(Tree) * const t)                                                     // Tree to test
  {long n = 0;
   NWayTreeIterate(t, f)                                                         // Iterate through the tree
-   {NWayTree_FindResult_Key(k, f);                                            // Key of each iteration
+   {NWayTree_FindResult_key(k, f);                                            // Key of each iteration
     if (k != n) return 0;
     ++n;
    }
@@ -2194,7 +2194,7 @@ void test_3_Find()
     NWayTree_FindResult_cmp(cmp, r);
     assert(i % 2 == 0 ? cmp == NWayTree(FindComparison_equal) :
                         cmp != NWayTree(FindComparison_equal));
-    NWayTree_FindResult_Index(ri, r);
+    NWayTree_FindResult_index(ri, r);
     NWayTree_FindResult_node(rn, r);
     NWayTree_Node_keys(rk, rn, ri);
     NWayTree_FindComparison(l, lower);

@@ -75,8 +75,9 @@ inline static void NWayTree(Node_open)                                          
  (NWayTree(Node) * const node,                                                  // Node
   const long offset,                                                            // Offset in node at which to open the gap
   const long length)                                                            // Number of items to move to open the gap
- {NWayTree_Node_down(n, node, offset+length);
-  NWayTree_Node_setDown(node, offset+length+1, n);
+ {const long l = offset+length,  L = l + 1;
+  NWayTree_Node_down(n, node, l);
+  NWayTree_Node_setDown(node, L, n);
   for(long i = length; i > 0; --i)
    {const long p = offset + i, q = p - 1;
     NWayTree_Node_keys(k, node, q);

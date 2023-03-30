@@ -95,12 +95,13 @@ inline static void NWayTree(Node_copy)                                          
   const long so,                                                                // Source offset
   const long length)                                                            // Number of items to copy
  {for(long i = 0; i < length; ++i)
-   {NWayTree_Node_keys(k, s, so+i);
-    NWayTree_Node_data(d, s, so+i);
-    NWayTree_Node_down(n, s, so+i);
-    NWayTree_Node_setKeys(t, to+i, k);
-    NWayTree_Node_setData(t, to+i, d);
-    NWayTree_Node_setDown(t, to+i, n);
+   {const long S = so+i, T = to+i;
+    NWayTree_Node_keys(k, s, S);
+    NWayTree_Node_data(d, s, S);
+    NWayTree_Node_down(n, s, S);
+    NWayTree_Node_setKeys(t, T, k);
+    NWayTree_Node_setData(t, T, d);
+    NWayTree_Node_setDown(t, T, n);
    }
   NWayTree_Node_down(n,    s, so+length);
   NWayTree_Node_setDown(t, to+length, n);

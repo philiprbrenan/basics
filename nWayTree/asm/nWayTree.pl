@@ -34,6 +34,15 @@ my $Node = sub                                                                  
      $n
  }->();
 
+my $FindResult = sub                                                            # The structure of a find result
+ {my $f = Zero::Emulator::areaStructure("NWayTree_FindResult");
+  $f->name(q(node));                                                            # Node found
+  $f->name(q(cmp));                                                             # Result of the last comparison
+  $f->name(q(key));                                                             # Key searched for
+  $f->name(q(index));                                                           # Index in the node of located element
+  $f
+ }->();
+
 our $main;                                                                      # Assembly we are creating code in
 
 sub NWayTree_new($)                                                             # Create a variable refering to a new tree descriptor
@@ -223,18 +232,37 @@ sub NWayTree_Node_setDown($$$)                                                  
 sub NWayTree_FindResult_getField($$)                                            # Get a field from a find result
  {my ($findResult, $field) = @_;                                                # Find result, name of field
   my $f = $main->variables->temporary;                                          # Field value
-  Mov $f, $FindResult->address($field), $node);                                 # Fields
-  Mov $f, undef, $index, $F;                                                    # Field
+  Mov $f, undef, $FindResult->address($field), $findResult;                     # Fields
   $f                                                                            # Memory location holding field
  }
 
+sub NWayTree_FindResult_key($)                                                  # Get key from find result
+ {my ($f) = @_;                                                                 # Find result
+  NWayTree_FindResult_getField($f, q(key))                                      # Key
+ }
 
-#define NWayTree_FindResult_Key(k, f)          const NWayTreeDataType k = f.key;
-#define NWayTree_FindResult_Data(d, f)         const NWayTreeDataType d = NWayTree(FindResult_data)(f);
-#define NWayTree_FindResult_cmp(c, f)          const long c = f.cmp;
-#define NWayTree_FindResult_Index(i, f)        const long i = f.index;
-#define NWayTree_FindResult_node(n, f)         NWayTree(Node) * const n = f.node;
-#define NWayTree_FindComparison(f, value)      const NWayTree(FindComparison) f = NWayTree(FindComparison_##value)
+sub NWayTree_FindResult_data($)                                                 # Get data from find result
+ {my ($f) = @_;                                                                 # Find result
+  NWayTree_FindResult_getField($f, q(data))                                     # Data
+ }
+
+sub NWayTree_FindResult_cmp($)                                                  # Get comparison from find result
+ {my ($f) = @_;                                                                 # Find result
+  NWayTree_FindResult_getField($f, q(cmp))                                      # Comparison
+ }
+
+sub NWayTree_FindResult_index($)                                                # Get index from find result
+ {my ($f) = @_;                                                                 # Find result
+  NWayTree_FindResult_getField($f, q(index))                                    # Index
+ }
+
+sub NWayTree_FindComparison($$)                                                 # Convert a symbolic name for a find result comparison to an integer
+ {my ($f, $cmp) = @_;                                                           # Find result, comaprison result name
+  return 0 if $cmp eq q(lower);
+  return 1 if $cmp eq q(equal);
+  return 2 if $cmp eq q(higher);
+  return 3 if $cmp eq q(notFound);
+ }
 
 ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;

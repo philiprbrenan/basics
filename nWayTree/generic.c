@@ -56,7 +56,7 @@
 
 //Optimize
 //#define static                                                                /* Simplify debugging by preventing some inline-ing which invalidates the call stack */
-const long size_of_element = sizeof(NWayTreeDataType);                          // The size of a key, data
+const long size_of_element = sizeof(NWayTreeDataType);                          // The size of a key, data field
 
 //D1 Data structures
 //D2 Node
@@ -78,12 +78,13 @@ inline static void NWayTree(Node_open)                                          
  {NWayTree_Node_down(n, node, offset+length);
   NWayTree_Node_setDown(node, offset+length+1, n);
   for(long i = length; i > 0; --i)
-   {NWayTree_Node_keys(k, node, offset+i-1);
-    NWayTree_Node_data(d, node, offset+i-1);
-    NWayTree_Node_down(n, node, offset+i-1);
-    NWayTree_Node_setKeys(node, offset+i, k);
-    NWayTree_Node_setData(node, offset+i, d);
-    NWayTree_Node_setDown(node, offset+i, n);
+   {const long p = offset + i, q = p - 1;
+    NWayTree_Node_keys(k, node, q);
+    NWayTree_Node_data(d, node, q);
+    NWayTree_Node_down(n, node, q);
+    NWayTree_Node_setKeys(node, p, k);
+    NWayTree_Node_setData(node, p, d);
+    NWayTree_Node_setDown(node, p, n);
    }
  }
 

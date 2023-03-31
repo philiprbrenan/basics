@@ -75,7 +75,7 @@ inline static void NWayTree(Node_open)                                          
  (NWayTree(Node) * const node,                                                  // Node
   const long offset,                                                            // Offset in node at which to open the gap
   const long length)                                                            // Number of items to move to open the gap
- {const long l = offset+length,  L = l + 1;
+ {const long l = offset+length, L = l + 1;
   NWayTree_Node_down(n, node, l);
   NWayTree_Node_setDown(node, L, n);
   for(long i = length; i > 0; --i)
@@ -1354,6 +1354,47 @@ inline static void NWayTreeLong size($)                                         
 //D0 Tests
 
 #if (__INCLUDE_LEVEL__ == 1)
+void test_node_open()                                                           // Tests
+ {NWayTree_new(t, 7);
+  NWayTree(Node) *n = NWayTree(Node_new)(t);                                    // Create a new node
+  for(long i = 0; i < 7; ++i)
+   {n->keys[i] = i+1; n->data[i] = 11+i; n->down[i] = (void *)(21+i);
+   }
+  StackChar * const p = StackCharNew();
+  char C[100];
+  StackCharPushString(p, "Before:\n");
+  for(long i = 0; i < 7; ++i)
+   {sprintf(C, "%4ld %4ld  %4ld  %4ld\n", i, n->keys[i], n->data[i], (long)n->down[i]);
+    StackCharPushString(p, C);
+   }
+  NWayTree(Node_open)(n, 2, 4);
+  StackCharPushString(p, "After:\n");
+  for(long i = 0; i < 7; ++i)
+   {sprintf(C, "%4ld %4ld  %4ld  %4ld\n", i, n->keys[i], n->data[i], (long)n->down[i]);
+    StackCharPushString(p, C);
+   }
+  //StackCharErr(p);
+  assert(StackCharEqText(p,
+"Before:\n"
+"   0    1    11    21\n"
+"   1    2    12    22\n"
+"   2    3    13    23\n"
+"   3    4    14    24\n"
+"   4    5    15    25\n"
+"   5    6    16    26\n"
+"   6    7    17    27\n"
+"After:\n"
+"   0    1    11    21\n"
+"   1    2    12    22\n"
+"   2    3    13    23\n"
+"   3    3    13    23\n"
+"   4    4    14    24\n"
+"   5    5    15    25\n"
+"   6    6    16    26\n"
+  ));
+  StackCharFree(p);
+ }
+
 void test_3_0()                                                                 // Tests
  {NWayTree_new(t, 3);
   assert(NWayTree(EqText)(t, ""));
@@ -2281,6 +2322,7 @@ void NWayTree(TraceBackHandler)(int sig)
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTree(TraceBackHandler));                                  // Trace back handler
   signal(SIGABRT, NWayTree(TraceBackHandler));
+  test_node_open();
   test_3_iterate63();
   tests3 ();
   tests31();

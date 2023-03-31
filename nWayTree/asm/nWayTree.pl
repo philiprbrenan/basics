@@ -264,6 +264,29 @@ sub NWayTree_FindComparison($$)                                                 
   return 3 if $cmp eq q(notFound);
  }
 
+sub NWayTree_Node_open($$$)                                                     # Open a gap in a node
+ {my ($node, $offset, $length) = @_;                                            # Node
+  my ($l, $L, $i, $p, $q) = $main->variables->temporary(5);                     # Variables
+  Add $l, $offset, $length;
+  Add $L, $l, 1;
+  my $n = NWayTree_Node_down($node, $l);
+  NWayTree_Node_setDown($node, $L, $n);
+
+  For start => sub{Mov $i, $length},
+      check => sub{Jle $_[0], $i, 0},
+      next  => sub{Dec $i},
+      block => sub
+       {Add $p, $offset, $i;
+        Add $q, $p, -1;
+        my $k = NWayTree_Node_keys   ($node, $q);
+        my $d = NWayTree_Node_data   ($node, $q);
+        my $n = NWayTree_Node_down   ($node, $q);
+                NWayTree_Node_setKeys($node, $p, $k);
+                NWayTree_Node_setData($node, $p, $d);
+                NWayTree_Node_setDown($node, $p, $n);
+       };
+ }
+
 ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;
 

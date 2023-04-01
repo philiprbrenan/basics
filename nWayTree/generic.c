@@ -425,8 +425,8 @@ inline static long NWayTree(Node_indexInParent)                                 
  (NWayTree(Node) * const node)                                                  // Node to locate in parent
  {NWayTree_Node_up(p, node);
   assert(p);
-  NWayTree_Node_length(pl, p);
-  for(long i = 0; i <= pl; ++i)
+  NWayTree_Node_length(l, p);
+  for(long i = 0; i <= l; ++i)
    {NWayTree_Node_down(d, p, i);
     if (d == node) return i;
    }

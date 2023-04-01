@@ -178,9 +178,16 @@ sub NWayTree_Node_tree($)                                                       
 sub NWayTree_Node_getIndex($$$)                                                 # Get the indexed field from a node
  {my ($node, $index, $field) = @_;                                              # Node, index of field, field name
   my ($F, $f) = $main->variables->temporary(2);                                 # Fields, field
-  Mov $F, undef, $Node->address($field), $node;                                 # Fields
-  Mov $f, undef, \$index, $F;                                                   # Field
+  Mov $F, [$node, $Node->address($field)];                                      # Fields
+  Mov $f, [$F, \$index];                                                        # Field
   $f                                                                            # Memory location holding field
+ }
+
+sub NWayTree_Node_setIndex($$$$)                                                # Set an indexed field to a specified value
+ {my ($node, $index, $field, $value) = @_;                                      # Node, index, field name, value
+  my $F = $main->variables->temporary;                                          # Indexed fields
+  Mov $F, [$node, $Node->address($field)];                                      # Fields
+  Mov [$F, \$index], $value;                                                     # Set field to value
  }
 
 sub NWayTree_Node_keys($$)                                                      # Get the indexed key from a node
@@ -210,13 +217,6 @@ sub NWayTree_Node_isLeaf($$)                                                    
    {Mov $l, 0;                                                                  # Not a leaf
    };
   $l                                                                            # Memory location holding leaf flag
- }
-
-sub NWayTree_Node_setIndex($$$$)                                                # Set an indexed field to a specified value
- {my ($node, $index, $field, $value) = @_;                                      # Node, index, field name, value
-  my $F = $main->variables->temporary;                                          # Indexed fields
-  Mov $F, [$node, $Node->address($field)];                                      # Fields
-  Mov [$F, $index], $value;                                                     # Set field to value
  }
 
 sub NWayTree_Node_setKeys($$$)                                                  # Set a key by index
@@ -276,23 +276,22 @@ sub NWayTree_Node_open($$$)                                                     
   my ($l, $L, $i, $p, $q) = $main->variables->temporary(5);                     # Variables
   Add $l, $offset, $length;
   Add $L, $l, 1;
-  Dump "MMMM";
   my $n = NWayTree_Node_down($node, $l);
-#  NWayTree_Node_setDown($node, $L, $n);
+  NWayTree_Node_setDown($node, $L, $n);
 
-#  For start => sub{Mov $i, $length},
-#      check => sub{Jle $_[0], $i, 0},
-#      next  => sub{Dec $i},
-#      block => sub
-#       {Add $p, $offset, $i;
-#        Add $q, $p, -1;
-#        my $k = NWayTree_Node_keys   ($node, $q);
-#        my $d = NWayTree_Node_data   ($node, $q);
-#        my $n = NWayTree_Node_down   ($node, $q);
-#                NWayTree_Node_setKeys($node, $p, $k);
-#                NWayTree_Node_setData($node, $p, $d);
-#                NWayTree_Node_setDown($node, $p, $n);
-#       };
+  For start => sub{Mov $i, $length},
+      check => sub{Jle $_[0], $i, 0},
+      next  => sub{Dec $i},
+      block => sub
+       {Add $p, $offset, $i;
+        Add $q, $p, -1;
+        my $k = NWayTree_Node_keys   ($node, $q);
+        my $d = NWayTree_Node_data   ($node, $q);
+        my $n = NWayTree_Node_down   ($node, $q);
+                NWayTree_Node_setKeys($node, $p, $k);
+                NWayTree_Node_setData($node, $p, $d);
+                NWayTree_Node_setDown($node, $p, $n);
+       };
  }
 
 ok $Tree->offset(q(nodes)) == 1;
@@ -329,13 +328,17 @@ if (1)                                                                          
     NWayTree_Node_setData($n, $i, 11+$i);
     NWayTree_Node_setDown($n, $i, 21+$i);
    }
-  Dump("AAAA");
   NWayTree_Node_open($n, 2, 4);
-  Dump("BBBB");
 
-  my $e = Execute(trace=>1);
-  say STDERR "CCCC", dump($e->out);
-  say STDERR "DDDD", dump($e->memory);
+  my $e = Execute(trace=>0);
+  delete $e->memory->{$_} for 0..2;
+  is_deeply $e->memory, {
+  6  => [0, 1, 7, 0],
+  10 => [0, 1, 0, 11, 12, 13, 6],
+  11 => [1, 2, 3, 3 .. 6],
+  12 => [11, 12, 13, 13 .. 16],
+  13 => [21, 22, 23, 23 .. 27],
+};
  }
 
 

@@ -346,6 +346,20 @@ sub NWayTree_FindResult_new($$$$)                                               
   $f
  }
 
+sub NWayTree_ReUp($)                                                            # Reconnect the children to their new parent.
+ {my ($node) = @_;                                                              # Parameters
+  my $l = NWayTree_Node_length($node);
+  my ($i) = $main->variables->temporary(1);                                     # Find result
+  For start => sub{Mov $i, 0},
+      check => sub{Jge $_[0], $i, $l},
+      next  => sub{Inc $i},
+      block => sub
+       {my $d = NWayTree_Node_down ($node, $i);
+                NWayTree_Node_setUp($d, $node);
+       };
+
+ }
+
 return 1 if caller;
 
 eval {goto latest};

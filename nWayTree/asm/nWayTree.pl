@@ -11,7 +11,7 @@ use Data::Dump qw(dump);
 use Data::Table::Text qw(:all);
 use Zero::Emulator qw(:all);
 use utf8;
-use Test::More qw(no_plan);
+eval "use Test::More qw(no_plan)" unless caller;
 
 my $Tree = sub                                                                  # The structure of an n-way tree
  {my $t = Zero::Emulator::areaStructure("NWayTree_Structure");
@@ -248,11 +248,6 @@ sub NWayTree_FindResult_key($)                                                  
   NWayTree_FindResult_getField($f, q(key))                                      # Key
  }
 
-sub NWayTree_FindResult_data($)                                                 # Get data from find result
- {my ($f) = @_;                                                                 # Find result
-  NWayTree_FindResult_getField($f, q(data))                                     # Data
- }
-
 sub NWayTree_FindResult_cmp($)                                                  # Get comparison from find result
  {my ($f) = @_;                                                                 # Find result
   NWayTree_FindResult_getField($f, q(cmp))                                      # Comparison
@@ -261,6 +256,15 @@ sub NWayTree_FindResult_cmp($)                                                  
 sub NWayTree_FindResult_index($)                                                # Get index from find result
  {my ($f) = @_;                                                                 # Find result
   NWayTree_FindResult_getField($f, q(index))                                    # Index
+ }
+
+sub NWayTree_FindResult_data($)                                                 # Get data field from find results
+ {my ($f) = @_;                                                                 # Find result
+
+  my $n = NWayTree_FindResult_node ($f);
+  my $i = NWayTree_FindResult_index($f);
+  my $d = NWayTree_Node_data($n, $i);
+  $f
  }
 
 sub NWayTree_FindComparison($$)                                                 # Convert a symbolic name for a find result comparison to an integer
@@ -276,6 +280,7 @@ sub NWayTree_Node_open($$$)                                                     
   my ($l, $L, $i, $p, $q) = $main->variables->temporary(5);                     # Variables
   Add $l, $offset, $length;
   Add $L, $l, 1;
+
   my $n = NWayTree_Node_down($node, $l);
   NWayTree_Node_setDown($node, $L, $n);
 
@@ -293,6 +298,56 @@ sub NWayTree_Node_open($$$)                                                     
                 NWayTree_Node_setDown($node, $p, $n);
        };
  }
+
+sub NWayTree_Node_copy($$$$$)                                                   # Copy part of one node into another going down.
+ {my ($t, $s, $to, $so, $length) = @_;                                          # Target node
+  my ($i, $S, $T) = $main->variables->temporary(3);                             # Variables
+
+  For start => sub{Mov $i, 0},
+      check => sub{Jge $_[0], $i, $length},
+      next  => sub{Inc $i},
+      block => sub
+       {Add $S, $so, $i;
+        Add $T, $to, $i;
+        my $k = NWayTree_Node_keys   ($s, $S);
+        my $d = NWayTree_Node_data   ($s, $S);
+        my $n = NWayTree_Node_down   ($s, $S);
+                NWayTree_Node_setKeys($t, $T, $k);
+                NWayTree_Node_setData($t, $T, $d);
+                NWayTree_Node_setDown($t, $T, $n);
+       };
+
+  Add $S, $so, $length;
+  Add $T, $to, $length;
+
+  my $n = NWayTree_Node_down($s, $S);
+  NWayTree_Node_setDown($t, $T, $n);
+ }
+
+sub NWayTree_FreeNode($)                                                        # Free a node
+ {my ($node) = @_;                                                              # Node to free
+  free($node);
+ }
+
+sub NWayTree_NewFindResult($$$$)                                                # New find result on stack
+ {my ($node, $key, $cmp, $index) = @_;                                          # Node,search key, comparison result, index
+  my ($f) = $main->variables->temporary(1);                                        # Find result
+  Alloc $f;                                                                     # Allocate tree descriptor
+
+  Mov [$f, $FindResult->address(q(node)) ], $node;
+  Mov [$f, $FindResult->address(q(key))  ], $key;
+  Mov [$f, $FindResult->address(q(cmp))  ], $cmp;
+  Mov [$f, $FindResult->address(q(index))], $index;
+  $f
+ }
+
+return 1 if caller;
+
+eval {goto latest};
+
+sub is_deeply;
+sub ok($;$);
+sub done_testing;
 
 ok $Tree->offset(q(nodes)) == 1;
 ok $Node->offset(q(tree))  == 6;
@@ -331,7 +386,6 @@ if (1)                                                                          
   NWayTree_Node_open($n, 2, 4);
 
   my $e = Execute(trace=>0);
-  delete $e->memory->{$_} for 0..2;
   is_deeply $e->memory, {
   6  => [0, 1, 7, 0],
   10 => [0, 1, 0, 11, 12, 13, 6],
@@ -341,6 +395,34 @@ if (1)                                                                          
 };
  }
 
+#latest:;
+if (1)                                                                          #TNWayTree_Node_copy
+ {$main = Start 1;
+  my $t = NWayTree_new(7);                                                      # Create tree
+  my $p = NWayTree_Node_new($t);                                                # Create a node
+  my $q = NWayTree_Node_new($t);                                                # Create a node
+  for my $i(0..6)
+   {NWayTree_Node_setKeys($p, $i, 11+$i);
+    NWayTree_Node_setData($p, $i, 21+$i);
+    NWayTree_Node_setDown($p, $i, 31+$i);
+    NWayTree_Node_setKeys($q, $i, 41+$i);
+    NWayTree_Node_setData($q, $i, 51+$i);
+    NWayTree_Node_setDown($q, $i, 61+$i);
+   }
+  NWayTree_Node_copy($q, $p, 1, 3, 2);
 
+  my $e = Execute(trace=>0);
+  is_deeply $e->memory, {
+   6  => [0, 2, 7, 0],
+  10 => [0, 1, 0, 11, 12, 13, 6],
+  11 => [11 .. 17],
+  12 => [21 .. 27],
+  13 => [31 .. 37],
+  17 => [0, 2, 0, 18, 19, 20, 6],
+  18 => [41, 14, 15, 44 .. 47],
+  19 => [51, 24, 25, 54 .. 57],
+  20 => [61, 34, 35, 36, 65, 66, 67],
+};
+ }
 
 done_testing;

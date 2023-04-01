@@ -239,7 +239,7 @@ sub NWayTree_Node_setDown($$$)                                                  
 sub NWayTree_FindResult_getField($$)                                            # Get a field from a find result
  {my ($findResult, $field) = @_;                                                # Find result, name of field
   my $f = $main->variables->temporary;                                          # Field value
-  Mov $f, undef, $FindResult->address($field), $findResult;                     # Fields
+  Mov $f, [$findResult, $FindResult->address($field)];                          # Fields
   $f                                                                            # Memory location holding field
  }
 
@@ -256,6 +256,11 @@ sub NWayTree_FindResult_cmp($)                                                  
 sub NWayTree_FindResult_index($)                                                # Get index from find result
  {my ($f) = @_;                                                                 # Find result
   NWayTree_FindResult_getField($f, q(index))                                    # Index
+ }
+
+sub NWayTree_FindResult_node($)                                                 # Get node from find result
+ {my ($f) = @_;                                                                 # Find result
+  NWayTree_FindResult_getField($f, q(node))                                     # Node
  }
 
 sub NWayTree_FindResult_data($)                                                 # Get data field from find results
@@ -329,9 +334,9 @@ sub NWayTree_FreeNode($)                                                        
   free($node);
  }
 
-sub NWayTree_NewFindResult($$$$)                                                # New find result on stack
+sub NWayTree_FindResult_new($$$$)                                               # New find result on stack
  {my ($node, $key, $cmp, $index) = @_;                                          # Node,search key, comparison result, index
-  my ($f) = $main->variables->temporary(1);                                        # Find result
+  my ($f) = $main->variables->temporary(1);                                     # Find result
   Alloc $f;                                                                     # Allocate tree descriptor
 
   Mov [$f, $FindResult->address(q(node)) ], $node;
@@ -423,6 +428,20 @@ if (1)                                                                          
   19 => [51, 24, 25, 54 .. 57],
   20 => [61, 34, 35, 36, 65, 66, 67],
 };
+ }
+
+#latest:;
+if (1)                                                                          #TNWayTree_FindResult_new
+ {$main = Start 1;
+  my $f = NWayTree_FindResult_new(1, 2, 3, 4);
+  my $n = NWayTree_FindResult_node($f);
+  my $k = NWayTree_FindResult_key($f);
+  my $c = NWayTree_FindResult_cmp($f);
+  my $i = NWayTree_FindResult_index($f);
+  Out $_ for $n, $c, $k, $i;
+  my $e = Execute(trace=>0);
+  is_deeply $e->out,           [1, 3, 2, 4];
+  is_deeply $e->memory, { 3 => [1, 3, 2, 4] };
  }
 
 done_testing;

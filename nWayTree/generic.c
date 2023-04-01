@@ -403,7 +403,7 @@ inline static void NWayTree(ErrFindResult)                                      
 
 //D1 Properties
 
-inline static long NWayTree(Full)                                               // Confirm that a node is full.
+inline static long NWayTree(Full)                                               // Confirm that a node is full. Not used by insert or find.
  (NWayTree(Node) * const node)
  {NWayTree_Node_tree(t, node);
   NWayTree_Node_length(nl, node);

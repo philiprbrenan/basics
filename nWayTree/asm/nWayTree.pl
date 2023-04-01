@@ -53,10 +53,10 @@ sub NWayTree_new($)                                                             
     my ($t, $n) = $p->variables->temporary(2);                                  # Tree, maximum number of keys per node in this tree
     Alloc $t;                                                                   # Allocate tree descriptor
     ParamsGet $n, \0;                                                           # Maximum number of keys per node
-    Mov $Tree->address(q(NumberOfKeysPerNode)), $t, $n, undef;                  # Save maximum number of keys per node
-    Mov $Tree->address(q(root)),                $t,  0, undef;                  # Clear root
-    Mov $Tree->address(q(keys)),                $t,  0, undef;                  # Clear keys
-    Mov $Tree->address(q(nodes)),               $t,  0, undef;                  # Clear nodes
+    Mov [$t, $Tree->address(q(NumberOfKeysPerNode))], $n;                       # Save maximum number of keys per node
+    Mov [$t, $Tree->address(q(root))               ],  0;                       # Clear root
+    Mov [$t, $Tree->address(q(keys))               ],  0;                       # Clear keys
+    Mov [$t, $Tree->address(q(nodes))              ],  0;                       # Clear nodes
     ReturnPut 0, $t;                                                            # Return id of area containing tree descriptor
     Return;
    };
@@ -68,41 +68,46 @@ sub NWayTree_new($)                                                             
   $t
  }
 
-sub NWayTree_numberOfKeysPerNode($)                                             # Get the maximum number of keys per node for a tree
- {my ($tree) = @_;                                                              # Tree to examine
-  my $n = $main->variables->temporary;                                          # Create a variable to hold the results of this call
-  Mov $n, $tree, $Tree->address(q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
-  $n
- };
-
+sub NWayTree_Tree_getField($$)                                                  # Get a field from a tree descriptor
+ {my ($tree, $field) = @_;                                                      # Tree, field name
+  my $f = $main->variables->temporary;                                          # Create a variable to hold the results of this call
+  Mov $f, [$tree, $Tree->address($field)];                                      # Get attribute from tree descriptor
+  $f
+ }
 
 sub NWayTree_maximumNumberOfKeys($)                                             # Get the maximum number of keys per node for a tree
  {my ($tree) = @_;                                                              # Tree to examine
-  my $n = $main->variables->temporary;                                          # Create a variable to hold the results of this call
-  Mov $n, $Tree->address(q(NumberOfKeysPerNode)), $tree;                        # Get attribute from tree descriptor
-  $n
+  NWayTree_Tree_getField($tree, q(NumberOfKeysPerNode));                        # Get attribute from tree descriptor
  };
 
 sub NWayTree_root($)                                                            # Get the root node of a tree
  {my ($tree) = @_;                                                              # Tree to examine
-  my $r = $main->variables->temporary;                                          # Create a variable to hold the results of this call
-  Mov $r, $Tree->address(q(root)), $tree;                                       # Get attribute from tree descriptor
-  $r                                                                            # Memory location holding root
+  NWayTree_Tree_getField($tree, q(root));                                       # Get attribute from tree descriptor
  };
 
 sub NWayTree_setRoot($$)                                                        # Set the root node of a tree
- {my ($tree, $name) = @_;                                                       # Tree, name of variable referencing root
-  Mov $Tree->address(q(root)), $tree, $name, undef;                             # Set root attribute
+ {my ($tree, $root) = @_;                                                       # Tree, root
+  Mov [$tree, $Tree->address(q(root))], $root;                                  # Set root attribute
+ };
+
+sub NWayTree_keys($)                                                            # Get the number of keys in the tree
+ {my ($tree) = @_;                                                              # Tree to examine
+  NWayTree_Tree_getField($tree, q(keys));                                       # Keys
  };
 
 sub NWayTree_incKeys($)                                                         # Increment the number of keys in a tree
  {my ($tree) = @_;                                                              # Tree
-  Inc $Tree->address(q(keys)), $tree;                                           # Number of keys
+  Inc [$tree, $Tree->address(q(keys))];                                         # Number of keys
+ };
+
+sub NWayTree_nodes($)                                                           # Get the number of nodes in the tree
+ {my ($tree) = @_;                                                              # Tree to examine
+  NWayTree_Tree_getField($tree, q(nodes));                                      # Nodes
  };
 
 sub NWayTree_incNodes($)                                                        # Increment the number of nodes n a tree
  {my ($tree) = @_;                                                              # Tree
-  Inc $Tree->address(q(nodes)), $tree;                                          # Number of nodes
+  Inc [$tree, $Tree->address(q(nodes))];                                        # Number of nodes
  };
 
 sub NWayTree_Node_new($)                                                        # Create a variable refering to a new node descriptor
@@ -111,14 +116,17 @@ sub NWayTree_Node_new($)                                                        
   my $new = Procedure 'NWayTree_Node_new', sub
    {my ($p) = @_;                                                               # Procedure description
     my ($t, $n, $k, $d, $D) = $p->variables->temporary(5);                      # Tree, node, keys, data, down
-    ParamsGet $t, 0;                                                            # Tree as a parameter
+    ParamsGet $t, \0;                                                           # Tree as a parameter
     Alloc $$_ for \($n, $k, $d, $D);                                            # Allocate node, keys, data, down areas
-    Mov $Node->address(q(keys)), $n, $k, undef;                                 # Keys area
-    Mov $Node->address(q(data)), $n, $d, undef;                                 # Data area
-    Mov $Node->address(q(down)), $n, $D, undef;                                 # Down area
-    Mov $Node->address(q(tree)), $n, $t, undef;                                 # Containing tree
-    NWayTree_incNodes($tree);
-    Mov $Node->address(q(id)),   $n, $Tree->address(q(nodes)), $t;              # Assign an id to this node within the tree
+    Mov [$n, $Node->address(q(length))],  0;                                    # Length
+    Mov [$n, $Node->address(q(up))],      0;                                    # Parent
+    Mov [$n, $Node->address(q(keys))],   $k;                                    # Keys area
+    Mov [$n, $Node->address(q(data))],   $d;                                    # Data area
+    Mov [$n, $Node->address(q(down))],   $D;                                    # Down area
+    Mov [$n, $Node->address(q(tree))],   $t;                                    # Containing tree
+    NWayTree_incNodes($t);
+    Mov [$n, $Node->address(q(id))], [$t, $Tree->address(q(nodes))];            # Assign an id to this node within the tree
+
     ReturnPut 0, $n;                                                            # Return id of area containing node
     Return;
    };
@@ -130,30 +138,31 @@ sub NWayTree_Node_new($)                                                        
   $n
  }
 
+sub NWayTree_Node_getField($$)                                                  # Get a field from a node descriptor
+ {my ($node, $field) = @_;                                                      # Node, field name
+  my $f = $main->variables->temporary;                                          # Create a variable to hold the results of this call
+  Mov $f, [$node, $Node->address($field)];                                      # Get attribute from node descriptor
+  $f
+ }
+
 sub NWayTree_Node_length($)                                                     # Get number of keys in a node
  {my ($node) = @_;                                                              # Node
-  my $l = $main->variables->temporary;                                          # Temporary variable
-  Mov $l, $Node->address(q(length)), $node;                                     # Get length
-  $l                                                                            # Memory location holding length
+  NWayTree_Node_getField($node, q(length));                                     # Get length
  }
 
 sub NWayTree_Node_setLength($$)                                                 # Set the length of a node
  {my ($node, $length) = @_;                                                     # Node, length
-  Mov $Node->address(q(length)), $node, $length;                                # Set length attribute
+  Mov [$node, $Node->address(q(length))], $length;                              # Set length attribute
  }
 
 sub NWayTree_Node_id($)                                                         # Get id of a node
  {my ($node) = @_;                                                              # Node
-  my $i = $main->variables->temporary;                                          # Temporary variable
-  Mov $i, $Node->address(q(id)), $node;                                         # Get id
-  $i                                                                            # Memory location holding length
+  NWayTree_Node_getField($node, q(id));                                         # Get id
  }
 
 sub NWayTree_Node_up($)                                                         # Get parent node from this node
  {my ($node) = @_;                                                              # Node
-  my $u = $main->variables->temporary;                                          # Temporary variable
-  Mov $u, $Node->address(q(node)), $node;                                       # Get parent
-  $u                                                                            # Memory location holding length
+  NWayTree_Node_getField($node, q(up));                                         # Get up
  }
 
 sub NWayTree_Node_setUp($$)                                                     # Set the parent of a node
@@ -163,16 +172,14 @@ sub NWayTree_Node_setUp($$)                                                     
 
 sub NWayTree_Node_tree($)                                                       # Get tree containing a node
  {my ($node) = @_;                                                              # Node
-  my $t = $main->variables->temporary;                                          # Temporary variable
-  Mov $t, $Node->address(q(tree)), $node;                                       # Get tree
-  $t                                                                            # Memory location holding tree
+  NWayTree_Node_getField($node, q(tree));                                       # Get tree
  }
 
 sub NWayTree_Node_getIndex($$$)                                                 # Get the indexed field from a node
  {my ($node, $index, $field) = @_;                                              # Node, index of field, field name
   my ($F, $f) = $main->variables->temporary(2);                                 # Fields, field
-  Mov $F, $Node->address($field), $node;                                        # Fields
-  Mov $f, undef, $index, $F;                                                    # Field
+  Mov $F, undef, $Node->address($field), $node;                                 # Fields
+  Mov $f, undef, \$index, $F;                                                   # Field
   $f                                                                            # Memory location holding field
  }
 
@@ -208,8 +215,8 @@ sub NWayTree_Node_isLeaf($$)                                                    
 sub NWayTree_Node_setIndex($$$$)                                                # Set an indexed field to a specified value
  {my ($node, $index, $field, $value) = @_;                                      # Node, index, field name, value
   my $F = $main->variables->temporary;                                          # Indexed fields
-  Mov $F, undef, $Node->address($field), $node;                                 # Fields
-  Mov $index, $F, $value;                                                       # Set field to value
+  Mov $F, [$node, $Node->address($field)];                                      # Fields
+  Mov [$F, $index], $value;                                                     # Set field to value
  }
 
 sub NWayTree_Node_setKeys($$$)                                                  # Set a key by index
@@ -269,22 +276,23 @@ sub NWayTree_Node_open($$$)                                                     
   my ($l, $L, $i, $p, $q) = $main->variables->temporary(5);                     # Variables
   Add $l, $offset, $length;
   Add $L, $l, 1;
+  Dump "MMMM";
   my $n = NWayTree_Node_down($node, $l);
-  NWayTree_Node_setDown($node, $L, $n);
+#  NWayTree_Node_setDown($node, $L, $n);
 
-  For start => sub{Mov $i, $length},
-      check => sub{Jle $_[0], $i, 0},
-      next  => sub{Dec $i},
-      block => sub
-       {Add $p, $offset, $i;
-        Add $q, $p, -1;
-        my $k = NWayTree_Node_keys   ($node, $q);
-        my $d = NWayTree_Node_data   ($node, $q);
-        my $n = NWayTree_Node_down   ($node, $q);
-                NWayTree_Node_setKeys($node, $p, $k);
-                NWayTree_Node_setData($node, $p, $d);
-                NWayTree_Node_setDown($node, $p, $n);
-       };
+#  For start => sub{Mov $i, $length},
+#      check => sub{Jle $_[0], $i, 0},
+#      next  => sub{Dec $i},
+#      block => sub
+#       {Add $p, $offset, $i;
+#        Add $q, $p, -1;
+#        my $k = NWayTree_Node_keys   ($node, $q);
+#        my $d = NWayTree_Node_data   ($node, $q);
+#        my $n = NWayTree_Node_down   ($node, $q);
+#                NWayTree_Node_setKeys($node, $p, $k);
+#                NWayTree_Node_setData($node, $p, $d);
+#                NWayTree_Node_setDown($node, $p, $n);
+#       };
  }
 
 ok $Tree->offset(q(nodes)) == 1;
@@ -292,9 +300,7 @@ ok $Node->offset(q(tree))  == 6;
 
 if (1)
  {$main = Start 1;
-
   my $t = NWayTree_new(3);
-
   my $r = NWayTree_root($t);
 
   NWayTree_setRoot($t, 1);
@@ -303,14 +309,35 @@ if (1)
   my $n = NWayTree_maximumNumberOfKeys($t);
 
   NWayTree_incKeys($t) for 1..3;
-  Out $Tree->address(q(keys)), $t;
+  Out [$t, $Tree->address(q(keys))];
 
   NWayTree_incNodes($t) for 1..5;
-  Out $Tree->address(q(nodes)), $t;
+  my $N = NWayTree_nodes($t);
+  Out $N;
 
   my $e = Execute;
   is_deeply $e->out         => [3, 5];
   is_deeply $e->memory->{6} => [3, 5, 3, 1];
  }
+
+if (1)                                                                          #TNWayTree_Node_open
+ {$main = Start 1;
+  my $t = NWayTree_new(7);                                                      # Create tree
+  my $n = NWayTree_Node_new($t);                                                # Create node
+  for my $i(0..6)
+   {NWayTree_Node_setKeys($n, $i,  1+$i);
+    NWayTree_Node_setData($n, $i, 11+$i);
+    NWayTree_Node_setDown($n, $i, 21+$i);
+   }
+  Dump("AAAA");
+  NWayTree_Node_open($n, 2, 4);
+  Dump("BBBB");
+
+  my $e = Execute(trace=>1);
+  say STDERR "CCCC", dump($e->out);
+  say STDERR "DDDD", dump($e->memory);
+ }
+
+
 
 done_testing;

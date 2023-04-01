@@ -166,7 +166,7 @@ typedef struct NWayTree(FindResult)                                             
   long index;                                                                   // Index in the node of equal element
  } NWayTree(FindResult);
 
-inline static NWayTree(FindResult) NWayTree(FindResult_new)                      // New find result on stack
+inline static NWayTree(FindResult) NWayTree(FindResult_new)                     // New find result on stack
  (NWayTree(Node) *         const node,                                          // Node
   NWayTreeDataType         const key,                                           // Search key
   NWayTree(FindComparison) const cmp,                                           // Comparison result
@@ -192,11 +192,11 @@ inline static NWayTreeDataType NWayTree(FindResult_data)                        
 static void NWayTree(ErrNode)       (NWayTree(Node) * const node);
 static long NWayTree(CheckNode)     (NWayTree(Node) * const node, char * const name);
 static void NWayTree(CheckTree)     (NWayTree(Tree) * const tree, char * const name);
-static long NWayTree(IndexInParent) (NWayTree(Node) * const node);
+static long NWayTree(Node_indexInParent) (NWayTree(Node) * const node);
 
 //D1 Node Construction
 
-inline static NWayTree(Node) *NWayTree(Node_new)                                 // Create a new node
+inline static NWayTree(Node) *NWayTree(Node_new)                                // Create a new node
  (NWayTree(Tree) * const tree)                                                  // Tree containing node
  {NWayTree_maximumNumberOfKeys(z, tree);
   NWayTree_constLong(k, size_of_element                 *  z);
@@ -411,8 +411,8 @@ inline static long NWayTree(Full)                                               
   return nl == m;
  }
 
-//inline static long NWayTree(HalfFull)                                           // Confirm that a node is half full.
-// (NWayTree(Node) * const node)                                                  // Node
+//inline static long NWayTree(HalfFull)                                         // Confirm that a node is half full.
+// (NWayTree(Node) * const node)                                                // Node
 // {NWayTree_Node_length(n, node);
 //  NWayTree_Node_tree(t, node);
 //  NWayTree_maximumNumberOfKeys(M, t);
@@ -421,7 +421,7 @@ inline static long NWayTree(Full)                                               
 //  return n == m;
 // }
 
-inline static long NWayTree(IndexInParent)                                      // Get the index of a node in its parent.
+inline static long NWayTree(Node_indexInParent)                                 // Get the index of a node in its parent.
  (NWayTree(Node) * const node)                                                  // Node to locate in parent
  {NWayTree_Node_up(p, node);
   assert(p);
@@ -534,7 +534,7 @@ inline static long NWayTree(SplitFullNode)                                      
    {return 0;
    }
 
-  NWayTree_constNode(l, NWayTree(Node_new)(t));                                  // New child nodes
+  NWayTree_constNode(l, NWayTree(Node_new)(t));                                 // New child nodes
   NWayTree_constNode(r, NWayTree(Node_new)(t));
 
   NWayTree_maximumNumberOfKeys(N, t);                                           // Split points
@@ -679,31 +679,31 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
   assert(0);
  }
 
-//inline static void NWayTree(FillFromLeftOrRight)                                // Fill a node from the specified sibling. Not called by find or insert.
- //(NWayTree(Node) * const n,                                                     // Node to fill
-  //const long dir)                                                               // Direction to fill from
- //{NWayTree_Node_up(p, n);                                                       // Parent of leaf
+//inline static void NWayTree(FillFromLeftOrRight)                              // Fill a node from the specified sibling. Not called by find or insert.
+ //(NWayTree(Node) * const n,                                                   // Node to fill
+  //const long dir)                                                             // Direction to fill from
+ //{NWayTree_Node_up(p, n);                                                     // Parent of leaf
   //assert(p);
-  //NWayTree_constLong(i,  NWayTree(IndexInParent)(n));                           // Index of leaf in parent
+  //NWayTree_constLong(i,  NWayTree(Node_indexInParent)(n));                    // Index of leaf in parent
   //NWayTree_Node_length(pl, p);
   //NWayTree_Node_length(nl, n);
 
-  //if (dir)                                                                      // Fill from right
-   //{assert(i < pl);                                                             // Cannot fill from right
-    //NWayTree_Node_down(r, p, i+1);                                              // Right sibling
+  //if (dir)                                                                    // Fill from right
+   //{assert(i < pl);                                                           // Cannot fill from right
+    //NWayTree_Node_down(r, p, i+1);                                            // Right sibling
     //NWayTree_Node_length(rl, r);
-    //NWayTree_Node_keys(pd, p, i);                                               // Transfer key and data to parent
+    //NWayTree_Node_keys(pd, p, i);                                             // Transfer key and data to parent
     //NWayTree_Node_data(pk, p, i);
-    //NWayTree_Node_setKeys(n, nl, pk);                                           // Transfer key and data to parent
+    //NWayTree_Node_setKeys(n, nl, pk);                                         // Transfer key and data to parent
     //NWayTree_Node_setData(n, nl, pd);
 
-    //NWayTree_constLong(rk, ArrayLongShift(r->keys, rl));                        // Transfer keys and data from right
+    //NWayTree_constLong(rk, ArrayLongShift(r->keys, rl));                      // Transfer keys and data from right
     //NWayTree_constLong(rd, ArrayLongShift(r->data, rl));
     //NWayTree_Node_setKeys(p, i, rk);
     //NWayTree_Node_setData(p, i, rd);
 
-    //NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
-    //if (!leaf)                                                                  // Transfer node if not a leaf
+    //NWayTree_Node_isLeaf(leaf, n);                                            // Leaf
+    //if (!leaf)                                                                // Transfer node if not a leaf
      //{void * const rd = ArrayVoidShift((void *)r->down, rl);
       //ArrayVoidPush((void *)n->down, nl, rd);
       //NWayTree_Node_down(d, n, nl+1);
@@ -712,24 +712,24 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     //NWayTree_Node_setLength(r1, r, rl-1); if (r1) {}
     //NWayTree_Node_setLength(n1, n, nl+1); if (n1) {}
    //}
-  //else                                                                          // Fill from left - untested
-   //{assert(i);                                                                  // Cannot fill from left
+  //else                                                                        // Fill from left - untested
+   //{assert(i);                                                                // Cannot fill from left
     //NWayTree_constLong(I, i-1);
-    //NWayTree_Node_down(l, p, I);                                                // Left sibling
+    //NWayTree_Node_down(l, p, I);                                              // Left sibling
     //NWayTree_Node_length(ll, l);
 
-    //NWayTree_Node_keys(pk, p, I);                                               // Shift in keys and data from left
+    //NWayTree_Node_keys(pk, p, I);                                             // Shift in keys and data from left
     //NWayTree_Node_data(pd, p, I);
 
-    //ArrayLongUnShift(l->keys, ll, pk);                                          // Shift in keys and data from left
+    //ArrayLongUnShift(l->keys, ll, pk);                                        // Shift in keys and data from left
     //ArrayLongUnShift(l->data, ll, pd);
 
-    //NWayTree_constLong(lk, ArrayLongPop(l->keys, ll));                          // Transfer key and data to parent
+    //NWayTree_constLong(lk, ArrayLongPop(l->keys, ll));                        // Transfer key and data to parent
     //NWayTree_constLong(ld, ArrayLongPop(l->data, ll));
-    //NWayTree_Node_setKeys(p, I, lk);                                            // Transfer key and data to parent
+    //NWayTree_Node_setKeys(p, I, lk);                                          // Transfer key and data to parent
     //NWayTree_Node_setData(p, I, ld);
-    //NWayTree_Node_isLeaf(leaf, l);                                              // Leaf
-    //if (!leaf)                                                                  // Transfer node if not a leaf
+    //NWayTree_Node_isLeaf(leaf, l);                                            // Leaf
+    //if (!leaf)                                                                // Transfer node if not a leaf
      //{void * ld = ArrayVoidPop((void *)l->down, ll);
       //ArrayVoidUnShift(        (void *)l->down, ll, ld);
 
@@ -739,81 +739,81 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
    //}
  //}
 
-//inline static void NWayTree(MergeWithLeftOrRight)                               // Merge two adjacent nodes.  Not called by find or insert.
- //(NWayTree(Node) * const n,                                                     // Node to fill
-  //const long             dir)                                                   // Direction to fill from
- //{assert(NWayTree(HalfFull)(n));                                                // Confirm leaf is half full
-  //NWayTree_Node_up(p, n);                                                       // Parent of leaf
+//inline static void NWayTree(MergeWithLeftOrRight)                             // Merge two adjacent nodes.  Not called by find or insert.
+ //(NWayTree(Node) * const n,                                                   // Node to fill
+  //const long             dir)                                                 // Direction to fill from
+ //{assert(NWayTree(HalfFull)(n));                                              // Confirm leaf is half full
+  //NWayTree_Node_up(p, n);                                                     // Parent of leaf
   //assert(p);
-  //NWayTree_constLong(hf, NWayTree(HalfFull)(p));                                // Parent must have more than the minimum number of keys because we need to remove one unless it is the root of the tree
+  //NWayTree_constLong(hf, NWayTree(HalfFull)(p));                              // Parent must have more than the minimum number of keys because we need to remove one unless it is the root of the tree
   //assert(hf);
-  //NWayTree_Node_up(P, p);                                                       // Check that we are not on the root node
+  //NWayTree_Node_up(P, p);                                                     // Check that we are not on the root node
   //assert(P);
 
-  //NWayTree_constLong(i, NWayTree(IndexInParent)(n));                            // Index of leaf in parent
+  //NWayTree_constLong(i, NWayTree(Node_indexInParent)(n));                     // Index of leaf in parent
   //NWayTree_Node_length(pl, p);
   //NWayTree_Node_length(nl, n);
 
-  //if (dir)                                                                      // Merge with right hand sibling
-   //{assert(i < pl);                                                             // Cannot fill from right
+  //if (dir)                                                                    // Merge with right hand sibling
+   //{assert(i < pl);                                                           // Cannot fill from right
     //NWayTree_constLong(I, i+1);
-    //NWayTree_Node_down(r, p, I);                                                // Leaf on right
-    //assert(NWayTree(HalfFull)(r));                                              // Confirm right leaf is half full
+    //NWayTree_Node_down(r, p, I);                                              // Leaf on right
+    //assert(NWayTree(HalfFull)(r));                                            // Confirm right leaf is half full
     //NWayTree_Node_length(rl, r);
 
-    //const NWayTreeDataType k = ArrayLongDelete(p->keys, pl, I);                 // Transfer keys and data from parent
+    //const NWayTreeDataType k = ArrayLongDelete(p->keys, pl, I);               // Transfer keys and data from parent
     //const NWayTreeDataType d = ArrayLongDelete(p->data, pl, I);
     //ArrayLongPush(n->keys, nl, k);
     //ArrayLongPush(n->data, nl, d);
 
-    //ArrayLongPushArray(n->keys, nl+1, r->keys, rl);                             // Transfer keys
-    //ArrayLongPushArray(n->data, nl+1, r->data, rl);                             // Transfer data
+    //ArrayLongPushArray(n->keys, nl+1, r->keys, rl);                           // Transfer keys
+    //ArrayLongPushArray(n->data, nl+1, r->data, rl);                           // Transfer data
 
-    //NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
-    //if (!leaf)                                                                  // Children of merged node
+    //NWayTree_Node_isLeaf(leaf, n);                                            // Leaf
+    //if (!leaf)                                                                // Children of merged node
      //{ArrayVoidPushArray((void *)n->down, nl,(void *)r->down, rl);
-      //NWayTree(ReUp)(n);                                                        // Update parent of children of right node
+      //NWayTree(ReUp)(n);                                                      // Update parent of children of right node
      //}
-    //ArrayVoidDelete((void *)p->down, pl, I);                                    // Remove link from parent to right child
+    //ArrayVoidDelete((void *)p->down, pl, I);                                  // Remove link from parent to right child
     //NWayTree_Node_setLength(n1, n, nl + rl + 1); if (n1) {}
     //NWayTree_Node_setLength(p1, p, pl      - 1); if (p1) {}
     //NWayTree(FreeNode)(r);
    //}
-  //else                                                                          // Merge with left hand sibling
-   //{assert(i > 0);                                                              // Cannot fill from left
+  //else                                                                        // Merge with left hand sibling
+   //{assert(i > 0);                                                            // Cannot fill from left
     //NWayTree_constLong(I, i-1);
-    //NWayTree_Node_down(l, p, I);                                                // Node on left
-    //assert(NWayTree(HalfFull)(l));                                              // Confirm left leaf is half full
+    //NWayTree_Node_down(l, p, I);                                              // Node on left
+    //assert(NWayTree(HalfFull)(l));                                            // Confirm left leaf is half full
     //NWayTree_Node_length(ll, l);
-    //const NWayTreeDataType k = ArrayLongDelete(p->keys, pl, I);                 // Transfer parent key and data
+    //const NWayTreeDataType k = ArrayLongDelete(p->keys, pl, I);               // Transfer parent key and data
     //const NWayTreeDataType d = ArrayLongDelete(p->data, pl, I);
     //ArrayLongUnShift     (n->keys, nl,   k);
     //ArrayLongUnShift     (n->data, nl,   d);
-    //ArrayLongUnShiftArray(n->keys, nl+1, l->keys, ll);                          // Transfer left keys and data
+    //ArrayLongUnShiftArray(n->keys, nl+1, l->keys, ll);                        // Transfer left keys and data
     //ArrayLongUnShiftArray(n->data, nl+1, l->data, ll);
 
-    //NWayTree_Node_isLeaf(leaf, n);                                              // Leaf
-    //if (!leaf)                                                                  // Children of merged node
+    //NWayTree_Node_isLeaf(leaf, n);                                            // Leaf
+    //if (!leaf)                                                                // Children of merged node
      //{ArrayLongUnShiftArray((void *)n->down, nl,
                             //(void *)l->down, ll);
-      //NWayTree(ReUp)(n);                                                        // Update parent of children of left node
+      //NWayTree(ReUp)(n);                                                      // Update parent of children of left node
      //}
-    //ArrayVoidDelete((void *)p->down, pl, I);                                    // Remove link from parent to right child
+    //ArrayVoidDelete((void *)p->down, pl, I);                                  // Remove link from parent to right child
     //NWayTree_Node_setLength(n1, n, nl + ll + 1); if (n1) {}
     //NWayTree_Node_setLength(p1, p, pl      - 1); if (p1) {}
     //NWayTree(FreeNode)(l);
    //}
  //}
 
-//inline static void NWayTree(Merge)                                              // Merge the current node with its sibling. Not called by find or insert
- //(NWayTree(Node) * const node)                                                  // Node to merge into
- //{NWayTree_constLong(i, NWayTree(IndexInParent)(node));                         // Index in parent
-  //NWayTree_Node_up(p, node);                                                    // Parent
+//inline static void NWayTree(Merge)                                            // Merge the current node with its sibling. Not called by find or insert
+ //(NWayTree(Node) * const node)                                                // Node to merge into
+ //{NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                  // Index in parent
+  //NWayTree_Node_up(p, node);                                                  // Parent
 
-  //if (i)                                                                        // Merge with left node
-   //{NWayTree_Node_down(l, p, i-1);                                              // Left node
+  //if (i)                                                                      // Merge with left node
+   //{NWayTree_Node_down(l, p, i-1);                                            // Left node
     //NWayTree_constNode(r, node);
-    //if (NWayTree(HalfFull)(r))                                                  // Merge as left and right nodes are half full
+    //if (NWayTree(HalfFull)(r))                                                // Merge as left and right nodes are half full
      //{if (NWayTree(HalfFull)(l))
        //{NWayTree(MergeWithLeftOrRight)(r, 0);
        //}
@@ -823,10 +823,10 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
      //}
    //}
   //else
-   //{NWayTree_Node_down(r, p, 1);                                                // Right node
+   //{NWayTree_Node_down(r, p, 1);                                              // Right node
     //NWayTree_constNode(l, node);
     //if (NWayTree(HalfFull)(l))
-     //{if (NWayTree(HalfFull)(r))                                                // Merge as left and right nodes are half full
+     //{if (NWayTree(HalfFull)(r))                                              // Merge as left and right nodes are half full
        //{NWayTree(MergeWithLeftOrRight)(l, 1);
        //}
       //else
@@ -836,13 +836,13 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
    //}
  //}
 
-//inline static void NWayTree(MergeOrFill)                                        // Make a node larger than a half node. Not called by find or insert.
- //(NWayTree(Node) * const node)                                                  // Node to merge or fill
- //{if (NWayTree(HalfFull)(node)) return;                                         // No need to merge of if not a half node
-  //NWayTree_Node_up(p, node);                                                    // Parent
-  //NWayTree_Node_up(P, p);                                                       // Parent of parent
+//inline static void NWayTree(MergeOrFill)                                      // Make a node larger than a half node. Not called by find or insert.
+ //(NWayTree(Node) * const node)                                                // Node to merge or fill
+ //{if (NWayTree(HalfFull)(node)) return;                                       // No need to merge of if not a half node
+  //NWayTree_Node_up(p, node);                                                  // Parent
+  //NWayTree_Node_up(P, p);                                                     // Parent of parent
 
-  //if (P)                                                                        // Merge or fill parent which is not the root
+  //if (P)                                                                      // Merge or fill parent which is not the root
    //{NWayTree(MergeOrFill)(p);
     //NWayTree(Merge)(node);
     //return;
@@ -850,7 +850,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
 
   //NWayTree_Node_length(pl, p);
 
-  //if (pl == 1)                                                                  // Parent is the root and it only has one key - merge into the child if possible
+  //if (pl == 1)                                                                // Parent is the root and it only has one key - merge into the child if possible
    //{NWayTree_Node_down(l, p, 0);
     //NWayTree_constLong(lh, NWayTree(HalfFull)(l));
     //if (lh)
@@ -877,13 +877,13 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
         //ArrayLongPushArray(p->data, 0, node->data, N);
         //ArrayVoidPushArray((void *)p->down, 0, (void *)node->down, N+1);
 
-        //NWayTree(ReUp)(p);                                                      // Reconnect children to parent
+        //NWayTree(ReUp)(p);                                                    // Reconnect children to parent
         //return;
        //}
      //}
    //}
 
-  //NWayTree(Merge)(node);                                                        // Parent is the root but it has more than one key
+  //NWayTree(Merge)(node);                                                      // Parent is the root but it has more than one key
  //}
 
 //D1 Find
@@ -1027,7 +1027,7 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
 
   NWayTree_Node_keys(k, node, 0);
   NWayTree_FindComparison(e, equal);
-  return NWayTree(FindResult_new)(node, k, e, 0);                                // Leaf - place us on the first key
+  return NWayTree(FindResult_new)(node, k, e, 0);                               // Leaf - place us on the first key
  }
 
 inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      // Go up until it is possible to go right or we can go no further
@@ -1046,7 +1046,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
     NWayTree_Node_up(Parent, node);                                             // Parent
     NWayTree(Node) *parent = Parent;
     for(;parent;)                                                               // Not the only node in the tree
-     {NWayTree_constLong(i, NWayTree(IndexInParent)(node));                     // Index in parent
+     {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                // Index in parent
       NWayTree_Node_length(pl, parent);                                         // Parent length
       if (i == pl)                                                              // Last key - continue up
        {node = parent;
@@ -1056,10 +1056,10 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
        }
       NWayTree_Node_keys(k, parent, i);
       NWayTree_FindComparison(e, equal);
-      return NWayTree(FindResult_new)(parent, k, e, i);                          // Not the last key
+      return NWayTree(FindResult_new)(parent, k, e, i);                         // Not the last key
      }
     NWayTree_FindComparison(n, notFound);
-    return NWayTree(FindResult_new)(node, 0, n, 0);                              // Last key of root
+    return NWayTree(FindResult_new)(node, 0, n, 0);                             // Last key of root
    }
 
   NWayTree_FindResult_index(i, find);                                           // Not a leaf so on an interior key so we can go right then all the way left

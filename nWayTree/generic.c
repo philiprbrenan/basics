@@ -166,17 +166,17 @@ typedef struct NWayTree(FindResult)                                             
   long index;                                                                   // Index in the node of equal element
  } NWayTree(FindResult);
 
-inline static NWayTree(FindResult) NWayTree(NewFindResult)                      // New find result on stack
+inline static NWayTree(FindResult) NWayTree(FindResult_new)                      // New find result on stack
  (NWayTree(Node) *         const node,                                          // Node
   NWayTreeDataType         const key,                                           // Search key
   NWayTree(FindComparison) const cmp,                                           // Comparison result
   long                     const index)                                         // Index in node of nearest key
- {NWayTree(FindResult) r;
-  r.node  = node;
-  r.key   = key;
-  r.cmp   = cmp;
-  r.index = index;
-  return r;
+ {NWayTree(FindResult) f;
+  f.node  = node;
+  f.key   = key;
+  f.cmp   = cmp;
+  f.index = index;
+  return f;
  }
 
 inline static NWayTreeDataType NWayTree(FindResult_data)                        // Get data field from find results
@@ -641,7 +641,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
      {NWayTree_Node_isLeaf(leaf, node);                                         // Leaf
       if (leaf)                                                                 // Leaf
        {NWayTree_FindComparison(h, higher);
-        return NWayTree(NewFindResult)(node, key, h, last);
+        return NWayTree(FindResult_new)(node, key, h, last);
        }
       NWayTree_Node_down(n, node, last+1);
       NWayTree_constLong(s, NWayTree(SplitFullNode)(n));                        // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
@@ -655,13 +655,13 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
      {NWayTree_Node_keys(k, node, i);                                           // Current key
       if (key == k)                                                             // Found key
        {NWayTree_FindComparison(e, equal);
-        return NWayTree(NewFindResult)(node, key, e, i);
+        return NWayTree(FindResult_new)(node, key, e, i);
        }
       if (key < k)                                                              // Greater than current key
        {NWayTree_Node_isLeaf(leaf, node);
         if (leaf)
          {NWayTree_FindComparison(l, lower);
-          return NWayTree(NewFindResult)(node, key, l, i);
+          return NWayTree(FindResult_new)(node, key, l, i);
          }
         NWayTree_Node_down(n, node, i);
         NWayTree_constLong(s, NWayTree(SplitFullNode)(node));                   // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
@@ -895,7 +895,7 @@ static NWayTree(FindResult) NWayTree(Find)                                      
   NWayTree(Node) * node = N;                                                    // Current node we are searching
   if (!node)                                                                    // Empty tree
    {NWayTree_FindComparison(n, notFound);
-    return NWayTree(NewFindResult)(node, key, n, -1);
+    return NWayTree(FindResult_new)(node, key, n, -1);
    }
 
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
@@ -906,7 +906,7 @@ static NWayTree(FindResult) NWayTree(Find)                                      
      {NWayTree_Node_isLeaf(l, node);                                            // Leaf
       if (l)
        {NWayTree_FindComparison(h, higher);
-        return NWayTree(NewFindResult)(node, key, h, nl-1);
+        return NWayTree(FindResult_new)(node, key, h, nl-1);
        }
       NWayTree_Node_down(n, node, nl);
       node = n;
@@ -917,13 +917,13 @@ static NWayTree(FindResult) NWayTree(Find)                                      
      {NWayTree_Node_keys(k, node, i);                                           // Key from tree
       if (key == k)                                                             // Found key
        {NWayTree_FindComparison(e, equal);
-        return NWayTree(NewFindResult)(node, key, e, i);
+        return NWayTree(FindResult_new)(node, key, e, i);
        }
       if (key < k)                                                              // Lower than current key
        {NWayTree_Node_isLeaf(leaf, node);                                       // Leaf
         if (leaf)                                                               // Leaf
          {NWayTree_FindComparison(l, lower);
-          return NWayTree(NewFindResult)(node, key, l, i);
+          return NWayTree(FindResult_new)(node, key, l, i);
          }
         NWayTree_Node_down(n, node, i);
         node = n;
@@ -1017,7 +1017,7 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
  (NWayTree(Node) * const node)
  {if (!node)                                                                    // Empty tree
    {NWayTree_FindComparison(n, notFound);
-    return NWayTree(NewFindResult)(node, 0, n, 0);
+    return NWayTree(FindResult_new)(node, 0, n, 0);
    }
   NWayTree_Node_isLeaf(leaf, node);
   if (!leaf)                                                                    // Still some way to go
@@ -1027,7 +1027,7 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
 
   NWayTree_Node_keys(k, node, 0);
   NWayTree_FindComparison(e, equal);
-  return NWayTree(NewFindResult)(node, k, e, 0);                                // Leaf - place us on the first key
+  return NWayTree(FindResult_new)(node, k, e, 0);                                // Leaf - place us on the first key
  }
 
 inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      // Go up until it is possible to go right or we can go no further
@@ -1041,7 +1041,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
      {NWayTree_constLong(i, I + 1);
       NWayTree_FindComparison(e, equal);
       NWayTree_Node_keys(k, node, i);
-      return NWayTree(NewFindResult)(node, k, e, i);
+      return NWayTree(FindResult_new)(node, k, e, i);
      }
     NWayTree_Node_up(Parent, node);                                             // Parent
     NWayTree(Node) *parent = Parent;
@@ -1056,10 +1056,10 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
        }
       NWayTree_Node_keys(k, parent, i);
       NWayTree_FindComparison(e, equal);
-      return NWayTree(NewFindResult)(parent, k, e, i);                          // Not the last key
+      return NWayTree(FindResult_new)(parent, k, e, i);                          // Not the last key
      }
     NWayTree_FindComparison(n, notFound);
-    return NWayTree(NewFindResult)(node, 0, n, 0);                              // Last key of root
+    return NWayTree(FindResult_new)(node, 0, n, 0);                              // Last key of root
    }
 
   NWayTree_FindResult_index(i, find);                                           // Not a leaf so on an interior key so we can go right then all the way left

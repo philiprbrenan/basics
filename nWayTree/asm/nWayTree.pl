@@ -205,7 +205,7 @@ sub NWayTree_Node_down($$)                                                      
   NWayTree_Node_getIndex($node, $index, q(down));                               # Child
  }
 
-sub NWayTree_Node_isLeaf($$)                                                    # Put 1 in a temporary variable if a node is a leaf else 0
+sub NWayTree_Node_isLeaf($)                                                     # Put 1 in a temporary variable if a node is a leaf else 0
  {my ($node) = @_;                                                              # Node
   my $l = $main->variables->temporary;                                          # Leaf
   my $d = NWayTree_Node_down($node, 0);                                         # First child
@@ -380,100 +380,122 @@ sub NWayTree_Node_indexInParent                                                 
 
 sub NWayTree_Node_SplitIfFull($)                                                # Split a node if it is full. Return true if the node was split else false
  {my ($node) = @_;                                                              # Node
-  my $nl = NWayTree_Node_length(node);
+  my $nl = NWayTree_Node_length($node);
 
-  my $t = NWayTree_Node_tree(node);                                             # Associated tree
+  my $t = NWayTree_Node_tree($node);                                            # Associated tree
   my $m = NWayTree_maximumNumberOfKeys($t);
-  if (nl < m)                                                                   # Must be a full node
-   {return 0;
-   }
+  my $split = Var 1;
 
-  `NWayTree_constNode(l, NWayTree(Node_new)(t));                                 # New child nodes
-  `NWayTree_constNode(r, NWayTree(Node_new)(t));
+  Block                                                                         # Various splitting scenarios
+   {my ($start, $good, $bad, $end) = @_;
+    Jlt $bad, $nl, $m;                                                          # Must be a full node
 
-  `NWayTree_maximumNumberOfKeys(N, t);                                           # Split points
-  `NWayTree_constLong(n, N>>1);                                                  # Index of key that will be placed in parent
+    my $l = NWayTree_Node_new($t);                                              # New child nodes
+    my $r = NWayTree_Node_new($t);
 
-  `NWayTree_constLong(L, n + 1);
-  `NWayTree_constLong(R, N - L);
+    my $N = NWayTree_maximumNumberOfKeys($t);                                   # Split points
+    my $n = Var($N);
+    ShiftRight $N, 1;                                                           # Index of key that will be placed in parent
 
-  `NWayTree_Node_setLength(l, n);
-  `NWayTree_Node_setLength(r, R);
+    my $L = Add Var, $n, 1;
+    my $R = Add Var, $N, $L;
 
-  `NWayTree(Node_copy)(l, node, 0, 0,  L);                                       # Split left node
-  `NWayTree(Node_copy)(r, node, 0, L, R);                                        # Split right node
+    NWayTree_Node_setLength($l, $n);
+    NWayTree_Node_setLength($r, $R);
 
-  `NWayTree_Node_isLeaf(leaf, node);                                             # Leaf node
-  if (!leaf)                                                                    # Not a leaf node
-   {NWayTree(ReUp)(l);
-    NWayTree(ReUp)(r);
-   }
+    NWayTree_Node_copy($l, $node, 0, 0,  $L);                                   # Split left node
+    NWayTree_Node_copy($r, $node, 0, $L, $R);                                   # Split right node
 
-  `NWayTree_Node_up(p, node);                                                    # Existing parent node
-  if (p)                                                                        # Not a root node
-   {`NWayTree_Node_length(pl, p);
-    `NWayTree_Node_setUp(l, p);                                                  # Connect children to parent
-    `NWayTree_Node_setUp(r, p);
-    `NWayTree_Node_down(d, p, 0);
-
-    if (d == node)                                                              # Splitting the first child - move everything up
-     {NWayTree_Node_setLength(p, pl+1);
-      `NWayTree(Node_open)(p, 0, pl);
-      `NWayTree_Node_keys(nk, node, n);
-      `NWayTree_Node_data(nd, node, n);
-      NWayTree_Node_setKeys(p, 0, nk);
-      NWayTree_Node_setData(p, 0, nd);
-      NWayTree_Node_setDown(p, 0, l);
-      NWayTree_Node_setDown(p, 1, r);
-      NWayTree(FreeNode)(node);
-      return 1;
+    my $leaf = NWayTree_Node_isLeaf($node);                                     # Leaf
+    if (!$leaf)                                                                 # Not a leaf
+     {NWayTree_ReUp($l);
+      NWayTree_ReUp($r);
      }
 
-    NWayTree_Node_down(pd, p, pl);
-    if (pd == node)                                                             # Splitting the last child - just add it on the end
-     {NWayTree_Node_keys(pk,  node, n);
-      NWayTree_Node_data(pd,  node, n);
-      NWayTree_Node_setKeys  (p, pl, pk);
-      NWayTree_Node_setData  (p, pl, pd);
-      NWayTree_Node_setDown  (p, pl, l);
-      NWayTree_Node_data(nd,  node, n);
-      NWayTree_Node_setData  (p, pl, nd);
-      NWayTree_Node_setDown  (p, pl, l);
-      NWayTree_Node_setLength(p, pl+1);
-      NWayTree_Node_setDown  (p, pl+1, r);
-      NWayTree(FreeNode)     (node);
-      return 1;
-     }
+    my $p = NWayTree_Node_up($node);                                            # Existing parent node
+    IfNe $p, 0,
+    Then                                                                        # Not a root node
+     {my $pl = NWayTree_Node_length($p);
+      NWayTree_Node_setUp($l, $p);                                              # Connect children to parent
+      NWayTree_Node_setUp($r, $p);
+      my $d  = NWayTree_Node_down  ($p, 0);
 
-    for(long i = 1; i < pl; ++i)                                                # Splitting a middle child:
-     {NWayTree_Node_down(d, p, i);
-      if (d == node)                                                            # Find the node that points from the parent to the current node
-       {NWayTree(Node_open)(p, i, pl-i);
-        NWayTree_Node_keys(pk, node, n);
-        NWayTree_Node_data(pd, node, n);
-        NWayTree_Node_setKeys  (p, i,  pk);
-        NWayTree_Node_setData  (p, i,  pd);
-        NWayTree_Node_setDown  (p, i,   l);
-        NWayTree_Node_setDown  (p, i+1, r);
-        NWayTree_Node_setLength(p, pl+1);
-        NWayTree(FreeNode)(node);
-        return 1;
-       }
-     }
-    assert(0);                                                                  # Could not find the child in the parent
+      IfEq $d, $node,
+      Then                                                                      # Splitting the first child - move everything up
+       {my $pl1 = Add Var, $pl, 1;
+        NWayTree_Node_setLength($p, $pl1);
+        NWayTree_Node_open($p, 0, $pl);
+        my $nk = NWayTree_Node_keys($node, $n);
+        my $nd = NWayTree_Node_data($node, $n);
+        NWayTree_Node_setKeys($p, 0, $nk);
+        NWayTree_Node_setData($p, 0, $nd);
+        NWayTree_Node_setDown($p, 0, $l);
+        NWayTree_Node_setDown($p, 1, $r);
+        NWayTree_Node_free($node);
+        Jmp $good;
+       };
+
+      my $pd = NWayTree_Node_down($p, $pl);
+      IfEq $pd, $node,                                                          # Splitting the last child - just add it on the end
+      Then
+       {my $pk = NWayTree_Node_keys($node, $n);
+        my $pd = NWayTree_Node_data($node, $n);
+        NWayTree_Node_setKeys  ($p, $pl, $pk);
+        NWayTree_Node_setData  ($p, $pl, $pd);
+        NWayTree_Node_setDown  ($p, $pl, $l);
+        my $nd = NWayTree_Node_data($node, $n);
+        NWayTree_Node_setData  ($p, $pl, $nd);
+        NWayTree_Node_setDown  ($p, $pl, $l);
+        my $pl1 = Add Var, $pl, 1;
+        NWayTree_Node_setLength($p, $pl1);
+        NWayTree_Node_setDown  ($p, $pl1, $r);
+        NWayTree_Node_free     ($node);
+        Jmp $good;
+       };
+
+      ForLoop [1, $pl], sub                                                     # Splitting a middle child:
+       {my ($i) = @_;                                                           # Child index
+        my $d = NWayTree_Node_down($p, $i);
+        IfEq $d, $node,                                                         # Find the node that points from the parent to the current node
+        Then
+         {my $pli = Subtract Var, $pl, $i;
+          NWayTree_Node_open($p, $i, $pli);
+          my $pk = NWayTree_Node_keys($node, $n);
+          my $pd = NWayTree_Node_data($node, $n);
+          NWayTree_Node_setKeys  ($p, $i, $pk);
+          NWayTree_Node_setData  ($p, $i, $pd);
+          NWayTree_Node_setDown  ($p, $i,  $l);
+          my $i1  = Add Var, $i,  1;
+          my $pl1 = Add Var, $pl, 1;
+          NWayTree_Node_setDown  ($p, $i1, $r);
+          NWayTree_Node_setLength($p, $pl1);
+          NWayTree_Node_free     ($node);
+          Jmp $good;
+         };
+       };
+      Assert;                                                                   # Could not find the child in the parent
+     };
+
+    NWayTree_Node_setUp($l, $node);                                                 # Root node with single key after split
+    NWayTree_Node_setUp($r, $node);                                                 # Connect children to parent
+
+    my $pk = NWayTree_Node_keys($node, $n);                                             # Single key
+    my $pd = NWayTree_Node_data($node, $n);                                             # Data associated with single key
+    NWayTree_Node_setKeys  ($node, 0, $pk);
+    NWayTree_Node_setData  ($node, 0, $pd);
+    NWayTree_Node_setDown  ($node, 0, $l);
+    NWayTree_Node_setDown  ($node, 1, $r);
+    NWayTree_Node_setLength($node, 1);
+
+    Jmp $good;
    }
-
-  NWayTree_Node_setUp(l, node);                                                 # Root node with single key after split
-  NWayTree_Node_setUp(r, node);                                                 # Connect children to parent
-
-  NWayTree_Node_keys(pk,  node, n);                                             # Single key
-  NWayTree_Node_data(pd,  node, n);                                             # Data associated with single key
-  NWayTree_Node_setKeys  (node, 0, pk);
-  NWayTree_Node_setData  (node, 0, pd);
-  NWayTree_Node_setDown  (node, 0, l);
-  NWayTree_Node_setDown  (node, 1, r);
-  NWayTree_Node_setLength(node, 1);
-  return 1;
+  Good                                                                          # Node was split
+   {Mov $split, 1
+   },
+  Bad                                                                           # Node was to small to split
+   {Mov $split, 0
+   };
+  $split
  }
 
 return 1 if caller;

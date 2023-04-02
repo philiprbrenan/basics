@@ -524,7 +524,7 @@ inline static void NWayTree(CheckTree)                                          
 
 //D1 Splitting
 
-inline static long NWayTree(SplitFullNode)                                      // Split a node if it is full. Return true if the node was split else false
+inline static long NWayTree(Node_SplitIfFull)                                      // Split a node if it is full. Return true if the node was split else false
  (NWayTree(Node) * const node)
  {NWayTree_Node_length(nl, node);
 
@@ -628,7 +628,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
  {NWayTree_root(Node, tree);
   NWayTree(Node) * node = Node;
 
-  if (NWayTree(SplitFullNode)(node))                                            // Split the root node if necessary
+  if (NWayTree(Node_SplitIfFull)(node))                                            // Split the root node if necessary
    {NWayTree_root(Node, tree);
     node = Node;
    }
@@ -644,7 +644,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
         return NWayTree(FindResult_new)(node, key, h, last);
        }
       NWayTree_Node_down(n, node, last+1);
-      NWayTree_constLong(s, NWayTree(SplitFullNode)(n));                        // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(n));                        // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
       if (!s)                                                                   // No split needed
        {node = n;
        }
@@ -664,7 +664,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
           return NWayTree(FindResult_new)(node, key, l, i);
          }
         NWayTree_Node_down(n, node, i);
-        NWayTree_constLong(s, NWayTree(SplitFullNode)(node));                   // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+        NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(node));                   // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
         if (s)
          {NWayTree_Node_up(N, n);
           node = N;
@@ -1008,7 +1008,7 @@ static void NWayTree(Insert)                                                    
    }
 
   NWayTree_Node_setLength(N, Nl+1);
-  NWayTree(SplitFullNode)(N);                                                   // Split if the leaf is full to force keys up the tree
+  NWayTree(Node_SplitIfFull)(N);                                                   // Split if the leaf is full to force keys up the tree
  }
 
 //D1 Iteration
@@ -1484,7 +1484,7 @@ void test_3_4a()                                                                
   NWayTree_Node_setLength(n, 3);
   NWayTree_setRoot(t, n);
 
-  long r = NWayTree(SplitFullNode)(n);
+  long r = NWayTree(Node_SplitIfFull)(n);
   assert(r);
   //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
@@ -1521,7 +1521,7 @@ void test_3_4b()                                                                
 "     23                                  46\n"
 ));
 
-  long r = NWayTree(SplitFullNode)(n0); if (r){}
+  long r = NWayTree(Node_SplitIfFull)(n0); if (r){}
   //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
@@ -1554,7 +1554,7 @@ void test_3_4c()                                                                
   NWayTree_Node_down(n, p, 1);
   assert(n == n1);
 
-  long r = NWayTree(SplitFullNode)(n1); if (r){}
+  long r = NWayTree(Node_SplitIfFull)(n1); if (r){}
   //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"
@@ -1586,7 +1586,7 @@ void test_3_4d()                                                                
   NWayTree_Node_down(n, p, 1);
   assert(n == n1);
 
-  long r = NWayTree(SplitFullNode)(n2); if (r){}
+  long r = NWayTree(Node_SplitIfFull)(n2); if (r){}
   //NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "      1                                   2\n"

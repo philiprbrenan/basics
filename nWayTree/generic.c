@@ -625,10 +625,9 @@ inline static long NWayTree(Node_SplitIfFull)                                   
 inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       // Find a key in a tree splitting full nodes along the path to the key.
  (NWayTree(Tree) * const tree,                                                  // Tree to search
   NWayTreeDataType const key)                                                   // Key to locate
- {NWayTree_root(Node, tree);
-  NWayTree(Node) * node = Node;
+ {NWayTree_root(node, tree);
 
-  if (NWayTree(Node_SplitIfFull)(node))                                            // Split the root node if necessary
+  if (NWayTree(Node_SplitIfFull)(node))                                         // Split the root node if necessary
    {NWayTree_root(Node, tree);
     node = Node;
    }
@@ -644,7 +643,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
         return NWayTree(FindResult_new)(node, key, h, last);
        }
       NWayTree_Node_down(n, node, last+1);
-      NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(n));                        // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+      NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(n));                     // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
       if (!s)                                                                   // No split needed
        {node = n;
        }

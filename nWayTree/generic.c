@@ -108,7 +108,7 @@ inline static void NWayTree(Node_copy)                                          
   NWayTree_Node_setDown(t, to+length, n);
  }
 
-inline static void NWayTree(FreeNode)                                           // Free a node, Wipe the node so it cannot be accidently reused
+inline static void NWayTree(Node_free)                                           // Free a node, Wipe the node so it cannot be accidently reused
  (NWayTree(Node) * const node)                                                  // Node to free
  {free(node);
  }
@@ -139,7 +139,7 @@ inline static void NWayTree(Free2)                                              
       NWayTree(Free2)(n);
      }
    }
-  NWayTree(FreeNode)(node);                                                     // Free node now sub nodes have been freed
+  NWayTree(Node_free)(node);                                                     // Free node now sub nodes have been freed
  }
 
 inline static void NWayTree(Free)                                               // Free a tree
@@ -571,7 +571,7 @@ inline static long NWayTree(Node_SplitIfFull)                                   
       NWayTree_Node_setData(p, 0, nd);
       NWayTree_Node_setDown(p, 0, l);
       NWayTree_Node_setDown(p, 1, r);
-      NWayTree(FreeNode)(node);
+      NWayTree(Node_free)(node);
       return 1;
      }
 
@@ -587,7 +587,7 @@ inline static long NWayTree(Node_SplitIfFull)                                   
       NWayTree_Node_setDown  (p, pl, l);
       NWayTree_Node_setLength(p, pl+1);
       NWayTree_Node_setDown  (p, pl+1, r);
-      NWayTree(FreeNode)     (node);
+      NWayTree(Node_free)     (node);
       return 1;
      }
 
@@ -602,7 +602,7 @@ inline static long NWayTree(Node_SplitIfFull)                                   
         NWayTree_Node_setDown  (p, i,   l);
         NWayTree_Node_setDown  (p, i+1, r);
         NWayTree_Node_setLength(p, pl+1);
-        NWayTree(FreeNode)(node);
+        NWayTree(Node_free)(node);
         return 1;
        }
      }
@@ -777,7 +777,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     //ArrayVoidDelete((void *)p->down, pl, I);                                  // Remove link from parent to right child
     //NWayTree_Node_setLength(n1, n, nl + rl + 1); if (n1) {}
     //NWayTree_Node_setLength(p1, p, pl      - 1); if (p1) {}
-    //NWayTree(FreeNode)(r);
+    //NWayTree(Node_free)(r);
    //}
   //else                                                                        // Merge with left hand sibling
    //{assert(i > 0);                                                            // Cannot fill from left
@@ -801,7 +801,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     //ArrayVoidDelete((void *)p->down, pl, I);                                  // Remove link from parent to right child
     //NWayTree_Node_setLength(n1, n, nl + ll + 1); if (n1) {}
     //NWayTree_Node_setLength(p1, p, pl      - 1); if (p1) {}
-    //NWayTree(FreeNode)(l);
+    //NWayTree(Node_free)(l);
    //}
  //}
 

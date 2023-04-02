@@ -357,7 +357,123 @@ sub NWayTree_ReUp($)                                                            
        {my $d = NWayTree_Node_down ($node, $i);
                 NWayTree_Node_setUp($d, $node);
        };
+ }
 
+sub NWayTree_Node_indexInParent                                                 # Get the index of a node in its parent.
+ {my ($node) = @_;                                                              # Node
+  my $p = NWayTree_Node_up($node);
+  assertNe($p, 0);
+  my $l = NWayTree_Node_length($p);
+  my $r = Var(-1);                                                              # Index of child
+  ForLoop $l, sub                                                               # Loop through each child looking for the one specified
+   {my ($i, $start, $check, $next, $end) = @_;
+    my $d = NWayTree_Node_down($p, $i);
+    IfEq $d, $node,
+    Then
+     {Mov $r, $i;
+      Jmp $end;
+     };
+   };
+  AssertNe($r, -1);                                                             # Something has gone seriously wrong if we cannot find the node within its parent
+  $r
+ }
+
+sub NWayTree_Node_SplitIfFull                                      # Split a node if it is full. Return true if the node was split else false
+ (NWayTree(Node) * const node)
+ {NWayTree_Node_length(nl, node);
+
+  NWayTree_Node_tree(t, node);                                                  # Associated tree
+  NWayTree_maximumNumberOfKeys(m, t);
+  if (nl < m)                                                                   # Must be a full node
+   {return 0;
+   }
+
+  NWayTree_constNode(l, NWayTree(Node_new)(t));                                 # New child nodes
+  NWayTree_constNode(r, NWayTree(Node_new)(t));
+
+  NWayTree_maximumNumberOfKeys(N, t);                                           # Split points
+  NWayTree_constLong(n, N>>1);                                                  # Index of key that will be placed in parent
+
+  NWayTree_constLong(L, n + 1);
+  NWayTree_constLong(R, N - L);
+
+  NWayTree_Node_setLength(l, n);
+  NWayTree_Node_setLength(r, R);
+
+  NWayTree(Node_copy)(l, node, 0, 0,  L);                                       # Split left node
+  NWayTree(Node_copy)(r, node, 0, L, R);                                        # Split right node
+
+  NWayTree_Node_isLeaf(leaf, node);                                             # Leaf node
+  if (!leaf)                                                                    # Not a leaf node
+   {NWayTree(ReUp)(l);
+    NWayTree(ReUp)(r);
+   }
+
+  NWayTree_Node_up(p, node);                                                    # Existing parent node
+  if (p)                                                                        # Not a root node
+   {NWayTree_Node_length(pl, p);
+    NWayTree_Node_setUp(l, p);                                                  # Connect children to parent
+    NWayTree_Node_setUp(r, p);
+    NWayTree_Node_down(d, p, 0);
+
+    if (d == node)                                                              # Splitting the first child - move everything up
+     {NWayTree_Node_setLength(p, pl+1);
+      NWayTree(Node_open)(p, 0, pl);
+      NWayTree_Node_keys(nk, node, n);
+      NWayTree_Node_data(nd, node, n);
+      NWayTree_Node_setKeys(p, 0, nk);
+      NWayTree_Node_setData(p, 0, nd);
+      NWayTree_Node_setDown(p, 0, l);
+      NWayTree_Node_setDown(p, 1, r);
+      NWayTree(FreeNode)(node);
+      return 1;
+     }
+
+    NWayTree_Node_down(pd, p, pl);
+    if (pd == node)                                                             # Splitting the last child - just add it on the end
+     {NWayTree_Node_keys(pk,  node, n);
+      NWayTree_Node_data(pd,  node, n);
+      NWayTree_Node_setKeys  (p, pl, pk);
+      NWayTree_Node_setData  (p, pl, pd);
+      NWayTree_Node_setDown  (p, pl, l);
+      NWayTree_Node_data(nd,  node, n);
+      NWayTree_Node_setData  (p, pl, nd);
+      NWayTree_Node_setDown  (p, pl, l);
+      NWayTree_Node_setLength(p, pl+1);
+      NWayTree_Node_setDown  (p, pl+1, r);
+      NWayTree(FreeNode)     (node);
+      return 1;
+     }
+
+    for(long i = 1; i < pl; ++i)                                                # Splitting a middle child:
+     {NWayTree_Node_down(d, p, i);
+      if (d == node)                                                            # Find the node that points from the parent to the current node
+       {NWayTree(Node_open)(p, i, pl-i);
+        NWayTree_Node_keys(pk, node, n);
+        NWayTree_Node_data(pd, node, n);
+        NWayTree_Node_setKeys  (p, i,  pk);
+        NWayTree_Node_setData  (p, i,  pd);
+        NWayTree_Node_setDown  (p, i,   l);
+        NWayTree_Node_setDown  (p, i+1, r);
+        NWayTree_Node_setLength(p, pl+1);
+        NWayTree(FreeNode)(node);
+        return 1;
+       }
+     }
+    assert(0);                                                                  # Could not find the child in the parent
+   }
+
+  NWayTree_Node_setUp(l, node);                                                 # Root node with single key after split
+  NWayTree_Node_setUp(r, node);                                                 # Connect children to parent
+
+  NWayTree_Node_keys(pk,  node, n);                                             # Single key
+  NWayTree_Node_data(pd,  node, n);                                             # Data associated with single key
+  NWayTree_Node_setKeys  (node, 0, pk);
+  NWayTree_Node_setData  (node, 0, pd);
+  NWayTree_Node_setDown  (node, 0, l);
+  NWayTree_Node_setDown  (node, 1, r);
+  NWayTree_Node_setLength(node, 1);
+  return 1;
  }
 
 return 1 if caller;

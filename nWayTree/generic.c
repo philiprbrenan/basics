@@ -997,16 +997,18 @@ static void NWayTree(Insert)                                                    
   NWayTree_FindResult_index(index, r);                                          // We have room for the insert
   NWayTree_FindComparison(h, higher);
   NWayTree_Node_length(Nl, N);
+  const long Nl1 = Nl+1;
   if (c == h)
-   {ArrayLongInsert(N->keys, Nl+1, key,  index+1);
-    ArrayLongInsert(N->data, Nl+1, data, index+1);
+   {const long index1 = index+1;
+    ArrayLongInsert(N->keys, Nl1, key,  index1);
+    ArrayLongInsert(N->data, Nl1, data, index1);
    }
   else
-   {ArrayLongInsert(N->keys, Nl+1, key,  index);
-    ArrayLongInsert(N->data, Nl+1, data, index);
+   {ArrayLongInsert(N->keys, Nl1, key,  index);
+    ArrayLongInsert(N->data, Nl1, data, index);
    }
 
-  NWayTree_Node_setLength(N, Nl+1);
+  NWayTree_Node_setLength(N, Nl1);
   NWayTree(Node_SplitIfFull)(N);                                                   // Split if the leaf is full to force keys up the tree
  }
 

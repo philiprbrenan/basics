@@ -975,7 +975,7 @@ static void NWayTree(Insert)                                                    
             return;
            }
          }
-        NWayTree_Node_setKeys(n, nl, key);                                     // Insert the key at the end of the block because it is greater than all the other keys in the block
+        NWayTree_Node_setKeys(n, nl, key);                                       // Insert the key at the end of the block because it is greater than all the other keys in the block
         NWayTree_Node_setData(n, nl, data);
         NWayTree_Node_setLength(n, nl+1);
         NWayTree_incKeys(tree);

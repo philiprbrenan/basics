@@ -967,8 +967,9 @@ static void NWayTree(Insert)                                                    
            }
           NWayTree_Node_keys(k, n, i);
           if (key < k)                                                          // We have reached the insertion point
-           {ArrayLongInsert(n->keys, nl+1, key,  i);
-            ArrayLongInsert(n->data, nl+1, data, i);
+           {NWayTree(Node_open)(n, i, nl - i);
+            NWayTree_Node_setKeys(n, i, key);
+            NWayTree_Node_setData(n, i, data);
             NWayTree_Node_setLength(n, nl+1);
             NWayTree_incKeys(tree);
             return;
@@ -1000,12 +1001,16 @@ static void NWayTree(Insert)                                                    
   const long Nl1 = Nl+1;
   if (c == h)
    {const long index1 = index+1;
-    ArrayLongInsert(N->keys, Nl1, key,  index1);
-    ArrayLongInsert(N->data, Nl1, data, index1);
+    NWayTree(Node_open)(N, index1, Nl - index1);
+
+    NWayTree_Node_setKeys(N, index1, key);
+    NWayTree_Node_setData(N, index1, data);
    }
   else
-   {ArrayLongInsert(N->keys, Nl1, key,  index);
-    ArrayLongInsert(N->data, Nl1, data, index);
+   {NWayTree(Node_open)(N, index, Nl - index);
+
+    NWayTree_Node_setKeys(N, index, key);
+    NWayTree_Node_setData(N, index, data);
    }
 
   NWayTree_Node_setLength(N, Nl1);

@@ -899,13 +899,14 @@ static NWayTree(FindResult) NWayTree(Find)                                      
 
   for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
    {NWayTree_Node_length(nl, node);
-    NWayTree_Node_keys(nk, node, nl-1);
+    const long nl1 = nl - 1;
+    NWayTree_Node_keys(nk, node, nl1);
 
     if (key > nk)                                                               // Bigger than every key
      {NWayTree_Node_isLeaf(l, node);                                            // Leaf
       if (l)
        {NWayTree_FindComparison(h, higher);
-        return NWayTree(FindResult_new)(node, key, h, nl-1);
+        return NWayTree(FindResult_new)(node, key, h, nl1);
        }
       NWayTree_Node_down(n, node, nl);
       node = n;

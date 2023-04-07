@@ -546,7 +546,7 @@ inline static long NWayTree(Node_SplitIfFull)                                   
   NWayTree_Node_setLength(l, n);
   NWayTree_Node_setLength(r, R);
 
-  NWayTree(Node_copy)(l, node, 0, 0,  L);                                       // Split left node
+  NWayTree(Node_copy)(l, node, 0, 0, n);    // n was  L                         // Split left node
   NWayTree(Node_copy)(r, node, 0, L, R);                                        // Split right node
 
   NWayTree_Node_isLeaf(leaf, node);                                             // Leaf node
@@ -663,7 +663,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
           return NWayTree(FindResult_new)(node, key, l, i);
          }
         NWayTree_Node_down(n, node, i);
-        NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(node));                   // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
+        NWayTree_constLong(s, NWayTree(Node_SplitIfFull)(node));                // Split the node we have stepped to if necessary - if we do we will ahve to restart the descent from one level up because the key might have moved to the other  node.
         if (s)
          {NWayTree_Node_up(N, n);
           node = N;
@@ -1457,6 +1457,17 @@ void test_3_3()                                                                 
  {NWayTree_new(t, 3);
   for(int i = 0; i < 3; ++i) NWayTree(Insert)(t, i, i+2);
   //NWayTree(ErrAsC)(tree);
+  assert(NWayTree(EqText)(t,
+"   0                                   2\n"
+"   1                                   3\n"
+"   2                                   4\n"
+));
+ }
+
+void test_3_4z()                                                                // Tests
+ {NWayTree_new(t, 3);
+  for(int i = 0; i < 4; ++i) NWayTree(Insert)(t, i, i+2);
+  NWayTree(ErrAsC)(t);
   assert(NWayTree(EqText)(t,
 "   0                                   2\n"
 "   1                                   3\n"
@@ -2329,6 +2340,7 @@ void NWayTree(TraceBackHandler)(int sig)
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTree(TraceBackHandler));                                  // Trace back handler
   signal(SIGABRT, NWayTree(TraceBackHandler));
+  //test_3_4z(); exit(0);
   test_node_open();
   test_3_iterate63();
   tests3 ();

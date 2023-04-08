@@ -989,29 +989,28 @@ static void NWayTree(Insert)                                                    
   NWayTree_FindResult_node(N, r);
   NWayTree_FindComparison(e, equal);
   NWayTree_FindResult_cmp(c, r);
+  NWayTree_FindResult_index(i, r);
 
   if (c == e)                                                                   // Found an equal key whose data we can update
-   {NWayTree_FindResult_index(ri, r);
-    NWayTree_Node_setData(N, ri, data);
+   {NWayTree_Node_setData(N, i, data);
     return;
    }
 
-  NWayTree_FindResult_index(index, r);                                          // We have room for the insert
   NWayTree_FindComparison(h, higher);
   NWayTree_Node_length(Nl, N);
   const long Nl1 = Nl+1;
   if (c == h)
-   {const long index1 = index+1;
-    NWayTree(Node_open)(N, index1, Nl - index1);
+   {const long i1 = i+1;
+    NWayTree(Node_open)(N, i1, Nl - i1);
 
-    NWayTree_Node_setKeys(N, index1, key);
-    NWayTree_Node_setData(N, index1, data);
+    NWayTree_Node_setKeys(N, i1, key);
+    NWayTree_Node_setData(N, i1, data);
    }
   else
-   {NWayTree(Node_open)(N, index, Nl - index);
+   {NWayTree(Node_open)(N, i, Nl - i);
 
-    NWayTree_Node_setKeys(N, index, key);
-    NWayTree_Node_setData(N, index, data);
+    NWayTree_Node_setKeys(N, i, key);
+    NWayTree_Node_setData(N, i, data);
    }
 
   NWayTree_Node_setLength(N, Nl1);

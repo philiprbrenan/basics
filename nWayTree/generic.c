@@ -10,6 +10,7 @@
 #include <execinfo.h>
 #include <signal.h>
 #include <unistd.h>
+#define NWayTree_MaxIterations 99                                               /* The maximum number of levels in a tree */
 
 #ifndef NWayTree_Included
 #define NWayTree_Included
@@ -632,7 +633,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     node = Node;
    }
 
-  for(long j = 0; j < NWayTree(MaxIterations); ++j)                             // Step down through the tree
+  for(long j = 0; j < NWayTree_MaxIterations; ++j)                              // Step down through the tree
    {NWayTree_Node_length(nl, node);                                             // Length of node
     NWayTree_constLong(last, nl-1);                                             // Greater than largest key in node. Data often gets inserted in ascending order so we do this check first rather than last.
     NWayTree_Node_keys(K, node, last);
@@ -897,7 +898,7 @@ static NWayTree(FindResult) NWayTree(Find)                                      
     return NWayTree(FindResult_new)(node, key, n, -1);
    }
 
-  for(long j = 0; j < NWayTreeLongMaxIterations; ++j)                           // Same code as above
+  for(long j = 0; j < NWayTree_MaxIterations; ++j)                                  // Same code as above
    {NWayTree_Node_length(nl, node);
     const long nl1 = nl - 1;
     NWayTree_Node_keys(nk, node, nl1);
@@ -1052,13 +1053,14 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
      }
     NWayTree_Node_up(Parent, node);                                             // Parent
     NWayTree(Node) *parent = Parent;
-    for(;parent;)                                                               // Not the only node in the tree
+    for(long j = 0; j < NWayTree_MaxIterations; ++j)                                // Not the only node in the tree
      {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                // Index in parent
       NWayTree_Node_length(pl, parent);                                         // Parent length
       if (i == pl)                                                              // Last key - continue up
        {node = parent;
         NWayTree_Node_up(Parent, parent);                                       // Parent
         parent = Parent;
+        if (!parent) break;
        }
       else
        {NWayTree_Node_keys(k, parent, i);

@@ -109,7 +109,7 @@ inline static void NWayTree(Node_copy)                                          
   NWayTree_Node_setDown(t, to+length, n);
  }
 
-inline static void NWayTree(Node_free)                                           // Free a node, Wipe the node so it cannot be accidently reused
+inline static void NWayTree(Node_free)                                          // Free a node, Wipe the node so it cannot be accidently reused
  (NWayTree(Node) * const node)                                                  // Node to free
  {free(node);
  }
@@ -140,7 +140,7 @@ inline static void NWayTree(Free2)                                              
       NWayTree(Free2)(n);
      }
    }
-  NWayTree(Node_free)(node);                                                     // Free node now sub nodes have been freed
+  NWayTree(Node_free)(node);                                                    // Free node now sub nodes have been freed
  }
 
 inline static void NWayTree(Free)                                               // Free a tree
@@ -1053,7 +1053,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
      }
     NWayTree_Node_up(Parent, node);                                             // Parent
     NWayTree(Node) *parent = Parent;
-    for(long j = 0; j < NWayTree_MaxIterations; ++j)                                // Not the only node in the tree
+    for(long j = 0; j < NWayTree_MaxIterations; ++j)                            // Not the only node in the tree
      {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                // Index in parent
       NWayTree_Node_length(pl, parent);                                         // Parent length
       if (i == pl)                                                              // Last key - continue up
@@ -2022,7 +2022,7 @@ long iterateAndTestTree                                                         
  (NWayTree(Tree) * const t)                                                     // Tree to test
  {long n = 0;
   NWayTreeIterate(t, f)                                                         // Iterate through the tree
-   {NWayTree_FindResult_key(k, f);                                            // Key of each iteration
+   {NWayTree_FindResult_key(k, f);                                              // Key of each iteration
     if (k != n) return 0;
     ++n;
    }

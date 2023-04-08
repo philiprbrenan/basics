@@ -7,7 +7,6 @@
 #define NWayTreeLong
 
 #define NWayTreeDataType long
-#define NWayTreeLongMaxIterations 99                                            /* The maximum number of levels in a tree */
 #define NWayTree(name) NWayTreeLong##name                                       /* Function names */
 #include "array/long.c"
 #include "nWayTree/generic.c"

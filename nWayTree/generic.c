@@ -1038,7 +1038,8 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
 
 inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      // Go up until it is possible to go right or we can go no further
  (NWayTree(FindResult) const find)
- {NWayTree(Node) *node = find.node;
+ {NWayTree_FindResult_node(Node, find);
+  NWayTree(Node) * node = Node;
   NWayTree_Node_isLeaf(leaf, node);
   if (leaf)                                                                     // Leaf
    {NWayTree_FindResult_index(I, find);

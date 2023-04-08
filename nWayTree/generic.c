@@ -1059,11 +1059,12 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
        {node = parent;
         NWayTree_Node_up(Parent, parent);                                       // Parent
         parent = Parent;
-        continue;
        }
-      NWayTree_Node_keys(k, parent, i);
-      NWayTree_FindComparison(e, equal);
-      return NWayTree(FindResult_new)(parent, k, e, i);                         // Not the last key
+      else
+       {NWayTree_Node_keys(k, parent, i);
+        NWayTree_FindComparison(e, equal);
+        return NWayTree(FindResult_new)(parent, k, e, i);                       // Not the last key
+       }
      }
     NWayTree_FindComparison(n, notFound);
     return NWayTree(FindResult_new)(node, 0, n, 0);                             // Last key of root

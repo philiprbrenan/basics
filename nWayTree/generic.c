@@ -1054,20 +1054,22 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
       return NWayTree(FindResult_new)(node, k, e, i);
      }
     NWayTree_Node_up(Parent, node);                                             // Parent
-    NWayTree(Node) *parent = Parent;
-    for(long j = 0; parent && j < NWayTree_MaxIterations; ++j)                  // Not the only node in the tree
-     {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                // Index in parent
-      NWayTree_Node_length(pl, parent);                                         // Parent length
-      if (i == pl)                                                              // Last key - continue up
-       {node = parent;
-        NWayTree_Node_up(Parent, parent);                                       // Parent
-        parent = Parent;
-        if (!parent) break;
-       }
-      else
-       {NWayTree_Node_keys(k, parent, i);
-        NWayTree_FindComparison(e, equal);
-        return NWayTree(FindResult_new)(parent, k, e, i);                       // Not the last key
+    if (Parent)
+     {NWayTree(Node) *parent = Parent;
+      for(long j = 0; j < NWayTree_MaxIterations; ++j)                          // Not the only node in the tree
+       {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));              // Index in parent
+        NWayTree_Node_length(pl, parent);                                       // Parent length
+        if (i == pl)                                                            // Last key - continue up
+         {node = parent;
+          NWayTree_Node_up(Parent, parent);                                     // Parent
+          parent = Parent;
+          if (!parent) break;
+         }
+        else
+         {NWayTree_Node_keys(k, parent, i);
+          NWayTree_FindComparison(e, equal);
+          return NWayTree(FindResult_new)(parent, k, e, i);                     // Not the last key
+         }
        }
      }
     NWayTree_FindComparison(n, notFound);

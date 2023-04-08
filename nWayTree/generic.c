@@ -1026,6 +1026,7 @@ inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    
    {NWayTree_FindComparison(n, notFound);
     return NWayTree(FindResult_new)(node, 0, n, 0);
    }
+
   for(long i = 0; i < NWayTree_MaxIterations; ++i)                              // Step down through tree
    {NWayTree_Node_isLeaf(leaf, node);
     if (leaf) break;                                                            // Reached leaf
@@ -1054,7 +1055,7 @@ inline static NWayTree(FindResult) NWayTree(GoUpAndAround)                      
      }
     NWayTree_Node_up(Parent, node);                                             // Parent
     NWayTree(Node) *parent = Parent;
-    for(long j = 0; j < NWayTree_MaxIterations; ++j)                            // Not the only node in the tree
+    for(long j = 0; parent && j < NWayTree_MaxIterations; ++j)                  // Not the only node in the tree
      {NWayTree_constLong(i, NWayTree(Node_indexInParent)(node));                // Index in parent
       NWayTree_Node_length(pl, parent);                                         // Parent length
       if (i == pl)                                                              // Last key - continue up
@@ -2331,6 +2332,57 @@ void testsReverse()                                                             
  {test_reverse();
  }
 
+NWayTree(Tree) *test_3_iterate_load_n(int N)                                    // Tests
+ {NWayTree_new(t, 3);
+  for(long i = 0; i < N; ++i) NWayTree(Insert)(t, i, i);
+  return t;
+ }
+
+void test_3_iterate_1()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(1);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_2()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(2);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_3()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(3);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_4()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(4);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_5()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(5);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_6()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(6);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate()                                                           // Tests
+ {test_3_iterate_1();
+  test_3_iterate_2();
+  test_3_iterate_3();
+  test_3_iterate_4();
+  test_3_iterate_5();
+  test_3_iterate_6();
+ }
+
 void NWayTree(TraceBackHandler)(int sig)
  {void *array[99];
   size_t size = backtrace(array, 99);
@@ -2344,12 +2396,12 @@ void NWayTree(TraceBackHandler)(int sig)
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTree(TraceBackHandler));                                  // Trace back handler
   signal(SIGABRT, NWayTree(TraceBackHandler));
-  //test_3_4z(); exit(0);
   test_node_open();
   test_3_iterate63();
   tests3 ();
   tests31();
   testsReverse();
+  test_3_iterate();
   return 0;
  }
 #endif

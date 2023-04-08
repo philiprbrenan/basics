@@ -1021,18 +1021,19 @@ static void NWayTree(Insert)                                                    
 //D1 Iteration
 
 inline static NWayTree(FindResult) NWayTree(GoAllTheWayLeft)                    // Go as left as possible from the current node
- (NWayTree(Node) * const node)
+ (NWayTree(Node) * node)
  {if (!node)                                                                    // Empty tree
    {NWayTree_FindComparison(n, notFound);
     return NWayTree(FindResult_new)(node, 0, n, 0);
    }
-  NWayTree_Node_isLeaf(leaf, node);
-  if (!leaf)                                                                    // Still some way to go
-   {NWayTree_Node_down(d, node, 0);
-    return NWayTree(GoAllTheWayLeft)(d);
+  for(long i = 0; i < NWayTree_MaxIterations; ++i)                              // Step down through tree
+   {NWayTree_Node_isLeaf(leaf, node);
+    if (leaf) break;                                                            // Reached leaf
+    NWayTree_Node_down(d, node, 0);
+    node = d;
    }
 
-  NWayTree_Node_keys(k, node, 0);
+  NWayTree_Node_keys(k, node, 0);                                               // Update find result
   NWayTree_FindComparison(e, equal);
   return NWayTree(FindResult_new)(node, k, e, 0);                               // Leaf - place us on the first key
  }

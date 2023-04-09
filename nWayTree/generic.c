@@ -628,10 +628,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
   NWayTreeDataType const key)                                                   // Key to locate
  {NWayTree_root(node, tree);
 
-  if (NWayTree(Node_SplitIfFull)(node))                                         // Split the root node if necessary
-   {NWayTree_root(Node, tree);
-    node = Node;
-   }
+  NWayTree(Node_SplitIfFull)(node);                                             // Split the root node if necessary
 
   for(long j = 0; j < NWayTree_MaxIterations; ++j)                              // Step down through the tree
    {NWayTree_Node_length(nl, node);                                             // Length of node

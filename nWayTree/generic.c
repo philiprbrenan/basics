@@ -2376,6 +2376,18 @@ void test_3_iterate_6()                                                         
   NWayTree(Free)(t);
  }
 
+void test_3_iterate_7()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(7);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
+void test_3_iterate_8()                                                         // Tests
+ {NWayTree(Tree) *t = test_3_iterate_load_n(8);
+  assert(iterateAndTestTree(t));
+  NWayTree(Free)(t);
+ }
+
 void test_3_iterate()                                                           // Tests
  {test_3_iterate_1();
   test_3_iterate_2();
@@ -2383,6 +2395,8 @@ void test_3_iterate()                                                           
   test_3_iterate_4();
   test_3_iterate_5();
   test_3_iterate_6();
+  test_3_iterate_7();
+  test_3_iterate_8();
  }
 
 void NWayTree(TraceBackHandler)(int sig)

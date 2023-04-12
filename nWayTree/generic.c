@@ -637,7 +637,7 @@ inline static NWayTree(FindResult) NWayTree(FindAndSplit)                       
     NWayTree_constLong(last, nl-1);                                             // Greater than largest key in node. Data often gets inserted in ascending order so we do this check first rather than last.
     NWayTree_Node_keys(K, node, last);
     if (key > K)                                                                // Key greater than current key
-     {NWayTree_Node_isLeaf(leaf, node);                                         // Leaf
+     {NWayTree_Node_isLeaf(leaf, node);
       if (leaf)                                                                 // Leaf
        {NWayTree_FindComparison(h, higher);
         return NWayTree(FindResult_new)(node, key, h, last);
@@ -1014,7 +1014,7 @@ static void NWayTree(Insert)                                                    
    }
 
   NWayTree_Node_setLength(N, Nl1);
-  NWayTree(Node_SplitIfFull)(N);                                                   // Split if the leaf is full to force keys up the tree
+  NWayTree(Node_SplitIfFull)(N);                                                // Split if the leaf is full to force keys up the tree
  }
 
 //D1 Iteration
@@ -2297,7 +2297,7 @@ void test_reverse()                                                             
   assert(iterateAndTestTree(t));
  }
 
-void test_asm()
+void test_asm4()
  {NWayTree_new(t, 3);
   NWayTree(Insert)(t, 4, 4);
   NWayTree(Insert)(t, 2, 2);
@@ -2310,6 +2310,48 @@ void test_asm()
 "   3                                   3\n"
 "      4                                   4\n"
 ));
+ }
+
+void test_asm5()
+ {NWayTree_new(t, 3);
+  NWayTree(Insert)(t, 1, 1);
+  NWayTree(Insert)(t, 4, 4);
+  NWayTree(Insert)(t, 6, 6);
+  NWayTree(Insert)(t, 2, 2);
+  NWayTree(Insert)(t, 5, 5);
+  NWayTree(ErrAsC)(t);
+  assert(NWayTree(EqText)(t,
+"      1                                   1\n"
+"      2                                   2\n"
+"   4                                   4\n"
+"      5                                   5\n"
+"      6                                   6\n"
+));
+ }
+
+void test_asm6()
+ {NWayTree_new(t, 3);
+  NWayTree(Insert)(t, 1, 1);
+  NWayTree(Insert)(t, 4, 4);
+  NWayTree(Insert)(t, 6, 6);
+  NWayTree(Insert)(t, 2, 2);
+  NWayTree(Insert)(t, 5, 5);
+  NWayTree(Insert)(t, 3, 3);
+ //NWayTree(ErrAsC)(t);
+  assert(NWayTree(EqText)(t,
+"      1                                   1\n"
+"   2                                   2\n"
+"      3                                   3\n"
+"   4                                   4\n"
+"      5                                   5\n"
+"      6                                   6\n"
+));
+ }
+
+void test_asm()
+ {test_asm4();
+  test_asm5();
+  test_asm6();
  }
 
 void test_3_insert()                                                            // Tests

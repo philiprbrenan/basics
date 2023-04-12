@@ -2297,6 +2297,21 @@ void test_reverse()                                                             
   assert(iterateAndTestTree(t));
  }
 
+void test_asm()
+ {NWayTree_new(t, 3);
+  NWayTree(Insert)(t, 4, 4);
+  NWayTree(Insert)(t, 2, 2);
+  NWayTree(Insert)(t, 3, 3);
+  NWayTree(Insert)(t, 1, 1);
+//NWayTree(ErrAsC)(t);
+  assert(NWayTree(EqText)(t,
+"      1                                   1\n"
+"      2                                   2\n"
+"   3                                   3\n"
+"      4                                   4\n"
+));
+ }
+
 void test_3_insert()                                                            // Tests
  {test_3_insert1();
   test_3_insert2();
@@ -2419,6 +2434,7 @@ void NWayTree(TraceBackHandler)(int sig)
 int main()                                                                      // Run tests
  {signal(SIGSEGV, NWayTree(TraceBackHandler));                                  // Trace back handler
   signal(SIGABRT, NWayTree(TraceBackHandler));
+  test_asm();
   test_node_open();
   tests3 ();
   tests31();

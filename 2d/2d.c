@@ -15,7 +15,7 @@ typedef struct Vector2d
  {double x, y;
  } Vector2d;
 
-static Vector2d *new(double x, double y)                                        // Create a vector
+static Vector2d *new(double x, double y)                                        // Create a new vector
  {Vector2d *v = calloc(1, sizeof(Vector2d));
   v->x = x; v->y = y;
   return v;

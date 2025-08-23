@@ -1,4 +1,4 @@
-# Test 2025-08-23 at 00:09:25
+# Test 2025-08-23 at 03:29:13
 
 name: Test
 
@@ -16,7 +16,7 @@ jobs:
 
     - name: Sde
       run: |
-        wget -q -O sde.tar.xz https://downloadmirror.intel.com/788820/sde-external-9.27.0-2023-09-13-lin.tar.xz
+        wget -q -O sde.tar.xz https://downloadmirror.intel.com/859732/sde-external-9.58.0-2025-06-16-lin.tar.xz
         tar -xf sde.tar.xz
         mv sde-external*lin/ sde
 
